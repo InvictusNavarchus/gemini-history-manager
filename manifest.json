@@ -24,7 +24,7 @@
   "content_scripts": [
     {
       "matches": ["*://gemini.google.com/*"],
-      "js": ["lib/utils.js", "content-scripts/gemini-tracker.js"]
+      "js": ["lib/chart.min.js", "lib/utils.js", "content-scripts/gemini-tracker.js"]
     }
   ],
   "icons": {
