@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini History Manager</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>Gemini History Manager</h1>
+    <div class="controls">
+      <button id="openFullPage" class="button primary-button">Open Full View</button>
+      <button id="exportHistory" class="button">Export History</button>
+      <button id="importHistory" class="button">Import History</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats-container">
+      <div class="stat-card">
+        <h3>Total Conversations</h3>
+        <div class="stat-value" id="totalConversations">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Most Used Model</h3>
+        <div class="stat-value" id="mostUsedModel">-</div>
+      </div>
+      <div class="stat-card">
+        <h3>Last Conversation</h3>
+        <div class="stat-value" id="lastConversationTime">-</div>
+      </div>
+    </div>
+
+    <div class="history-preview">
+      <h2>Recent Conversations</h2>
+      <div id="recentConversations" class="conversation-list">
+        <!-- Conversations will be inserted here via JavaScript -->
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Gemini History Manager v1.0.0</p>
+  </footer>
+
+  <input type="file" id="importFileInput" accept=".json" style="display: none;">
+  
+  <script src="../lib/utils.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

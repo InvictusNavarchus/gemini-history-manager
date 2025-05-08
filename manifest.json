@@ -1,0 +1,42 @@
+{
+  "manifest_version": 2,
+  "name": "Gemini History Manager",
+  "version": "1.0.0",
+  "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "*://gemini.google.com/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_title": "Gemini History Manager",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://gemini.google.com/*"],
+      "js": ["lib/utils.js", "content-scripts/gemini-tracker.js"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "gemini-history-manager@example.com",
+      "strict_min_version": "57.0"
+    }
+  }
+}

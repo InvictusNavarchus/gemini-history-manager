@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini History Manager - Full View</title>
+  <link rel="stylesheet" href="history.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>Gemini Chat History Manager</h1>
+      <div class="controls">
+        <button id="exportHistory" class="button">Export History</button>
+        <button id="importHistory" class="button">Import History</button>
+        <button id="clearHistory" class="button danger-button">Clear All History</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="sidebar">
+      <div class="stats-section">
+        <h2>Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Conversations</h3>
+            <div class="stat-value" id="totalConversations">0</div>
+          </div>
+          <div class="stat-card">
+            <h3>Most Used Model</h3>
+            <div class="stat-value" id="mostUsedModel">-</div>
+            <div class="stat-subtext" id="mostUsedModelCount"></div>
+          </div>
+          <div class="stat-card">
+            <h3>Average Title Length</h3>
+            <div class="stat-value" id="avgTitleLength">-</div>
+            <div class="stat-subtext">characters</div>
+          </div>
+          <div class="stat-card">
+            <h3>First Conversation</h3>
+            <div class="stat-value" id="firstConversationTime">-</div>
+          </div>
+          <div class="stat-card">
+            <h3>Files Uploaded</h3>
+            <div class="stat-value" id="totalFilesUploaded">0</div>
+          </div>
+          <div class="stat-card">
+            <h3>Last Conversation</h3>
+            <div class="stat-value" id="lastConversationTime">-</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="filters-section">
+        <h2>Filters</h2>
+        <div class="filter-group">
+          <label for="modelFilter">Model</label>
+          <select id="modelFilter">
+            <option value="">All Models</option>
+            <!-- Will be populated dynamically -->
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="dateFilter">Date Range</label>
+          <select id="dateFilter">
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="custom">Custom Range</option>
+          </select>
+        </div>
+        <div id="customDateRange" class="filter-group date-range" style="display: none;">
+          <div>
+            <label for="startDate">From</label>
+            <input type="date" id="startDate">
+          </div>
+          <div>
+            <label for="endDate">To</label>
+            <input type="date" id="endDate">
+          </div>
+        </div>
+        <div class="filter-group">
+          <label for="searchFilter">Search</label>
+          <input type="text" id="searchFilter" placeholder="Search titles and prompts...">
+        </div>
+      </div>
+      
+      <div class="visualization-section">
+        <h2>Visualizations</h2>
+        <div class="viz-tabs">
+          <button class="viz-tab active" data-viz="modelDistribution">Model Distribution</button>
+          <button class="viz-tab" data-viz="activityOverTime">Activity Over Time</button>
+        </div>
+        <div class="viz-container">
+          <canvas id="vizChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="content">
+      <div class="conversation-header">
+        <h2>Conversations <span id="conversationCount">(0)</span></h2>
+        <div class="sorting">
+          <label for="sortBy">Sort by:</label>
+          <select id="sortBy">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="title">Title (A-Z)</option>
+            <option value="model">Model</option>
+          </select>
+        </div>
+      </div>
+      
+      <div id="conversationList" class="conversation-list">
+        <!-- Conversations will be inserted here dynamically -->
+      </div>
+      
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">📋</div>
+        <h3>No Conversations Found</h3>
+        <p>Your conversation history will appear here once you chat with Gemini.</p>
+        <button id="startChatBtn" class="button primary-button">Start a Gemini Chat</button>
+      </div>
+      
+      <div id="loadingState" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading your conversation history...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Conversation details modal -->
+  <div id="conversationModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Conversation Details</h2>
+        <button id="closeModal" class="close-button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-group">
+          <h3>Title</h3>
+          <p id="detailTitle"></p>
+        </div>
+        <div class="detail-group">
+          <h3>Date</h3>
+          <p id="detailDate"></p>
+        </div>
+        <div class="detail-group">
+          <h3>Model</h3>
+          <p id="detailModel"></p>
+        </div>
+        <div class="detail-group">
+          <h3>Account</h3>
+          <p id="detailAccount"></p>
+        </div>
+        <div class="detail-group">
+          <h3>Prompt</h3>
+          <p id="detailPrompt"></p>
+        </div>
+        <div class="detail-group" id="detailFilesGroup">
+          <h3>Attached Files</h3>
+          <ul id="detailFiles"></ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="openConversation" class="button primary-button">Open in Gemini</button>
+        <button id="deleteConversation" class="button danger-button">Delete from History</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation modal -->
+  <div id="confirmationModal" class="modal">
+    <div class="modal-content confirmation-modal">
+      <div class="modal-header">
+        <h2 id="confirmationTitle">Confirm Action</h2>
+        <button id="closeConfirmation" class="close-button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmationMessage">Are you sure you want to perform this action?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelAction" class="button">Cancel</button>
+        <button id="confirmAction" class="button danger-button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="importFileInput" accept=".json" style="display: none;">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../lib/utils.js"></script>
+  <script src="history.js"></script>
+</body>
+</html>
