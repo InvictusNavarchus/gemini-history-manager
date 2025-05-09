@@ -873,6 +873,15 @@ function setupEventListeners() {
     }
   });
   
+  // Add focus and blur effects for search input
+  elements.searchFilter.addEventListener('focus', () => {
+    elements.searchFilter.parentElement.classList.add('focused');
+  });
+  
+  elements.searchFilter.addEventListener('blur', () => {
+    elements.searchFilter.parentElement.classList.remove('focused');
+  });
+  
   elements.searchFilter.addEventListener('input', () => {
     updateFilteredHistory();
     updateConversationList();

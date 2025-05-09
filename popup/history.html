@@ -9,7 +9,12 @@
 <body>
   <header>
     <div class="header-content">
-      <h1>Gemini Chat History Manager</h1>
+      <div class="header-left">
+        <h1>Gemini Chat History Manager</h1>
+        <div class="search-container">
+          <input type="text" id="searchFilter" placeholder="Search titles and prompts...">
+        </div>
+      </div>
       <div class="controls">
         <button id="exportHistory" class="button">Export History</button>
         <button id="importHistory" class="button">Import History</button>
@@ -20,38 +25,6 @@
 
   <main>
     <div class="sidebar">
-      <div class="stats-section">
-        <h2>Statistics</h2>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3>Total Conversations</h3>
-            <div class="stat-value" id="totalConversations">0</div>
-          </div>
-          <div class="stat-card">
-            <h3>Most Used Model</h3>
-            <div class="stat-value" id="mostUsedModel">-</div>
-            <div class="stat-subtext" id="mostUsedModelCount"></div>
-          </div>
-          <div class="stat-card">
-            <h3>Average Title Length</h3>
-            <div class="stat-value" id="avgTitleLength">-</div>
-            <div class="stat-subtext">characters</div>
-          </div>
-          <div class="stat-card">
-            <h3>First Conversation</h3>
-            <div class="stat-value" id="firstConversationTime">-</div>
-          </div>
-          <div class="stat-card">
-            <h3>Files Uploaded</h3>
-            <div class="stat-value" id="totalFilesUploaded">0</div>
-          </div>
-          <div class="stat-card">
-            <h3>Last Conversation</h3>
-            <div class="stat-value" id="lastConversationTime">-</div>
-          </div>
-        </div>
-      </div>
-      
       <div class="filters-section">
         <h2>Filters</h2>
         <div class="filter-group">
@@ -81,9 +54,37 @@
             <input type="date" id="endDate">
           </div>
         </div>
-        <div class="filter-group">
-          <label for="searchFilter">Search</label>
-          <input type="text" id="searchFilter" placeholder="Search titles and prompts...">
+      </div>
+      
+      <div class="stats-section">
+        <h2>Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Conversations</h3>
+            <div class="stat-value" id="totalConversations">0</div>
+          </div>
+          <div class="stat-card">
+            <h3>Most Used Model</h3>
+            <div class="stat-value" id="mostUsedModel">-</div>
+            <div class="stat-subtext" id="mostUsedModelCount"></div>
+          </div>
+          <div class="stat-card">
+            <h3>Average Title Length</h3>
+            <div class="stat-value" id="avgTitleLength">-</div>
+            <div class="stat-subtext">characters</div>
+          </div>
+          <div class="stat-card">
+            <h3>First Conversation</h3>
+            <div class="stat-value" id="firstConversationTime">-</div>
+          </div>
+          <div class="stat-card">
+            <h3>Files Uploaded</h3>
+            <div class="stat-value" id="totalFilesUploaded">0</div>
+          </div>
+          <div class="stat-card">
+            <h3>Last Conversation</h3>
+            <div class="stat-value" id="lastConversationTime">-</div>
+          </div>
         </div>
       </div>
       
