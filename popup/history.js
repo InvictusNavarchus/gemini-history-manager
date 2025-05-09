@@ -1,5 +1,6 @@
+// history_revamped.js
 /**
- * Gemini History Manager - Full History View
+ * Gemini History Manager - Full History View (Revamped)
  * Handles data visualization, filtering, and conversation management
  */
 
@@ -24,7 +25,7 @@ const elements = {
   
   // Visualization elements
   vizTabs: document.querySelectorAll('.viz-tab'),
-  vizChart: document.getElementById('vizChart'),
+  vizChart: document.getElementById('vizChart'), // Canvas element
   
   // Conversation list elements
   conversationList: document.getElementById('conversationList'),
@@ -59,18 +60,19 @@ const elements = {
   exportHistoryBtn: document.getElementById('exportHistory'),
   importHistoryBtn: document.getElementById('importHistory'),
   clearHistoryBtn: document.getElementById('clearHistory'),
-  importFileInput: document.getElementById('importFileInput')
+  importFileInput: document.getElementById('importFileInput'),
+  startChatBtn: document.getElementById('startChatBtn') // Added for clarity
 };
 
 // Constants
 const STORAGE_KEY = 'geminiChatHistory';
-const CHART_COLORS = [
-  'rgba(110, 65, 226, 0.8)', // Primary purple
-  'rgba(71, 163, 255, 0.8)',  // Blue
-  'rgba(0, 199, 176, 0.8)',   // Teal
-  'rgba(255, 167, 38, 0.8)',  // Orange
-  'rgba(239, 83, 80, 0.8)',   // Red
-  'rgba(171, 71, 188, 0.8)'   // Pink
+const CHART_COLORS = [ // Use CSS variables for consistency if possible, or define here
+  getComputedStyle(document.documentElement).getPropertyValue('--chart-color-1').trim() || 'rgba(124, 58, 237, 0.8)',
+  getComputedStyle(document.documentElement).getPropertyValue('--chart-color-2').trim() || 'rgba(79, 70, 229, 0.8)',
+  getComputedStyle(document.documentElement).getPropertyValue('--chart-color-3').trim() || 'rgba(14, 165, 233, 0.8)',
+  getComputedStyle(document.documentElement).getPropertyValue('--chart-color-4').trim() || 'rgba(245, 158, 11, 0.8)',
+  getComputedStyle(document.documentElement).getPropertyValue('--chart-color-5').trim() || 'rgba(236, 72, 153, 0.8)',
+  getComputedStyle(document.documentElement).getPropertyValue('--chart-color-6').trim() || 'rgba(16, 185, 129, 0.8)'
 ];
 
 // State management
@@ -85,34 +87,31 @@ let confirmationCallback = null; // For handling confirmation modal actions
  */
 async function init() {
   try {
-    // Load history data
+    elements.loadingState.style.display = 'flex'; // Show loading state
+    elements.emptyState.style.display = 'none';
+    elements.conversationList.innerHTML = '';
+
+
     allHistory = await loadHistoryData();
+    updateFilteredHistory(); // Initial filter (all data)
     
-    // Setup initial state
-    updateFilteredHistory();
-    
-    // Populate UI
     populateModelFilter();
     setupDateFilters();
     
-    // Update statistics
     updateStats(allHistory);
-    
-    // Create visualizations
     createVisualization(currentVisualization);
-    
-    // Update conversation list
     updateConversationList();
     
-    // Hide loading state
     elements.loadingState.style.display = 'none';
+    if (allHistory.length === 0 && elements.emptyState) { // Check if emptyState exists
+        elements.emptyState.style.display = 'flex';
+    }
     
-    // Setup event listeners
     setupEventListeners();
     
   } catch (error) {
     console.error('Error initializing application:', error);
-    showError('Failed to load history data');
+    showError('Failed to load history data. Please try reloading.');
   }
 }
 
@@ -121,17 +120,15 @@ async function init() {
  */
 async function loadHistoryData() {
   try {
+    // Simulate a small delay for loading perception if needed
+    // await new Promise(resolve => setTimeout(resolve, 500)); 
     const data = await browser.storage.local.get(STORAGE_KEY);
     const history = data[STORAGE_KEY] || [];
     
-    if (history.length === 0) {
-      elements.emptyState.style.display = 'flex';
-    }
-    
-    return history;
+    return history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Sort by newest first initially
   } catch (error) {
     console.error('Error loading history data:', error);
-    throw error;
+    throw error; // Rethrow to be caught by init
   }
 }
 
@@ -139,83 +136,56 @@ async function loadHistoryData() {
  * Update filtered history based on current filters
  */
 function updateFilteredHistory() {
-  // Get filter values
   const modelValue = elements.modelFilter.value;
   const dateFilterValue = elements.dateFilter.value;
-  const searchValue = elements.searchFilter.value.toLowerCase();
+  const searchValue = elements.searchFilter.value.toLowerCase().trim();
   const startDateValue = elements.startDate.value;
   const endDateValue = elements.endDate.value;
   
-  // Apply filters
   filteredHistory = allHistory.filter(item => {
-    // Model filter
-    if (modelValue && item.model !== modelValue) {
-      return false;
-    }
+    if (modelValue && item.model !== modelValue) return false;
     
-    // Date filter
     if (dateFilterValue !== 'all') {
       const itemDate = new Date(item.timestamp);
       const now = new Date();
       
       if (dateFilterValue === 'today') {
-        // Today only
-        if (!isSameDay(itemDate, now)) {
-          return false;
-        }
+        if (!isSameDay(itemDate, now)) return false;
       } else if (dateFilterValue === 'week') {
-        // This week
         const weekStart = new Date(now);
-        weekStart.setDate(now.getDate() - now.getDay());
+        weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Adjust for week start (Mon)
         weekStart.setHours(0, 0, 0, 0);
-        
-        if (itemDate < weekStart) {
-          return false;
-        }
+        if (itemDate < weekStart) return false;
       } else if (dateFilterValue === 'month') {
-        // This month
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        
-        if (itemDate < monthStart) {
-          return false;
-        }
+        if (itemDate < monthStart) return false;
       } else if (dateFilterValue === 'custom' && (startDateValue || endDateValue)) {
-        // Custom date range
         if (startDateValue) {
           const startDate = new Date(startDateValue);
           startDate.setHours(0, 0, 0, 0);
-          
-          if (itemDate < startDate) {
-            return false;
-          }
+          if (itemDate < startDate) return false;
         }
-        
         if (endDateValue) {
-          const endDate = new Date(endDateValue);
-          endDate.setHours(23, 59, 59, 999);
-          
-          if (itemDate > endDate) {
-            return false;
-          }
+          const endDateObj = new Date(endDateValue);
+          endDateObj.setHours(23, 59, 59, 999);
+          if (itemDate > endDateObj) return false;
         }
       }
     }
     
-    // Search filter
     if (searchValue) {
       const title = (item.title || '').toLowerCase();
       const prompt = (item.prompt || '').toLowerCase();
-      
+      // Optionally search other fields like model or account
+      // const model = (item.model || '').toLowerCase(); 
       if (!title.includes(searchValue) && !prompt.includes(searchValue)) {
         return false;
       }
     }
-    
     return true;
   });
   
-  // Apply sorting
-  sortFilteredHistory();
+  sortFilteredHistory(); // Apply current sort order
 }
 
 /**
@@ -232,18 +202,10 @@ function sortFilteredHistory() {
       filteredHistory.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       break;
     case 'title':
-      filteredHistory.sort((a, b) => {
-        const titleA = a.title || 'Untitled';
-        const titleB = b.title || 'Untitled';
-        return titleA.localeCompare(titleB);
-      });
+      filteredHistory.sort((a, b) => (a.title || 'Untitled').localeCompare(b.title || 'Untitled'));
       break;
     case 'model':
-      filteredHistory.sort((a, b) => {
-        const modelA = a.model || 'Unknown';
-        const modelB = b.model || 'Unknown';
-        return modelA.localeCompare(modelB);
-      });
+      filteredHistory.sort((a, b) => (a.model || 'Unknown').localeCompare(b.model || 'Unknown'));
       break;
   }
 }
@@ -252,33 +214,41 @@ function sortFilteredHistory() {
  * Update conversation list display
  */
 function updateConversationList() {
-  // Update count display
   elements.conversationCount.textContent = `(${filteredHistory.length})`;
+  elements.conversationList.innerHTML = ''; // Clear current list
   
-  // Clear current list
-  elements.conversationList.innerHTML = '';
-  
-  // Show empty state if no conversations match the filter
+  if (elements.emptyState) elements.emptyState.style.display = 'none'; // Hide general empty state first
+
   if (filteredHistory.length === 0) {
-    const emptyFilterElement = document.createElement('div');
-    emptyFilterElement.className = 'empty-state';
-    emptyFilterElement.innerHTML = `
-      <p>No conversations match your filters</p>
-      <button id="clearFiltersBtn" class="button">Clear Filters</button>
-    `;
-    elements.conversationList.appendChild(emptyFilterElement);
-    
-    document.getElementById('clearFiltersBtn').addEventListener('click', () => {
-      resetFilters();
-    });
+    // If allHistory is also empty, the main emptyState (handled in init) will show.
+    // This is for when filters result in no items, but history exists.
+    if (allHistory.length > 0) {
+        const emptyFilterElement = document.createElement('div');
+        emptyFilterElement.className = 'empty-state'; // Use existing class for styling
+        emptyFilterElement.innerHTML = `
+            <div class="empty-icon">🧐</div>
+            <h3>No Conversations Match Filters</h3>
+            <p>Try adjusting your search terms or filter criteria.</p>
+            <button id="clearFiltersBtn" class="button button-secondary">Clear Filters</button>
+        `;
+        elements.conversationList.appendChild(emptyFilterElement);
+        
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+        if (clearFiltersBtn) { // Ensure button exists before adding listener
+            clearFiltersBtn.addEventListener('click', resetFilters);
+        }
+    } else if (elements.emptyState) { // If no history at all
+        elements.emptyState.style.display = 'flex';
+    }
     return;
   }
   
-  // Create and append conversation items
+  const fragment = document.createDocumentFragment();
   filteredHistory.forEach(entry => {
     const conversationItem = createConversationItem(entry);
-    elements.conversationList.appendChild(conversationItem);
+    fragment.appendChild(conversationItem);
   });
+  elements.conversationList.appendChild(fragment);
 }
 
 /**
@@ -289,67 +259,70 @@ function createConversationItem(entry) {
   item.className = 'conversation-item';
   item.dataset.id = entry.url; // Use URL as unique identifier
   
-  const title = document.createElement('div');
-  title.className = 'conversation-title';
-  title.textContent = entry.title || 'Untitled Conversation';
+  // Title
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'conversation-title';
+  titleDiv.textContent = entry.title || 'Untitled Conversation';
   
-  const meta = document.createElement('div');
-  meta.className = 'conversation-meta';
+  // Meta container
+  const metaDiv = document.createElement('div');
+  metaDiv.className = 'conversation-meta';
   
+  // Meta Left (Date, Model)
   const metaLeft = document.createElement('div');
   metaLeft.className = 'meta-left';
   
-  const date = document.createElement('span');
-  date.className = 'conversation-date';
-  date.textContent = formatDate(new Date(entry.timestamp));
+  const dateSpan = document.createElement('span');
+  dateSpan.className = 'conversation-date';
+  // dateSpan.innerHTML = `<i class="icon-calendar"></i> ${formatDate(new Date(entry.timestamp))}`; // Example icon
+  dateSpan.textContent = formatDate(new Date(entry.timestamp));
+
+
+  const modelSpan = document.createElement('span');
+  modelSpan.className = 'conversation-model';
+  // modelSpan.innerHTML = `<i class="icon-model"></i> ${entry.model || 'Unknown'}`; // Example icon
+  modelSpan.textContent = entry.model || 'Unknown';
   
-  const model = document.createElement('span');
-  model.className = 'conversation-model';
-  model.textContent = entry.model || 'Unknown';
+  metaLeft.appendChild(dateSpan);
+  metaLeft.appendChild(modelSpan);
   
-  metaLeft.appendChild(date);
-  metaLeft.appendChild(model);
-  
+  // Meta Right (Account, Files)
   const metaRight = document.createElement('div');
   metaRight.className = 'meta-right';
   
-  // Display account info if available
   if (entry.accountName && entry.accountName !== 'Unknown') {
-    const account = document.createElement('span');
-    account.className = 'conversation-account';
-    account.textContent = entry.accountEmail || entry.accountName;
-    metaRight.appendChild(account);
+    const accountSpan = document.createElement('span');
+    accountSpan.className = 'conversation-account';
+    // accountSpan.innerHTML = `<i class="icon-account"></i> ${entry.accountEmail || entry.accountName}`; // Example icon
+    accountSpan.textContent = entry.accountEmail || entry.accountName;
+    metaRight.appendChild(accountSpan);
   }
   
-  // Display file count if available
   if (entry.attachedFiles && entry.attachedFiles.length > 0) {
-    const fileCount = document.createElement('span');
-    fileCount.className = 'conversation-files';
-    fileCount.textContent = `${entry.attachedFiles.length} file${entry.attachedFiles.length !== 1 ? 's' : ''}`;
-    metaRight.appendChild(fileCount);
+    const fileCountSpan = document.createElement('span');
+    fileCountSpan.className = 'conversation-files';
+    // fileCountSpan.innerHTML = `<i class="icon-files"></i> ${entry.attachedFiles.length} file${entry.attachedFiles.length !== 1 ? 's' : ''}`; // Example icon
+    fileCountSpan.textContent = `${entry.attachedFiles.length} file${entry.attachedFiles.length !== 1 ? 's' : ''}`;
+    metaRight.appendChild(fileCountSpan);
   }
   
-  meta.appendChild(metaLeft);
-  meta.appendChild(metaRight);
+  metaDiv.appendChild(metaLeft);
+  if (metaRight.hasChildNodes()) {
+      metaDiv.appendChild(metaRight);
+  }
+
+  item.appendChild(titleDiv);
+  item.appendChild(metaDiv);
   
-  // Add prompt preview if available
+  // Prompt Preview
   if (entry.prompt) {
-    const prompt = document.createElement('div');
-    prompt.className = 'conversation-prompt';
-    prompt.textContent = entry.prompt;
-    item.appendChild(title);
-    item.appendChild(meta);
-    item.appendChild(prompt);
-  } else {
-    item.appendChild(title);
-    item.appendChild(meta);
+    const promptDiv = document.createElement('div');
+    promptDiv.className = 'conversation-prompt';
+    promptDiv.textContent = entry.prompt;
+    item.appendChild(promptDiv);
   }
   
-  // Add click event to show details
-  item.addEventListener('click', () => {
-    showConversationDetails(entry);
-  });
-  
+  item.addEventListener('click', () => showConversationDetails(entry));
   return item;
 }
 
@@ -357,51 +330,49 @@ function createConversationItem(entry) {
  * Show conversation details in modal
  */
 function showConversationDetails(conversation) {
-  // Set modal content
   elements.detailTitle.textContent = conversation.title || 'Untitled Conversation';
-  elements.detailDate.textContent = new Date(conversation.timestamp).toLocaleString();
+  elements.detailDate.textContent = new Date(conversation.timestamp).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
   elements.detailModel.textContent = conversation.model || 'Unknown';
   
-  // Account info
   if (conversation.accountName && conversation.accountEmail) {
     elements.detailAccount.textContent = `${conversation.accountName} (${conversation.accountEmail})`;
   } else {
-    elements.detailAccount.textContent = conversation.accountName || conversation.accountEmail || 'Unknown';
+    elements.detailAccount.textContent = conversation.accountName || conversation.accountEmail || 'N/A';
   }
   
-  // Prompt
-  elements.detailPrompt.textContent = conversation.prompt || 'No prompt data available';
+  elements.detailPrompt.textContent = conversation.prompt || 'No prompt data available.';
   
-  // Files
   if (conversation.attachedFiles && conversation.attachedFiles.length > 0) {
     elements.detailFilesGroup.style.display = 'block';
     elements.detailFiles.innerHTML = '';
-    
     conversation.attachedFiles.forEach(file => {
       const li = document.createElement('li');
-      li.textContent = file;
+      li.textContent = file; // Potentially add file icons or links if applicable
       elements.detailFiles.appendChild(li);
     });
   } else {
     elements.detailFilesGroup.style.display = 'none';
   }
   
-  // Set up open button
   elements.openConversation.onclick = () => {
     browser.tabs.create({ url: conversation.url });
+    closeModals();
   };
   
-  // Set up delete button
   elements.deleteConversation.onclick = () => {
+    // No need to close conversationModal here, showConfirmation will overlay
     showConfirmation(
       'Delete Conversation', 
-      `Are you sure you want to delete "${conversation.title || 'Untitled Conversation'}"? This cannot be undone.`,
-      () => deleteConversation(conversation.url)
+      `Are you sure you want to delete "${conversation.title || 'Untitled Conversation'}"? This action cannot be undone.`,
+      async () => {
+        await deleteConversation(conversation.url);
+        // Deletion handles closing modals and UI updates
+      }
     );
   };
   
-  // Show modal
   elements.conversationModal.classList.add('active');
+  elements.conversationModal.querySelector('.modal-body').scrollTop = 0; // Scroll to top
 }
 
 /**
@@ -410,7 +381,7 @@ function showConversationDetails(conversation) {
 function showConfirmation(title, message, callback) {
   elements.confirmationTitle.textContent = title;
   elements.confirmationMessage.textContent = message;
-  confirmationCallback = callback;
+  confirmationCallback = callback; // Store the callback
   elements.confirmationModal.classList.add('active');
 }
 
@@ -419,35 +390,30 @@ function showConfirmation(title, message, callback) {
  */
 async function deleteConversation(url) {
   try {
-    // Filter out the conversation with the matching URL
     allHistory = allHistory.filter(item => item.url !== url);
-    
-    // Save updated history
     await browser.storage.local.set({ [STORAGE_KEY]: allHistory });
     
-    // Update badge
-    browser.runtime.sendMessage({
-      action: 'updateHistoryCount',
-      count: allHistory.length
-    });
-    
-    // Close modals
-    closeModals();
-    
-    // Update UI
-    updateFilteredHistory();
-    updateStats(allHistory);
-    updateConversationList();
-    createVisualization(currentVisualization);
-    
-    // Show empty state if no history left
-    if (allHistory.length === 0) {
-      elements.emptyState.style.display = 'flex';
+    if (browser.runtime && browser.runtime.sendMessage) {
+        browser.runtime.sendMessage({ action: 'updateHistoryCount', count: allHistory.length });
     }
     
+    closeModals(); // Close all modals first
+    
+    updateFilteredHistory(); // This will also sort
+    updateStats(allHistory);
+    updateConversationList(); // This will handle empty states
+    createVisualization(currentVisualization); // Redraw chart with updated data
+    
+    // If allHistory becomes empty, the main emptyState should show
+    if (allHistory.length === 0 && elements.emptyState) {
+        elements.emptyState.style.display = 'flex';
+        elements.conversationList.innerHTML = ''; // Ensure list is cleared
+    }
+
   } catch (error) {
     console.error('Error deleting conversation:', error);
-    alert('Failed to delete conversation');
+    // Consider showing a user-friendly notification here
+    alert('Failed to delete conversation. Please try again.');
   }
 }
 
@@ -455,19 +421,18 @@ async function deleteConversation(url) {
  * Close all modals
  */
 function closeModals() {
-  elements.conversationModal.classList.remove('active');
-  elements.confirmationModal.classList.remove('active');
+  if (elements.conversationModal) elements.conversationModal.classList.remove('active');
+  if (elements.confirmationModal) elements.confirmationModal.classList.remove('active');
+  confirmationCallback = null; // Clear callback when modals are closed
 }
 
 /**
  * Update statistics display
  */
 function updateStats(history) {
-  // Update total conversations count
   elements.totalConversations.textContent = history.length;
   
   if (history.length === 0) {
-    // Reset stats if no data
     elements.mostUsedModel.textContent = '-';
     elements.mostUsedModelCount.textContent = '';
     elements.avgTitleLength.textContent = '-';
@@ -477,63 +442,37 @@ function updateStats(history) {
     return;
   }
   
-  // Find most used model
   const modelCounts = history.reduce((acc, entry) => {
     const model = entry.model || 'Unknown';
     acc[model] = (acc[model] || 0) + 1;
     return acc;
   }, {});
   
-  const mostUsed = Object.entries(modelCounts)
-    .sort((a, b) => b[1] - a[1])[0];
-    
-  elements.mostUsedModel.textContent = mostUsed ? mostUsed[0] : '-';
+  const mostUsed = Object.entries(modelCounts).sort((a, b) => b[1] - a[1])[0];
+  elements.mostUsedModel.textContent = mostUsed ? mostUsed[0] : 'N/A';
   elements.mostUsedModelCount.textContent = mostUsed ? `(${mostUsed[1]} chats)` : '';
   
-  // Calculate average title length
-  const totalTitleLength = history.reduce((acc, entry) => {
-    return acc + (entry.title ? entry.title.length : 0);
-  }, 0);
+  const totalTitleLength = history.reduce((acc, entry) => acc + (entry.title ? entry.title.length : 0), 0);
+  elements.avgTitleLength.textContent = history.length > 0 ? Math.round(totalTitleLength / history.length) : '-';
   
-  const avgLength = totalTitleLength / history.length;
-  elements.avgTitleLength.textContent = Math.round(avgLength);
+  const sortedByDate = [...history].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  elements.firstConversationTime.textContent = formatDate(new Date(sortedByDate[0].timestamp), true);
+  elements.lastConversationTime.textContent = formatTimeAgo(new Date(sortedByDate[sortedByDate.length - 1].timestamp));
   
-  // Find first and last conversation timestamps
-  const sortedByDate = [...history].sort((a, b) => 
-    new Date(a.timestamp) - new Date(b.timestamp)
-  );
-  
-  const firstDate = new Date(sortedByDate[0].timestamp);
-  const lastDate = new Date(sortedByDate[sortedByDate.length - 1].timestamp);
-  
-  elements.firstConversationTime.textContent = formatDate(firstDate, true);
-  elements.lastConversationTime.textContent = formatTimeAgo(lastDate);
-  
-  // Count total files uploaded
-  const totalFiles = history.reduce((acc, entry) => {
-    return acc + (entry.attachedFiles ? entry.attachedFiles.length : 0);
-  }, 0);
-  
+  const totalFiles = history.reduce((acc, entry) => acc + (entry.attachedFiles ? entry.attachedFiles.length : 0), 0);
   elements.totalFilesUploaded.textContent = totalFiles;
 }
 
 /**
- * Populate model filter dropdown with unique models from history
+ * Populate model filter dropdown
  */
 function populateModelFilter() {
-  // Get unique models
-  const models = new Set();
-  allHistory.forEach(item => {
-    models.add(item.model || 'Unknown');
-  });
+  const models = [...new Set(allHistory.map(item => item.model || 'Unknown'))].sort();
   
-  // Clear current options (except "All Models")
-  const firstOption = elements.modelFilter.firstElementChild;
-  elements.modelFilter.innerHTML = '';
-  elements.modelFilter.appendChild(firstOption);
+  // Keep the "All Models" option
+  elements.modelFilter.innerHTML = '<option value="">All Models</option>'; 
   
-  // Add model options
-  Array.from(models).sort().forEach(model => {
+  models.forEach(model => {
     const option = document.createElement('option');
     option.value = model;
     option.textContent = model;
@@ -545,13 +484,13 @@ function populateModelFilter() {
  * Set up date filter events and initialize date inputs
  */
 function setupDateFilters() {
-  // Set up custom date range visibility toggle
   elements.dateFilter.addEventListener('change', () => {
-    elements.customDateRange.style.display = 
-      elements.dateFilter.value === 'custom' ? 'grid' : 'none';
+    elements.customDateRange.style.display = elements.dateFilter.value === 'custom' ? 'grid' : 'none';
+    // Trigger update when main date filter changes (not just custom inputs)
+    updateFilteredHistory();
+    updateConversationList();
   });
   
-  // Set default dates (last 30 days for start, today for end)
   const today = new Date();
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -568,9 +507,14 @@ function resetFilters() {
   elements.dateFilter.value = 'all';
   elements.searchFilter.value = '';
   elements.customDateRange.style.display = 'none';
-  elements.sortBy.value = 'date-desc';
+  // Reset custom dates if you want, or leave them
+  // const today = new Date();
+  // const thirtyDaysAgo = new Date();
+  // thirtyDaysAgo.setDate(today.getDate() - 30);
+  // elements.startDate.value = formatDateForInput(thirtyDaysAgo);
+  // elements.endDate.value = formatDateForInput(today);
+  elements.sortBy.value = 'date-desc'; // Default sort
   
-  // Update UI
   updateFilteredHistory();
   updateConversationList();
 }
@@ -579,70 +523,84 @@ function resetFilters() {
  * Create visualization based on the selected type
  */
 function createVisualization(type) {
-  // Destroy existing chart
-  if (chart) {
-    chart.destroy();
-  }
+  if (chart) chart.destroy();
   
-  // If no data, don't create chart
   if (allHistory.length === 0) {
+    // Optionally display a message in the chart area
+    const ctx = elements.vizChart.getContext('2d');
+    ctx.clearRect(0, 0, elements.vizChart.width, elements.vizChart.height); // Clear previous chart
+    ctx.font = "14px " + getComputedStyle(document.documentElement).getPropertyValue('--font-family-sans').trim();
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-lighter').trim();
+    ctx.textAlign = "center";
+    ctx.fillText("No data to visualize yet.", elements.vizChart.width / 2, elements.vizChart.height / 2);
     return;
   }
   
-  // Create new visualization
+  currentVisualization = type; // Update current viz type
   switch (type) {
     case 'modelDistribution':
-      createModelDistribution();
+      createModelDistributionChart();
       break;
     case 'activityOverTime':
-      createActivityOverTime();
+      createActivityOverTimeChart();
       break;
   }
 }
 
 /**
- * Create model distribution chart
+ * Create model distribution chart (doughnut)
  */
-function createModelDistribution() {
-  // Count occurrences of each model
+function createModelDistributionChart() {
   const modelCounts = allHistory.reduce((acc, entry) => {
     const model = entry.model || 'Unknown';
     acc[model] = (acc[model] || 0) + 1;
     return acc;
   }, {});
   
-  // Convert to arrays for Chart.js
   const labels = Object.keys(modelCounts);
   const data = Object.values(modelCounts);
   
-  // Create chart
-  const ctx = elements.vizChart.getContext('2d');
-  chart = new Chart(ctx, {
+  chart = new Chart(elements.vizChart.getContext('2d'), {
     type: 'doughnut',
     data: {
       labels: labels,
       datasets: [{
         data: data,
-        backgroundColor: CHART_COLORS,
-        borderColor: 'white',
-        borderWidth: 1
+        backgroundColor: CHART_COLORS.slice(0, labels.length),
+        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim(),
+        borderWidth: 2
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 800,
+        easing: 'easeInOutQuart'
+      },
       plugins: {
         legend: {
-          position: 'right',
+          position: 'bottom',
           labels: {
             boxWidth: 12,
-            font: {
-              size: 11
-            }
+            padding: 15,
+            font: { size: 12, family: getComputedStyle(document.documentElement).getPropertyValue('--font-family-sans').trim() },
+            color: getComputedStyle(document.documentElement).getPropertyValue('--text-light').trim()
           }
         },
-        title: {
-          display: false
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    let label = context.label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    if (context.parsed !== null) {
+                        label += context.parsed + ' chat' + (context.parsed === 1 ? '' : 's');
+                    }
+                    return label;
+                }
+            }
         }
       }
     }
@@ -650,89 +608,97 @@ function createModelDistribution() {
 }
 
 /**
- * Create activity over time chart
+ * Create activity over time chart (line)
  */
-function createActivityOverTime() {
-  // Group conversations by date
+function createActivityOverTimeChart() {
   const dateGroups = {};
-  
   allHistory.forEach(entry => {
-    const date = new Date(entry.timestamp);
-    const dateStr = formatDateForGrouping(date);
-    
-    if (!dateGroups[dateStr]) {
-      dateGroups[dateStr] = 0;
-    }
-    dateGroups[dateStr]++;
+    const dateStr = formatDateForGrouping(new Date(entry.timestamp));
+    dateGroups[dateStr] = (dateGroups[dateStr] || 0) + 1;
   });
-  
-  // Get all dates in the range
-  const dates = Object.keys(dateGroups).sort();
-  
-  // Fill in missing dates
-  if (dates.length > 1) {
-    const startDate = new Date(dates[0]);
-    const endDate = new Date(dates[dates.length - 1]);
-    
-    // Ensure continuous dates
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      const dateStr = formatDateForGrouping(currentDate);
-      if (!dateGroups[dateStr]) {
-        dateGroups[dateStr] = 0;
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
+
+  // Ensure we have a sensible range even if data is sparse
+  let sortedDates = Object.keys(dateGroups).sort();
+  if (sortedDates.length > 0) {
+    const allDatesInRange = [];
+    let currentDate = new Date(sortedDates[0]);
+    const endDate = new Date(sortedDates[sortedDates.length -1]);
+
+    while(currentDate <= endDate) {
+        allDatesInRange.push(formatDateForGrouping(new Date(currentDate)));
+        currentDate.setDate(currentDate.getDate() + 1);
     }
+    sortedDates = allDatesInRange; // Use the continuous range
   }
-  
-  // Sort dates for chart
-  const sortedDates = Object.keys(dateGroups).sort();
-  const counts = sortedDates.map(date => dateGroups[date]);
-  
-  // Format dates for display
-  const displayDates = sortedDates.map(date => {
-    const [year, month, day] = date.split('-');
-    return `${month}/${day}`; // Short format MM/DD
+
+
+  const counts = sortedDates.map(date => dateGroups[date] || 0); // Ensure 0 for dates with no activity in range
+  const displayDates = sortedDates.map(dateStr => {
+      const [year, month, day] = dateStr.split('-');
+      return `${month}/${day}`; // MM/DD format
   });
   
-  // Create chart
-  const ctx = elements.vizChart.getContext('2d');
-  chart = new Chart(ctx, {
+  chart = new Chart(elements.vizChart.getContext('2d'), {
     type: 'line',
     data: {
       labels: displayDates,
       datasets: [{
         label: 'Conversations',
         data: counts,
-        backgroundColor: 'rgba(110, 65, 226, 0.2)',
-        borderColor: 'rgba(110, 65, 226, 1)',
-        borderWidth: 2,
-        tension: 0.1,
+        backgroundColor: CHART_COLORS[0].replace('0.8', '0.2'), // Use primary chart color with less opacity
+        borderColor: CHART_COLORS[0],
+        borderWidth: 2.5,
+        tension: 0.4, // Smoother curve
         fill: true,
-        pointRadius: 3,
-        pointBackgroundColor: 'white',
-        pointBorderColor: 'rgba(110, 65, 226, 1)'
+        pointRadius: 4,
+        pointBackgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim(),
+        pointBorderColor: CHART_COLORS[0],
+        pointHoverRadius: 6,
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 800,
+        easing: 'easeInOutQuart'
+      },
       scales: {
         y: {
           beginAtZero: true,
+          grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() },
+          ticks: { 
+            precision: 0,
+            color: getComputedStyle(document.documentElement).getPropertyValue('--text-lighter').trim(),
+            font: { family: getComputedStyle(document.documentElement).getPropertyValue('--font-family-sans').trim() }
+          }
+        },
+        x: {
+          grid: { display: false },
           ticks: {
-            precision: 0
+            color: getComputedStyle(document.documentElement).getPropertyValue('--text-lighter').trim(),
+            font: { family: getComputedStyle(document.documentElement).getPropertyValue('--font-family-sans').trim() },
+            maxRotation: 0, // Prevent label rotation if possible
+            autoSkipPadding: 10 // Adjust for better label display
           }
         }
       },
       plugins: {
-        legend: {
-          display: false
+        legend: { display: false },
+        tooltip: {
+            callbacks: {
+                title: function(context) {
+                    // Use the full date from sortedDates for the tooltip title
+                    const index = context[0].dataIndex;
+                    return formatDate(new Date(sortedDates[index]), true); // Show full date in tooltip
+                }
+            }
         }
       }
     }
   });
 }
+
 
 /**
  * Handle import file
@@ -745,52 +711,42 @@ async function handleImportFile(event) {
     const text = await readFile(file);
     const importedData = JSON.parse(text);
     
-    if (!Array.isArray(importedData)) {
-      throw new Error('Invalid data format');
+    if (!Array.isArray(importedData)) throw new Error('Invalid data format: Expected an array.');
+    // Basic validation for an item (can be more thorough)
+    if (importedData.length > 0 && (!importedData[0].url || !importedData[0].timestamp)) {
+        throw new Error('Invalid data format: Missing required fields (url, timestamp).');
     }
-    
-    // Get current data and merge, avoiding duplicates
+
     const existingUrls = new Set(allHistory.map(item => item.url));
-    const newItems = importedData.filter(item => !existingUrls.has(item.url));
+    const newItems = importedData.filter(item => item.url && !existingUrls.has(item.url)); // Ensure item.url exists
     
     if (newItems.length === 0) {
-      alert('No new conversations found in import file');
+      alert('No new conversations found in the import file, or data was in an invalid format.');
       return;
     }
     
-    // Merge and sort by timestamp (newest first)
-    const mergedData = [...allHistory, ...newItems].sort((a, b) => {
-      return new Date(b.timestamp) - new Date(a.timestamp);
-    });
+    allHistory = [...allHistory, ...newItems].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    await browser.storage.local.set({ [STORAGE_KEY]: allHistory });
     
-    // Save merged data
-    await browser.storage.local.set({ [STORAGE_KEY]: mergedData });
+    if (browser.runtime && browser.runtime.sendMessage) {
+        browser.runtime.sendMessage({ action: 'updateHistoryCount', count: allHistory.length });
+    }
     
-    // Update badge
-    browser.runtime.sendMessage({
-      action: 'updateHistoryCount',
-      count: mergedData.length
-    });
-    
-    // Update local data
-    allHistory = mergedData;
-    
-    // Update UI
-    elements.emptyState.style.display = 'none';
+    // Full UI refresh
     updateFilteredHistory();
     updateStats(allHistory);
     populateModelFilter();
     updateConversationList();
     createVisualization(currentVisualization);
+    if (elements.emptyState) elements.emptyState.style.display = allHistory.length > 0 ? 'none' : 'flex';
     
-    alert(`Import complete: Added ${newItems.length} new conversations`);
+    alert(`Import successful: ${newItems.length} new conversation(s) added.`);
   } catch (error) {
     console.error('Import error:', error);
-    alert(`Import error: ${error.message}`);
+    alert(`Import failed: ${error.message}`);
+  } finally {
+    event.target.value = ''; // Reset file input
   }
-  
-  // Reset the input
-  event.target.value = '';
 }
 
 /**
@@ -799,35 +755,27 @@ async function handleImportFile(event) {
 function exportHistoryData() {
   try {
     if (allHistory.length === 0) {
-      alert('No history data to export');
+      alert('No history data to export.');
       return;
     }
     
-    // Create exportable data
-    const dataToExport = filteredHistory.length < allHistory.length && filteredHistory.length > 0 
-      ? filteredHistory  // Export only filtered data if filters are active
-      : allHistory;      // Export all data if no filters
-    
-    // Create file
-    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {
-      type: 'application/json'
-    });
-    
+    const dataToExport = (filteredHistory.length < allHistory.length && filteredHistory.length > 0 && elements.searchFilter.value) 
+      ? filteredHistory // Export filtered if a search or specific filter is active and yields results
+      : allHistory;     // Otherwise, export all
+
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
-    // Create download link
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
     downloadLink.download = `gemini-history-export-${formatDateForFilename(new Date())}.json`;
-    
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
-    
     URL.revokeObjectURL(url);
+
   } catch (error) {
     console.error('Error exporting history:', error);
-    alert('Failed to export history data');
+    alert('Failed to export history data. Please try again.');
   }
 }
 
@@ -835,94 +783,82 @@ function exportHistoryData() {
  * Set up all event listeners
  */
 function setupEventListeners() {
-  // Close modal buttons
-  elements.closeModal.addEventListener('click', closeModals);
-  elements.closeConfirmation.addEventListener('click', closeModals);
-  elements.cancelAction.addEventListener('click', closeModals);
+  const commonFilterUpdate = () => {
+    updateFilteredHistory();
+    updateConversationList();
+  };
+
+  elements.closeModal?.addEventListener('click', closeModals);
+  elements.closeConfirmation?.addEventListener('click', closeModals);
+  elements.cancelAction?.addEventListener('click', closeModals);
   
-  // Confirmation action button
-  elements.confirmAction.addEventListener('click', () => {
+  elements.confirmAction?.addEventListener('click', () => {
     if (typeof confirmationCallback === 'function') {
-      confirmationCallback();
+      confirmationCallback(); // Execute the stored callback
     }
-    confirmationCallback = null;
+    // confirmationCallback = null; // Callback is cleared in closeModals or after execution if needed
   });
   
-  // Filter change events
-  elements.modelFilter.addEventListener('change', () => {
-    updateFilteredHistory();
-    updateConversationList();
+  elements.modelFilter?.addEventListener('change', commonFilterUpdate);
+  // elements.dateFilter event listener is set in setupDateFilters to handle custom range display
+
+  elements.startDate?.addEventListener('change', () => {
+    if (elements.dateFilter.value === 'custom') commonFilterUpdate();
+  });
+  elements.endDate?.addEventListener('change', () => {
+    if (elements.dateFilter.value === 'custom') commonFilterUpdate();
   });
   
-  elements.dateFilter.addEventListener('change', () => {
-    updateFilteredHistory();
-    updateConversationList();
+  // Debounce search filter input for better performance
+  let searchTimeout;
+  elements.searchFilter?.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        commonFilterUpdate();
+    }, 300); // 300ms debounce
   });
   
-  elements.startDate.addEventListener('change', () => {
-    if (elements.dateFilter.value === 'custom') {
-      updateFilteredHistory();
-      updateConversationList();
-    }
+  elements.sortBy?.addEventListener('change', () => {
+    sortFilteredHistory(); // Sort first
+    updateConversationList(); // Then update list display
   });
   
-  elements.endDate.addEventListener('change', () => {
-    if (elements.dateFilter.value === 'custom') {
-      updateFilteredHistory();
-      updateConversationList();
-    }
-  });
-  
-  elements.searchFilter.addEventListener('input', () => {
-    updateFilteredHistory();
-    updateConversationList();
-  });
-  
-  // Sort change event
-  elements.sortBy.addEventListener('change', () => {
-    sortFilteredHistory();
-    updateConversationList();
-  });
-  
-  // Visualization tab events
-  elements.vizTabs.forEach(tab => {
+  elements.vizTabs?.forEach(tab => {
     tab.addEventListener('click', () => {
-      // Update active tab
       elements.vizTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      
-      // Update visualization
-      currentVisualization = tab.dataset.viz;
-      createVisualization(currentVisualization);
+      createVisualization(tab.dataset.viz);
     });
   });
   
-  // Export button
-  elements.exportHistoryBtn.addEventListener('click', exportHistoryData);
+  elements.exportHistoryBtn?.addEventListener('click', exportHistoryData);
+  elements.importHistoryBtn?.addEventListener('click', () => elements.importFileInput.click());
+  elements.importFileInput?.addEventListener('change', handleImportFile);
   
-  // Import button and file input
-  elements.importHistoryBtn.addEventListener('click', () => {
-    elements.importFileInput.click();
-  });
-  
-  elements.importFileInput.addEventListener('change', handleImportFile);
-  
-  // Clear history button
-  elements.clearHistoryBtn.addEventListener('click', () => {
+  elements.clearHistoryBtn?.addEventListener('click', () => {
     showConfirmation(
       'Clear All History',
-      'Are you sure you want to delete all conversation history? This action cannot be undone.',
-      clearAllHistory
+      '⚠️ Are you sure you want to delete ALL conversation history? This action is irreversible and will remove all stored data.',
+      clearAllHistory // Pass the function directly
     );
   });
   
-  // Start chat button (in empty state)
-  const startChatBtn = document.getElementById('startChatBtn');
-  if (startChatBtn) {
-    startChatBtn.addEventListener('click', () => {
+  if (elements.startChatBtn) { // Check element exists
+    elements.startChatBtn.addEventListener('click', () => {
       browser.tabs.create({ url: 'https://gemini.google.com/app' });
     });
   }
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        if (elements.confirmationModal.classList.contains('active')) {
+            closeModals();
+        } else if (elements.conversationModal.classList.contains('active')) {
+            closeModals();
+        }
+    }
+  });
 }
 
 /**
@@ -930,74 +866,54 @@ function setupEventListeners() {
  */
 async function clearAllHistory() {
   try {
-    // Clear the storage
     await browser.storage.local.set({ [STORAGE_KEY]: [] });
-    
-    // Update badge
-    browser.runtime.sendMessage({
-      action: 'updateHistoryCount',
-      count: 0
-    });
-    
-    // Reset local data
     allHistory = [];
-    filteredHistory = [];
     
-    // Update UI
-    closeModals();
+    if (browser.runtime && browser.runtime.sendMessage) {
+        browser.runtime.sendMessage({ action: 'updateHistoryCount', count: 0 });
+    }
+    
+    closeModals(); // Close confirmation modal
+
+    updateFilteredHistory(); // Will result in empty filteredHistory
     updateStats(allHistory);
-    updateConversationList();
-    createVisualization(currentVisualization);
-    elements.emptyState.style.display = 'flex';
+    populateModelFilter(); // Will clear models
+    updateConversationList(); // Will show empty state
+    createVisualization(currentVisualization); // Will show no data message in chart
     
+    if (elements.emptyState) elements.emptyState.style.display = 'flex'; // Ensure main empty state is visible
+
   } catch (error) {
     console.error('Error clearing history:', error);
-    alert('Failed to clear history');
+    alert('Failed to clear history. Please try again.');
   }
 }
 
 /**
- * Show error message
+ * Show error message in the loading area
  */
 function showError(message) {
-  // Clear existing content
-  while (elements.loadingState.firstChild) {
-    elements.loadingState.removeChild(elements.loadingState.firstChild);
+  if (!elements.loadingState) return;
+  elements.loadingState.innerHTML = `
+    <div class="error-icon">⚠️</div>
+    <p style="color: var(--danger-color); margin-bottom: 10px;">${message}</p>
+    <button id="reloadPageBtn" class="button primary-button">Reload</button>
+  `;
+  elements.loadingState.style.display = 'flex'; // Ensure it's visible
+
+  const reloadBtn = document.getElementById('reloadPageBtn');
+  if (reloadBtn) {
+    reloadBtn.addEventListener('click', () => window.location.reload());
   }
-  
-  // Create and append error icon
-  const errorIcon = document.createElement('div');
-  errorIcon.className = 'error-icon';
-  errorIcon.textContent = '⚠️';
-  elements.loadingState.appendChild(errorIcon);
-  
-  // Create and append error message
-  const errorMsg = document.createElement('p');
-  errorMsg.textContent = `Error: ${message}`;
-  elements.loadingState.appendChild(errorMsg);
-  
-  // Create and append reload button
-  const reloadBtn = document.createElement('button');
-  reloadBtn.id = 'reloadBtn';
-  reloadBtn.className = 'button primary-button';
-  reloadBtn.textContent = 'Reload';
-  elements.loadingState.appendChild(reloadBtn);
-  
-  // Add event listener to reload button
-  reloadBtn.addEventListener('click', () => {
-    window.location.reload();
-  });
 }
 
 /**
  * ==========================================
  * UTILITY FUNCTIONS
+ * (Assumed to be potentially in utils.js or defined here)
  * ==========================================
  */
 
-/**
- * Read a file as text
- */
 function readFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1007,104 +923,59 @@ function readFile(file) {
   });
 }
 
-/**
- * Format a date for display
- */
 function formatDate(date, includeYear = false) {
-  // For today, show time only
   const today = new Date();
   if (isSameDay(date, today)) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   }
-  
-  // For this year, show month and day
-  if (date.getFullYear() === today.getFullYear() && !includeYear) {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  const options = { month: 'short', day: 'numeric' };
+  if (includeYear || date.getFullYear() !== today.getFullYear()) {
+    options.year = 'numeric';
   }
-  
-  // For other years, include year
-  return date.toLocaleDateString([], { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
+  return date.toLocaleDateString([], options);
 }
 
-/**
- * Format a date for input fields (YYYY-MM-DD)
- */
-function formatDateForInput(date) {
+function formatDateForInput(date) { // YYYY-MM-DD
+  return date.toISOString().split('T')[0];
+}
+
+function formatDateForGrouping(date) { // YYYY-MM-DD
+  return date.toISOString().split('T')[0];
+}
+
+function formatDateForFilename(date) { // YYYYMMDD
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${year}${month}${day}`;
 }
 
-/**
- * Format a date for grouping in charts (YYYY-MM-DD)
- */
-function formatDateForGrouping(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Format a date for filenames (YYYY-MM-DD)
- */
-function formatDateForFilename(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Format time ago string (e.g., "5 minutes ago")
- */
 function formatTimeAgo(date) {
   const now = new Date();
   const diffMs = now - date;
-  const diffSecs = Math.floor(diffMs / 1000);
+  const diffSecs = Math.round(diffMs / 1000);
+
+  if (diffSecs < 5) return 'Just now';
+  if (diffSecs < 60) return `${diffSecs} secs ago`;
   
-  if (diffSecs < 60) {
-    return 'Just now';
-  }
+  const diffMins = Math.round(diffSecs / 60);
+  if (diffMins < 60) return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
   
-  const diffMins = Math.floor(diffSecs / 60);
-  if (diffMins < 60) {
-    return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
-  }
+  const diffHours = Math.round(diffMins / 60);
+  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
   
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) {
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) {
-    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffMonths = Math.floor(diffDays / 30);
-  if (diffMonths < 12) {
-    return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffYears = Math.floor(diffDays / 365);
-  return `${diffYears} year${diffYears !== 1 ? 's' : ''} ago`;
+  const diffDays = Math.round(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+  if (diffDays < 30) return `${Math.round(diffDays/7)} week${Math.round(diffDays/7) !== 1 ? 's' : ''} ago`;
+
+  // For older dates, just show the formatted date
+  return formatDate(date, true); 
 }
 
-/**
- * Check if two dates are the same day
- */
 function isSameDay(date1, date2) {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
+  return date1.getFullYear() === date2.getFullYear() &&
+         date1.getMonth() === date2.getMonth() &&
+         date1.getDate() === date2.getDate();
 }
 
 // Initialize the application when DOM is loaded
