@@ -960,13 +960,31 @@ async function clearAllHistory() {
  * Show error message
  */
 function showError(message) {
-  elements.loadingState.innerHTML = `
-    <div class="error-icon">⚠️</div>
-    <p>Error: ${message}</p>
-    <button id="reloadBtn" class="button primary-button">Reload</button>
-  `;
+  // Clear existing content
+  while (elements.loadingState.firstChild) {
+    elements.loadingState.removeChild(elements.loadingState.firstChild);
+  }
   
-  document.getElementById('reloadBtn').addEventListener('click', () => {
+  // Create and append error icon
+  const errorIcon = document.createElement('div');
+  errorIcon.className = 'error-icon';
+  errorIcon.textContent = '⚠️';
+  elements.loadingState.appendChild(errorIcon);
+  
+  // Create and append error message
+  const errorMsg = document.createElement('p');
+  errorMsg.textContent = `Error: ${message}`;
+  elements.loadingState.appendChild(errorMsg);
+  
+  // Create and append reload button
+  const reloadBtn = document.createElement('button');
+  reloadBtn.id = 'reloadBtn';
+  reloadBtn.className = 'button primary-button';
+  reloadBtn.textContent = 'Reload';
+  elements.loadingState.appendChild(reloadBtn);
+  
+  // Add event listener to reload button
+  reloadBtn.addEventListener('click', () => {
     window.location.reload();
   });
 }

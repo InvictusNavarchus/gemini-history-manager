@@ -141,18 +141,37 @@ function createConversationItem(entry) {
  * Shows empty state when no conversations are found
  */
 function showEmptyState() {
-  elements.recentConversations.innerHTML = `
-    <div class="empty-state">
-      <p>No conversation history found</p>
-      <button id="startChatBtn" class="button primary-button">Start a Gemini Chat</button>
-    </div>
-  `;
+  // Clear existing content
+  while (elements.recentConversations.firstChild) {
+    elements.recentConversations.removeChild(elements.recentConversations.firstChild);
+  }
+  
+  // Create empty state container
+  const emptyStateDiv = document.createElement('div');
+  emptyStateDiv.className = 'empty-state';
+  
+  // Create message
+  const message = document.createElement('p');
+  message.textContent = 'No conversation history found';
+  
+  // Create start button
+  const startButton = document.createElement('button');
+  startButton.id = 'startChatBtn';
+  startButton.className = 'button primary-button';
+  startButton.textContent = 'Start a Gemini Chat';
   
   // Add event listener for the start button
-  document.getElementById('startChatBtn').addEventListener('click', () => {
+  startButton.addEventListener('click', () => {
     browser.tabs.create({ url: 'https://gemini.google.com/app' });
     window.close();
   });
+  
+  // Append elements to container
+  emptyStateDiv.appendChild(message);
+  emptyStateDiv.appendChild(startButton);
+  
+  // Add to DOM
+  elements.recentConversations.appendChild(emptyStateDiv);
   
   // Update stats to show zero/empty
   elements.totalConversations.textContent = '0';
@@ -164,16 +183,34 @@ function showEmptyState() {
  * Shows error message
  */
 function showError(message) {
-  elements.recentConversations.innerHTML = `
-    <div class="empty-state">
-      <p>Error: ${message}</p>
-      <button id="reloadBtn" class="button primary-button">Reload</button>
-    </div>
-  `;
+  // Clear existing content
+  while (elements.recentConversations.firstChild) {
+    elements.recentConversations.removeChild(elements.recentConversations.firstChild);
+  }
   
-  document.getElementById('reloadBtn').addEventListener('click', () => {
+  // Create empty state container
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'empty-state';
+  
+  // Create error message
+  const errorMsg = document.createElement('p');
+  errorMsg.textContent = `Error: ${message}`;
+  
+  // Create reload button
+  const reloadBtn = document.createElement('button');
+  reloadBtn.id = 'reloadBtn';
+  reloadBtn.className = 'button primary-button';
+  reloadBtn.textContent = 'Reload';
+  
+  // Add event listener to reload button
+  reloadBtn.addEventListener('click', () => {
     window.location.reload();
   });
+  
+  // Append elements
+  errorDiv.appendChild(errorMsg);
+  errorDiv.appendChild(reloadBtn);
+  elements.recentConversations.appendChild(errorDiv);
 }
 
 /**
