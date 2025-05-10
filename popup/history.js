@@ -735,6 +735,246 @@ function createActivityOverTime() {
 }
 
 /**
+ * Exports history data to a JSON file
+ * 
+ * Creates a downloadable JSON file containing either:
+ * - All history data if no filters are applied
+ * - Only filtered history data if filters are active
+ * 
+ * The file will be named with the current date (YYYY-MM-DD) format
+ * and automatically trigger a download in the browser.
+ * 
+ * @returns {void}
+ * @throws {Error} Will throw an error if file creation fails
+ */
+function exportHistoryData() {
+  try {
+    if (allHistory.length === 0) {
+      alert('No history data to export');
+      return;
+    }
+    
+    // Create exportable data
+    const dataToExport = filteredHistory.length < allHistory.length && filteredHistory.length > 0 
+      ? filteredHistory  // Export only filtered data if filters are active
+      : allHistory;      // Export all data if no filters
+    
+    // Create file
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {
+      type: 'application/json'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    
+    // Create download link
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = `gemini-history-export-${formatDateForFilename(new Date())}.json`;
+    
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error exporting history:', error);
+    alert('Failed to export history data');
+  }
+}
+
+/**
+ * Reads a file and returns its contents as text
+ * 
+ * Uses the FileReader API to asynchronously read a file's contents
+ * and convert it to a text string.
+ * 
+ * @param {File} file - The file object to read
+ * @returns {Promise<string>} A promise that resolves with the file contents as text
+ * @throws {Error} Will throw an error if file reading fails
+ * @example
+ * // Example usage:
+ * const fileContent = await readFile(fileObject);
+ * console.log(fileContent); // File contents as string
+ */
+function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = event => resolve(event.target.result);
+    reader.onerror = error => reject(error);
+    reader.readAsText(file);
+  });
+}
+
+/**
+ * Formats a date object for display based on relative time from now
+ * 
+ * Provides different formatting based on how recent the date is:
+ * - For today: Shows time only (HH:MM)
+ * - For this year: Shows month and day (Jan 15)
+ * - For previous years: Shows month, day and year (Jan 15, 2023)
+ * 
+ * @param {Date} date - The date object to format
+ * @param {boolean} [includeYear=false] - Whether to force include the year even for current year
+ * @returns {string} Formatted date string
+ * @example
+ * // If today is Jan 15, 2024
+ * formatDate(new Date()); // Returns "14:30" (if current time is 2:30 PM)
+ * formatDate(new Date('2024-01-10')); // Returns "Jan 10"
+ * formatDate(new Date('2023-12-25')); // Returns "Dec 25, 2023"
+ * formatDate(new Date('2024-01-10'), true); // Returns "Jan 10, 2024" (with includeYear=true)
+ */
+function formatDate(date, includeYear = false) {
+  // For today, show time only
+  const today = new Date();
+  if (isSameDay(date, today)) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  
+  // For this year, show month and day
+  if (date.getFullYear() === today.getFullYear() && !includeYear) {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+  
+  // For other years, include year
+  return date.toLocaleDateString([], { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+}
+
+/**
+ * Formats a date for input fields in YYYY-MM-DD format
+ * 
+ * Creates a string representation of a date that can be used
+ * as a value for HTML date input elements.
+ * 
+ * @param {Date} date - The date to format
+ * @returns {string} Date formatted as YYYY-MM-DD
+ * @example
+ * const inputDateValue = formatDateForInput(new Date('2024-01-15'));
+ * console.log(inputDateValue); // "2024-01-15"
+ */
+function formatDateForInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Formats a date for grouping in charts (YYYY-MM-DD)
+ * 
+ * Creates a standardized string representation of a date that
+ * can be used as a consistent key for grouping date entries.
+ * 
+ * @param {Date} date - The date to format
+ * @returns {string} Date formatted as YYYY-MM-DD
+ * @example
+ * const groupKey = formatDateForGrouping(new Date('2024-01-15T14:30:00'));
+ * console.log(groupKey); // "2024-01-15"
+ */
+function formatDateForGrouping(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Formats a date for use in filenames (YYYY-MM-DD)
+ * 
+ * Creates a filename-friendly string representation of a date
+ * to be used when naming exported files.
+ * 
+ * @param {Date} date - The date to format
+ * @returns {string} Date formatted as YYYY-MM-DD
+ * @example
+ * const filename = `report-${formatDateForFilename(new Date())}.json`;
+ * console.log(filename); // "report-2024-01-15.json"
+ */
+function formatDateForFilename(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Formats a date as a human-readable relative time string
+ * 
+ * Converts a date to a string representing the relative time from now:
+ * - Seconds: "Just now"
+ * - Minutes: "X mins ago"
+ * - Hours: "X hours ago"
+ * - Days: "X days ago"
+ * - Months: "X months ago"
+ * - Years: "X years ago"
+ * 
+ * @param {Date} date - The date to calculate relative time from
+ * @returns {string} Human-readable relative time string
+ * @example
+ * // If current time is 2:30 PM
+ * formatTimeAgo(new Date(Date.now() - 5 * 60 * 1000)); // "5 mins ago"
+ * formatTimeAgo(new Date(Date.now() - 2 * 60 * 60 * 1000)); // "2 hours ago"
+ * formatTimeAgo(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)); // "3 days ago"
+ */
+function formatTimeAgo(date) {
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSecs = Math.floor(diffMs / 1000);
+  
+  if (diffSecs < 60) {
+    return 'Just now';
+  }
+  
+  const diffMins = Math.floor(diffSecs / 60);
+  if (diffMins < 60) {
+    return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+  }
+  
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+  }
+  
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) {
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+  }
+  
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) {
+    return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
+  }
+  
+  const diffYears = Math.floor(diffDays / 365);
+  return `${diffYears} year${diffYears !== 1 ? 's' : ''} ago`;
+}
+
+/**
+ * Checks if two dates represent the same calendar day
+ * 
+ * Compares year, month, and day components of two Date objects
+ * to determine if they represent the same calendar day.
+ * This ignores time components (hours, minutes, seconds).
+ * 
+ * @param {Date} date1 - First date to compare
+ * @param {Date} date2 - Second date to compare
+ * @returns {boolean} True if dates represent the same calendar day, false otherwise
+ * @example
+ * isSameDay(new Date('2024-01-15T09:00:00'), new Date('2024-01-15T15:30:00')); // true
+ * isSameDay(new Date('2024-01-15'), new Date('2024-01-16')); // false
+ */
+function isSameDay(date1, date2) {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
+}
+
+/**
  * Handle import file
  */
 async function handleImportFile(event) {
@@ -791,44 +1031,6 @@ async function handleImportFile(event) {
   
   // Reset the input
   event.target.value = '';
-}
-
-/**
- * Export history data to a JSON file
- */
-function exportHistoryData() {
-  try {
-    if (allHistory.length === 0) {
-      alert('No history data to export');
-      return;
-    }
-    
-    // Create exportable data
-    const dataToExport = filteredHistory.length < allHistory.length && filteredHistory.length > 0 
-      ? filteredHistory  // Export only filtered data if filters are active
-      : allHistory;      // Export all data if no filters
-    
-    // Create file
-    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {
-      type: 'application/json'
-    });
-    
-    const url = URL.createObjectURL(blob);
-    
-    // Create download link
-    const downloadLink = document.createElement('a');
-    downloadLink.href = url;
-    downloadLink.download = `gemini-history-export-${formatDateForFilename(new Date())}.json`;
-    
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error('Error exporting history:', error);
-    alert('Failed to export history data');
-  }
 }
 
 /**
@@ -996,124 +1198,6 @@ function showError(message) {
   reloadBtn.addEventListener('click', () => {
     window.location.reload();
   });
-}
-
-/**
- * ==========================================
- * UTILITY FUNCTIONS
- * ==========================================
- */
-
-/**
- * Read a file as text
- */
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = event => resolve(event.target.result);
-    reader.onerror = error => reject(error);
-    reader.readAsText(file);
-  });
-}
-
-/**
- * Format a date for display
- */
-function formatDate(date, includeYear = false) {
-  // For today, show time only
-  const today = new Date();
-  if (isSameDay(date, today)) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-  
-  // For this year, show month and day
-  if (date.getFullYear() === today.getFullYear() && !includeYear) {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-  }
-  
-  // For other years, include year
-  return date.toLocaleDateString([], { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-}
-
-/**
- * Format a date for input fields (YYYY-MM-DD)
- */
-function formatDateForInput(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Format a date for grouping in charts (YYYY-MM-DD)
- */
-function formatDateForGrouping(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Format a date for filenames (YYYY-MM-DD)
- */
-function formatDateForFilename(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Format time ago string (e.g., "5 minutes ago")
- */
-function formatTimeAgo(date) {
-  const now = new Date();
-  const diffMs = now - date;
-  const diffSecs = Math.floor(diffMs / 1000);
-  
-  if (diffSecs < 60) {
-    return 'Just now';
-  }
-  
-  const diffMins = Math.floor(diffSecs / 60);
-  if (diffMins < 60) {
-    return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) {
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) {
-    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffMonths = Math.floor(diffDays / 30);
-  if (diffMonths < 12) {
-    return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffYears = Math.floor(diffDays / 365);
-  return `${diffYears} year${diffYears !== 1 ? 's' : ''} ago`;
-}
-
-/**
- * Check if two dates are the same day
- */
-function isSameDay(date1, date2) {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
 }
 
 // Initialize the application when DOM is loaded
