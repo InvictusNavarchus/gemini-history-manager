@@ -508,7 +508,8 @@
          */
         getAccountInfo: function() {
             Logger.log("Attempting to extract account information...");
-            const accountElement = document.querySelector('.gb_B[aria-label^="Google Account:"]');
+            // Try multiple possible selectors for the account element
+            const accountElement = document.querySelector('.gb_B[aria-label*="Google"], .gb_B[aria-label*="google"]');
 
             if (!accountElement) {
                 Logger.warn("Could not find account element. Returning unknown values.");
@@ -519,19 +520,42 @@
                 const ariaLabel = accountElement.getAttribute('aria-label');
                 Logger.log(`Found aria-label: ${ariaLabel}`);
 
-                // Extract name and email using regex
-                // Format: "Google Account: [Name] ([Email])"
-                const match = ariaLabel.match(/Google Account: (.*?)\s+\((.*?)\)/);
+                // Common patterns in different languages
+                // English: "Google Account: Name (email@example.com)"
+                // Indonesian: "Akun Google: Name (email@example.com)"
+                // We'll try multiple patterns with a more flexible regex
+                
+                // First, try to find a pattern with name and email in parentheses
+                const parenthesesPattern = /[^:]*:\s*(.*?)\s+\((.*?)\)/i;
+                const match = ariaLabel.match(parenthesesPattern);
 
                 if (match && match.length === 3) {
                     const name = match[1].trim();
                     const email = match[2].trim();
                     Logger.log(`Extracted account info - Name: "${name}", Email: "${email}"`);
                     return { name, email };
-                } else {
-                    Logger.warn(`Could not parse account information from: "${ariaLabel}"`);
-                    return { name: 'Unknown', email: 'Unknown' };
+                } 
+                
+                // Alternative patterns could be added here for different language formats
+                
+                // Fallback: Try to extract just the email using a generic email pattern
+                const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+                const emailMatch = ariaLabel.match(emailPattern);
+                
+                if (emailMatch) {
+                    const email = emailMatch[0];
+                    // For name, use everything before the email that's not likely part of the prefix
+                    const nameParts = ariaLabel.split(email)[0].split(':');
+                    let name = 'Unknown';
+                    if (nameParts.length > 1) {
+                        name = nameParts[1].trim();
+                    }
+                    Logger.log(`Extracted account info using fallback - Name: "${name}", Email: "${email}"`);
+                    return { name, email };
                 }
+                
+                Logger.warn(`Could not parse account information from: "${ariaLabel}"`);
+                return { name: 'Unknown', email: 'Unknown' };
             } catch (e) {
                 Logger.error("Error extracting account information:", e);
                 return { name: 'Unknown', email: 'Unknown' };
