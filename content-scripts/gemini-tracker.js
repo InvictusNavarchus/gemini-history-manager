@@ -508,58 +508,119 @@
          */
         getAccountInfo: function() {
             Logger.log("Attempting to extract account information...");
-            // Try multiple possible selectors for the account element
-            const accountElement = document.querySelector('.gb_B[aria-label*="Google"], .gb_B[aria-label*="google"]');
-
-            if (!accountElement) {
-                Logger.warn("Could not find account element. Returning unknown values.");
-                return { name: 'Unknown', email: 'Unknown' };
-            }
-
-            try {
-                const ariaLabel = accountElement.getAttribute('aria-label');
-                Logger.log(`Found aria-label: ${ariaLabel}`);
-
-                // Common patterns in different languages
-                // English: "Google Account: Name (email@example.com)"
-                // Indonesian: "Akun Google: Name (email@example.com)"
-                // We'll try multiple patterns with a more flexible regex
-                
-                // First, try to find a pattern with name and email in parentheses
-                const parenthesesPattern = /[^:]*:\s*(.*?)\s+\((.*?)\)/i;
-                const match = ariaLabel.match(parenthesesPattern);
-
-                if (match && match.length === 3) {
-                    const name = match[1].trim();
-                    const email = match[2].trim();
-                    Logger.log(`Extracted account info - Name: "${name}", Email: "${email}"`);
-                    return { name, email };
-                } 
-                
-                // Alternative patterns could be added here for different language formats
-                
-                // Fallback: Try to extract just the email using a generic email pattern
-                const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
-                const emailMatch = ariaLabel.match(emailPattern);
-                
-                if (emailMatch) {
-                    const email = emailMatch[0];
-                    // For name, use everything before the email that's not likely part of the prefix
-                    const nameParts = ariaLabel.split(email)[0].split(':');
-                    let name = 'Unknown';
-                    if (nameParts.length > 1) {
-                        name = nameParts[1].trim();
-                    }
-                    Logger.log(`Extracted account info using fallback - Name: "${name}", Email: "${email}"`);
-                    return { name, email };
+            
+            // Strategy 1: Find by link to accounts.google.com with aria-label containing email
+            const accountLinks = Array.from(document.querySelectorAll('a[href*="accounts.google.com"]'));
+            let accountElement = null;
+            let ariaLabel = null;
+            
+            // Check links to accounts.google.com that have aria-labels
+            for (const link of accountLinks) {
+                const label = link.getAttribute('aria-label');
+                if (label && label.indexOf('@') !== -1) {
+                    accountElement = link;
+                    ariaLabel = label;
+                    Logger.log("Found account element via accounts.google.com link with email in aria-label");
+                    break;
                 }
-                
-                Logger.warn(`Could not parse account information from: "${ariaLabel}"`);
-                return { name: 'Unknown', email: 'Unknown' };
-            } catch (e) {
-                Logger.error("Error extracting account information:", e);
-                return { name: 'Unknown', email: 'Unknown' };
             }
+            
+            // Strategy 2: Find by profile image
+            if (!accountElement) {
+                const profileImages = document.querySelectorAll('img.gbii, img.gb_P');
+                for (const img of profileImages) {
+                    const parent = img.closest('a[aria-label]');
+                    if (parent) {
+                        const label = parent.getAttribute('aria-label');
+                        if (label && label.indexOf('@') !== -1) {
+                            accountElement = parent;
+                            ariaLabel = label;
+                            Logger.log("Found account element via profile image with parent having email in aria-label");
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Strategy 3: Find by user menu structure 
+            if (!accountElement) {
+                // Look for common Google account menu container classes
+                const potentialContainers = document.querySelectorAll('.gb_z, .gb_D, .gb_Za');
+                for (const container of potentialContainers) {
+                    const accountLink = container.querySelector('a[aria-label]');
+                    if (accountLink) {
+                        const label = accountLink.getAttribute('aria-label');
+                        if (label && label.indexOf('@') !== -1) {
+                            accountElement = accountLink;
+                            ariaLabel = label;
+                            Logger.log("Found account element via container class structure");
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // If we still haven't found it, try a broader approach
+            if (!accountElement) {
+                // Look for ANY element with an aria-label containing an email address
+                const elementsWithAriaLabel = document.querySelectorAll('[aria-label]');
+                const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+                
+                for (const el of elementsWithAriaLabel) {
+                    const label = el.getAttribute('aria-label');
+                    if (label && emailRegex.test(label)) {
+                        accountElement = el;
+                        ariaLabel = label;
+                        Logger.log("Found account element via generic aria-label search");
+                        break;
+                    }
+                }
+            }
+            
+            // If we found an element with account info, parse it
+            if (accountElement && ariaLabel) {
+                Logger.log(`Found aria-label with potential account info: "${ariaLabel}"`);
+                try {
+                    // Extract email using regex
+                    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+                    const emailMatch = ariaLabel.match(emailRegex);
+                    
+                    if (!emailMatch) {
+                        Logger.warn("Could not find email in aria-label");
+                        return { name: 'Unknown', email: 'Unknown' };
+                    }
+                    
+                    const email = emailMatch[0];
+                    
+                    // Extract name - try with parentheses pattern first
+                    let name = 'Unknown';
+                    const parenthesesPattern = /[^:]*:\s*(.*?)\s+\([^)]*@[^)]*\)/i;
+                    const nameMatch = ariaLabel.match(parenthesesPattern);
+                    
+                    if (nameMatch && nameMatch[1]) {
+                        name = nameMatch[1].trim();
+                    } else {
+                        // Alternative: Try to extract name by removing email and common prefixes
+                        const withoutEmail = ariaLabel.replace(email, '').trim();
+                        const colonIndex = withoutEmail.lastIndexOf(':');
+                        
+                        if (colonIndex !== -1) {
+                            name = withoutEmail.substring(colonIndex + 1).trim();
+                            // Clean up remaining punctuation and parentheses
+                            name = name.replace(/^\s*[(:\-–—]\s*|\s*[)\-–—]\s*$/g, '');
+                        }
+                    }
+                    
+                    Logger.log(`Successfully extracted account info - Name: "${name}", Email: "${email}"`);
+                    return { name, email };
+                } catch (e) {
+                    Logger.error("Error parsing account information:", e);
+                    return { name: 'Unknown', email: 'Unknown' };
+                }
+            }
+            
+            Logger.warn("Could not find any element with account information");
+            return { name: 'Unknown', email: 'Unknown' };
         }
     };
 
