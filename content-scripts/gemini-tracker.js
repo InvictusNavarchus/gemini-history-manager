@@ -359,13 +359,14 @@
 
         /**
          * Determines if a URL is a valid Gemini chat URL.
-         * Valid URLs follow the pattern: https://gemini.google.com/app/[hexadecimal-id]
+         * Valid URLs follow the pattern: https://gemini.google.com/app/[hexadecimal-id] 
+         * and may optionally include query parameters.
          * 
          * @param {string} url - The URL to check
          * @returns {boolean} - True if the URL matches the expected pattern for a Gemini chat
          */
         isValidChatUrl: function(url) {
-            const chatUrlPattern = /^https:\/\/gemini\.google\.com\/app\/[a-f0-9]+$/;
+            const chatUrlPattern = /^https:\/\/gemini\.google\.com\/app\/[a-f0-9]+(\?.*)?$/;
             return chatUrlPattern.test(url);
         },
 
