@@ -76,11 +76,23 @@ h1 {
 .search-container {
   flex-grow: 1;
   max-width: 400px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-lighter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .search-container input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px 12px 8px 36px;
   border: 1px solid var(--border-color);
   border-radius: 20px;
   font-size: 14px;
