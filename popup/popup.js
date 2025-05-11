@@ -245,34 +245,40 @@ function showError(message) {
 function setupEventListeners() {
   // Open full history page
   elements.openFullPageBtn.addEventListener('click', () => {
+    Logger.log("Open full page button clicked");
     browser.runtime.sendMessage({ action: 'openHistoryPage' });
     window.close();
   });
   
   // Export history
   elements.exportHistoryBtn.addEventListener('click', async () => {
+    Logger.log("Export history button clicked");
     try {
       const historyData = await loadHistoryData();
       if (historyData.length === 0) {
+        Logger.warn('No history data to export');
         alert('No history data to export');
         return;
       }
       
+      Logger.log(`Preparing to export ${historyData.length} conversations`);
       const blob = new Blob([JSON.stringify(historyData, null, 2)], {
         type: 'application/json'
       });
       
       const url = URL.createObjectURL(blob);
+      const filename = `gemini-history-export-${formatDateForFilename(new Date())}.json`;
       
       const downloadLink = document.createElement('a');
       downloadLink.href = url;
-      downloadLink.download = `gemini-history-export-${formatDateForFilename(new Date())}.json`;
+      downloadLink.download = filename;
       
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
       
       URL.revokeObjectURL(url);
+      Logger.log(`History exported successfully as ${filename}`);
     } catch (error) {
       Logger.error('Error exporting history:', error);
       alert('Failed to export history data');
@@ -281,6 +287,7 @@ function setupEventListeners() {
   
   // Open import file dialog
   elements.importHistoryBtn.addEventListener('click', () => {
+    Logger.log("Import history button clicked, opening file dialog");
     elements.importFileInput.click();
   });
   
@@ -292,50 +299,86 @@ function setupEventListeners() {
  * Handles file import
  */
 async function handleImportFile(event) {
+  Logger.log("File selected for import");
   const file = event.target.files[0];
-  if (!file) return;
+  if (!file) {
+    Logger.warn("No file selected for import");
+    return;
+  }
+  
+  Logger.log(`Selected file: ${file.name}, size: ${file.size} bytes, type: ${file.type}`);
   
   try {
+    Logger.log("Reading file content...");
     const text = await readFile(file);
+    Logger.log("File content read, parsing JSON...");
     const importedData = JSON.parse(text);
     
     if (!Array.isArray(importedData)) {
-      throw new Error('Invalid data format');
+      Logger.error("Imported data is not an array. Invalid format.");
+      throw new Error('Invalid data format: Expected an array.');
     }
+    Logger.log(`Parsed ${importedData.length} items from imported file.`);
     
     // Get current data and merge, avoiding duplicates
+    Logger.log("Loading current history data for merging...");
     const currentData = await loadHistoryData();
     const existingUrls = new Set(currentData.map(item => item.url));
+    Logger.log(`Current history has ${currentData.length} items. Found ${existingUrls.size} unique URLs.`);
     
-    const newItems = importedData.filter(item => !existingUrls.has(item.url));
+    const newItems = importedData.filter(item => {
+      if (!item || typeof item.url !== 'string') {
+        Logger.warn("Skipping invalid item in imported data (missing or invalid URL):", item);
+        return false;
+      }
+      return !existingUrls.has(item.url);
+    });
+    
+    Logger.log(`Found ${newItems.length} new items to import.`);
     
     if (newItems.length === 0) {
+      Logger.log('No new conversations found in import file. Import aborted.');
       alert('No new conversations found in import file');
+      // Reset the input
+      event.target.value = '';
       return;
     }
     
     // Merge and sort by timestamp (newest first)
+    Logger.log("Merging new items with current history...");
     const mergedData = [...currentData, ...newItems].sort((a, b) => {
-      return new Date(b.timestamp) - new Date(a.timestamp);
+      // Ensure timestamps are valid dates for sorting
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      if (isNaN(dateA) || isNaN(dateB)) {
+        Logger.warn("Invalid timestamp found during sort:", a, b);
+        return 0; // or handle as appropriate
+      }
+      return dateB - dateA;
     });
+    Logger.log(`Merged data contains ${mergedData.length} items. Saving to storage...`);
     
     // Save merged data
     await browser.storage.local.set({ [STORAGE_KEY]: mergedData });
+    Logger.log("Merged data saved to storage.");
     
     // Update badge
+    Logger.log("Sending message to update history count in badge...");
     browser.runtime.sendMessage({
       action: 'updateHistoryCount',
       count: mergedData.length
     });
     
     alert(`Import complete: Added ${newItems.length} new conversations`);
+    Logger.log(`Import successful. Added ${newItems.length} new conversations. Reloading popup.`);
     window.location.reload();
   } catch (error) {
-    Logger.error('Import error:', error);
+    Logger.error('Import error:', error.message, error.stack);
     alert(`Import error: ${error.message}`);
   }
   
   // Reset the input
+  Logger.log("Resetting file input.");
   event.target.value = '';
 }
 
@@ -343,10 +386,17 @@ async function handleImportFile(event) {
  * Reads a file as text
  */
 function readFile(file) {
+  Logger.debug(`Reading file: ${file.name}`);
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = event => resolve(event.target.result);
-    reader.onerror = error => reject(error);
+    reader.onload = event => {
+      Logger.debug(`File ${file.name} read successfully.`);
+      resolve(event.target.result);
+    };
+    reader.onerror = error => {
+      Logger.error(`Error reading file ${file.name}:`, error);
+      reject(error);
+    };
     reader.readAsText(file);
   });
 }
