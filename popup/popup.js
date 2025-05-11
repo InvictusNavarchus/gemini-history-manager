@@ -3,6 +3,19 @@
  * Handles UI interactions and displays chat history data
  */
 
+// Logger Module
+const Logger = {
+  LOG_PREFIX: "[Gemini History]",
+  log: (...args) => console.log(Logger.LOG_PREFIX, ...args),
+  warn: (...args) => console.warn(Logger.LOG_PREFIX, ...args),
+  error: (...args) => console.error(Logger.LOG_PREFIX, ...args),
+  debug: (...args) => {
+    if (localStorage.getItem('gemini_debug') === 'true') {
+      console.debug(Logger.LOG_PREFIX, ...args);
+    }
+  }
+};
+
 // DOM Elements
 const elements = {
   totalConversations: document.getElementById('totalConversations'),
@@ -24,21 +37,25 @@ const MAX_PREVIEW_CONVERSATIONS = 5;
  */
 async function initPopup() {
   try {
+    Logger.log("Initializing Gemini History Manager popup...");
     // Load and display chat history data
     const historyData = await loadHistoryData();
     
     if (historyData && historyData.length > 0) {
+      Logger.log(`Loaded ${historyData.length} conversations, updating UI`);
       updateStats(historyData);
       displayRecentConversations(historyData);
     } else {
+      Logger.log("No history data found, displaying empty state");
       showEmptyState();
     }
     
     // Set up event listeners
     setupEventListeners();
+    Logger.log("Popup initialization complete");
     
   } catch (error) {
-    console.error('Error initializing popup:', error);
+    Logger.error("Error initializing popup:", error);
     showError('Failed to load history data');
   }
 }
@@ -47,11 +64,14 @@ async function initPopup() {
  * Loads chat history data from storage
  */
 async function loadHistoryData() {
+  Logger.log("Loading history data from storage...");
   try {
     const data = await browser.storage.local.get(STORAGE_KEY);
-    return data[STORAGE_KEY] || [];
+    const history = data[STORAGE_KEY] || [];
+    Logger.log(`Retrieved ${history.length} history entries from storage`);
+    return history;
   } catch (error) {
-    console.error('Error loading history data:', error);
+    Logger.error("Error loading history data:", error);
     throw error;
   }
 }
@@ -60,6 +80,7 @@ async function loadHistoryData() {
  * Updates the statistics section with data from history
  */
 function updateStats(historyData) {
+  Logger.log("Updating statistics display...");
   // Update total conversations count
   elements.totalConversations.textContent = historyData.length;
   
@@ -74,11 +95,13 @@ function updateStats(historyData) {
     .sort((a, b) => b[1] - a[1])[0];
     
   elements.mostUsedModel.textContent = mostUsed ? mostUsed[0] : '-';
+  Logger.log(`Most used model: ${mostUsed ? mostUsed[0] : 'None'} (${mostUsed ? mostUsed[1] : 0} uses)`);
   
   // Format last conversation time
   if (historyData[0] && historyData[0].timestamp) {
     const lastDate = new Date(historyData[0].timestamp);
     elements.lastConversationTime.textContent = formatTimeAgo(lastDate);
+    Logger.log(`Last conversation: ${formatTimeAgo(lastDate)} (${lastDate.toISOString()})`);
   }
 }
 
@@ -86,6 +109,7 @@ function updateStats(historyData) {
  * Displays recent conversations in the list
  */
 function displayRecentConversations(historyData) {
+  Logger.log(`Displaying the ${Math.min(historyData.length, MAX_PREVIEW_CONVERSATIONS)} most recent conversations...`);
   // Clear any existing content
   elements.recentConversations.innerHTML = '';
   
@@ -97,12 +121,14 @@ function displayRecentConversations(historyData) {
     const conversationItem = createConversationItem(entry);
     elements.recentConversations.appendChild(conversationItem);
   });
+  Logger.log("Recent conversations display updated");
 }
 
 /**
  * Creates a DOM element for a conversation item
  */
 function createConversationItem(entry) {
+  Logger.debug(`Creating conversation item element for "${entry.title || 'Untitled'}" (${entry.url})`);
   const item = document.createElement('div');
   item.className = 'conversation-item';
   item.dataset.url = entry.url;
@@ -248,7 +274,7 @@ function setupEventListeners() {
       
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error exporting history:', error);
+      Logger.error('Error exporting history:', error);
       alert('Failed to export history data');
     }
   });
@@ -305,7 +331,7 @@ async function handleImportFile(event) {
     alert(`Import complete: Added ${newItems.length} new conversations`);
     window.location.reload();
   } catch (error) {
-    console.error('Import error:', error);
+    Logger.error('Import error:', error);
     alert(`Import error: ${error.message}`);
   }
   

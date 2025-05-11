@@ -3,6 +3,19 @@
  * Handles data visualization, filtering, and conversation management
  */
 
+// Logger Module
+const Logger = {
+  LOG_PREFIX: "[Gemini History]",
+  log: (...args) => console.log(Logger.LOG_PREFIX, ...args),
+  warn: (...args) => console.warn(Logger.LOG_PREFIX, ...args),
+  error: (...args) => console.error(Logger.LOG_PREFIX, ...args),
+  debug: (...args) => {
+    if (localStorage.getItem('gemini_debug') === 'true') {
+      console.debug(Logger.LOG_PREFIX, ...args);
+    }
+  }
+};
+
 // DOM Elements
 const elements = {
   // Stats elements
@@ -85,6 +98,7 @@ let confirmationCallback = null; // For handling confirmation modal actions
  */
 async function init() {
   try {
+    Logger.log("Initializing History Manager application...");
     // Load history data
     allHistory = await loadHistoryData();
     
@@ -109,9 +123,10 @@ async function init() {
     
     // Setup event listeners
     setupEventListeners();
+    Logger.log("History Manager initialization complete");
     
   } catch (error) {
-    console.error('Error initializing application:', error);
+    Logger.error("Error initializing application:", error);
     showError('Failed to load history data');
   }
 }
@@ -120,17 +135,21 @@ async function init() {
  * Load history data from storage
  */
 async function loadHistoryData() {
+  Logger.log("Loading history data from storage...");
   try {
     const data = await browser.storage.local.get(STORAGE_KEY);
     const history = data[STORAGE_KEY] || [];
     
     if (history.length === 0) {
+      Logger.log("No history items found in storage");
       elements.emptyState.style.display = 'flex';
+    } else {
+      Logger.log(`Loaded ${history.length} history items from storage`);
     }
     
     return history;
   } catch (error) {
-    console.error('Error loading history data:', error);
+    Logger.error("Error loading history data:", error);
     throw error;
   }
 }
@@ -139,12 +158,19 @@ async function loadHistoryData() {
  * Update filtered history based on current filters
  */
 function updateFilteredHistory() {
+  Logger.log("Applying filters to history data...");
   // Get filter values
   const modelValue = elements.modelFilter.value;
   const dateFilterValue = elements.dateFilter.value;
   const searchValue = elements.searchFilter.value.toLowerCase();
   const startDateValue = elements.startDate.value;
   const endDateValue = elements.endDate.value;
+  
+  // Log filter values
+  Logger.log(`Filters: model="${modelValue}", date="${dateFilterValue}", search="${searchValue}"`);
+  if (dateFilterValue === 'custom') {
+    Logger.log(`Custom date range: ${startDateValue} to ${endDateValue}`);
+  }
   
   // Apply filters
   filteredHistory = allHistory.filter(item => {
@@ -216,6 +242,7 @@ function updateFilteredHistory() {
   
   // Apply sorting
   sortFilteredHistory();
+  Logger.log(`Filtered history contains ${filteredHistory.length} items (from ${allHistory.length} total)`);
 }
 
 /**
