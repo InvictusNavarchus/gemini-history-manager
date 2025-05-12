@@ -10,6 +10,7 @@
   --text-lighter: #999;
   --bg-color: #f9f9fb;
   --card-bg: #fff;
+  --input-bg: #fff;
   --border-color: #e0e0e5;
   --hover-bg: #f0f0f5;
   --danger-color: #e53935;
@@ -37,6 +38,7 @@ html[data-theme='dark'] {
   --text-lighter: #808080;
   --bg-color: #121212;
   --card-bg: #1e1e1e;
+  --input-bg: #333;
   --border-color: #333333;
   --hover-bg: #2c2c2c;
   --danger-color: #f44336;
@@ -140,6 +142,11 @@ h1 {
   background-color: var(--bg-color);
   transition: all var(--animation-speed);
 }
+
+#searchFilter {
+  background-color: var(--input-bg);
+}
+
 
 .search-container input:focus {
   outline: none;
@@ -310,7 +317,8 @@ main {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
-  background-color: #fff;
+  background-color: var(--input-bg);
+  color: var(--text-color);
 }
 
 .filter-group select:focus,
@@ -409,10 +417,12 @@ main {
 }
 
 .sorting select {
+  background-color: var(--input-bg);
   padding: 6px 10px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 13px;
+  color: var(--text-color);
 }
 
 /* Conversation list */
