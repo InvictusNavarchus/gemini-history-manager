@@ -284,102 +284,56 @@ function setupEventListeners() {
       alert('Failed to export history data');
     }
   });
-  
-  // Open import file dialog
-  elements.importHistoryBtn.addEventListener('click', () => {
-    Logger.log("Import history button clicked, opening file dialog");
-    elements.importFileInput.click();
-  });
-  
-  // Handle import file selection
-  elements.importFileInput.addEventListener('change', handleImportFile);
-}
 
-/**
- * Handles file import
- */
-async function handleImportFile(event) {
-  Logger.log("File selected for import");
-  const file = event.target.files[0];
-  if (!file) {
-    Logger.warn("No file selected for import");
-    return;
-  }
-  
-  Logger.log(`Selected file: ${file.name}, size: ${file.size} bytes, type: ${file.type}`);
-  
-  try {
-    Logger.log("Reading file content...");
-    const text = await readFile(file);
-    Logger.log("File content read, parsing JSON...");
-    const importedData = JSON.parse(text);
+  // Import button - Redirects to history page with a clear message
+  elements.importHistoryBtn.addEventListener('click', () => {
+    Logger.log("Import history button clicked, preparing to redirect to full view");
     
-    if (!Array.isArray(importedData)) {
-      Logger.error("Imported data is not an array. Invalid format.");
-      throw new Error('Invalid data format: Expected an array.');
-    }
-    Logger.log(`Parsed ${importedData.length} items from imported file.`);
+    // Show a brief message explaining the redirection
+    const messageDiv = document.createElement('div');
+    messageDiv.style.position = 'fixed';
+    messageDiv.style.top = '0';
+    messageDiv.style.left = '0';
+    messageDiv.style.right = '0';
+    messageDiv.style.bottom = '0';
+    messageDiv.style.backgroundColor = 'rgba(0,0,0,0.85)';
+    messageDiv.style.color = 'white';
+    messageDiv.style.display = 'flex';
+    messageDiv.style.flexDirection = 'column';
+    messageDiv.style.alignItems = 'center';
+    messageDiv.style.justifyContent = 'center';
+    messageDiv.style.padding = '20px';
+    messageDiv.style.zIndex = '9999';
+    messageDiv.style.textAlign = 'center';
     
-    // Get current data and merge, avoiding duplicates
-    Logger.log("Loading current history data for merging...");
-    const currentData = await loadHistoryData();
-    const existingUrls = new Set(currentData.map(item => item.url));
-    Logger.log(`Current history has ${currentData.length} items. Found ${existingUrls.size} unique URLs.`);
+    messageDiv.innerHTML = `
+      <div style="font-size: 24px; margin-bottom: 10px;">Opening Import...</div>
+      <div style="font-size: 14px; margin-bottom: 20px;">Due to browser limitations, the import function will open in the full history view.</div>
+      <div class="loading-spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #6e41e2; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite;"></div>
+    `;
     
-    const newItems = importedData.filter(item => {
-      if (!item || typeof item.url !== 'string') {
-        Logger.warn("Skipping invalid item in imported data (missing or invalid URL):", item);
-        return false;
+    // Add keyframe animation for spinner
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
-      return !existingUrls.has(item.url);
-    });
+    `;
+    document.head.appendChild(style);
     
-    Logger.log(`Found ${newItems.length} new items to import.`);
+    // Add to DOM
+    document.body.appendChild(messageDiv);
     
-    if (newItems.length === 0) {
-      Logger.log('No new conversations found in import file. Import aborted.');
-      alert('No new conversations found in import file');
-      // Reset the input
-      event.target.value = '';
-      return;
-    }
-    
-    // Merge and sort by timestamp (newest first)
-    Logger.log("Merging new items with current history...");
-    const mergedData = [...currentData, ...newItems].sort((a, b) => {
-      // Ensure timestamps are valid dates for sorting
-      const dateA = new Date(a.timestamp);
-      const dateB = new Date(b.timestamp);
-      if (isNaN(dateA) || isNaN(dateB)) {
-        Logger.warn("Invalid timestamp found during sort:", a, b);
-        return 0; // or handle as appropriate
-      }
-      return dateB - dateA;
-    });
-    Logger.log(`Merged data contains ${mergedData.length} items. Saving to storage...`);
-    
-    // Save merged data
-    await browser.storage.local.set({ [STORAGE_KEY]: mergedData });
-    Logger.log("Merged data saved to storage.");
-    
-    // Update badge
-    Logger.log("Sending message to update history count in badge...");
-    browser.runtime.sendMessage({
-      action: 'updateHistoryCount',
-      count: mergedData.length
-    });
-    
-    alert(`Import complete: Added ${newItems.length} new conversations`);
-    Logger.log(`Import successful. Added ${newItems.length} new conversations. Reloading popup.`);
-    window.location.reload();
-  } catch (error) {
-    Logger.error('Import error:', error.message, error.stack);
-    alert(`Import error: ${error.message}`);
-  }
-  
-  // Reset the input
-  Logger.log("Resetting file input.");
-  event.target.value = '';
+    // Wait a moment to show the message before redirecting
+    setTimeout(() => {
+      // Open history page with import parameter
+      browser.tabs.create({
+        url: '/popup/history.html?action=import'
+      });
+      window.close();
+    }, 1500);
+  });
 }
 
 /**

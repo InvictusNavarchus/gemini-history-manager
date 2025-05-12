@@ -123,11 +123,33 @@ async function init() {
     
     // Setup event listeners
     setupEventListeners();
+    
+    // Check URL parameters for automatic actions
+    checkUrlParameters();
+    
     Logger.log("History Manager initialization complete");
     
   } catch (error) {
     Logger.error("Error initializing application:", error);
     showError('Failed to load history data');
+  }
+}
+
+/**
+ * Check URL parameters for automatic actions
+ */
+function checkUrlParameters() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('action')) {
+    const action = urlParams.get('action');
+    
+    if (action === 'import') {
+      Logger.log("Import action detected in URL parameters, triggering file input");
+      // Small delay to ensure the UI is fully loaded
+      setTimeout(() => {
+        elements.importFileInput.click();
+      }, 300);
+    }
   }
 }
 
