@@ -15,12 +15,17 @@ const elements = {
   exportHistoryBtn: document.getElementById('exportHistory'),
   importHistoryBtn: document.getElementById('importHistory'),
   openFullPageBtn: document.getElementById('openFullPage'),
-  importFileInput: document.getElementById('importFileInput')
+  importFileInput: document.getElementById('importFileInput'),
+  themeToggle: document.getElementById('themeToggle')
 };
 
 // Constants
 const STORAGE_KEY = 'geminiChatHistory';
+const THEME_STORAGE_KEY = 'geminiHistoryTheme';
 const MAX_PREVIEW_CONVERSATIONS = 5;
+
+// Current theme state (shared with dashboard)
+let currentTheme = 'light'; // Default theme that will be updated in initTheme()
 
 /**
  * Initializes the popup
@@ -28,6 +33,10 @@ const MAX_PREVIEW_CONVERSATIONS = 5;
 async function initPopup() {
   try {
     Logger.log("Initializing Gemini History Manager popup...");
+    
+    // Initialize theme before loading UI
+    initTheme();
+    
     // Load and display chat history data
     const historyData = await loadHistoryData();
     
@@ -47,6 +56,83 @@ async function initPopup() {
   } catch (error) {
     Logger.error("Error initializing popup:", error);
     showError('Failed to load history data');
+  }
+}
+
+/**
+ * Initialize theme based on storage or system preference
+ */
+function initTheme() {
+  // Get stored theme preference
+  browser.storage.local.get(THEME_STORAGE_KEY)
+    .then(result => {
+      if (result[THEME_STORAGE_KEY]) {
+        currentTheme = result[THEME_STORAGE_KEY];
+        Logger.log(`Retrieved stored theme preference: ${currentTheme}`);
+      } else {
+        // Default to system preference via CSS media query, but track as 'light'
+        // The CSS will handle the system preference via @media (prefers-color-scheme: dark)
+        currentTheme = 'light';
+        Logger.log('No stored theme preference, defaulting to light with system detection via CSS');
+      }
+      
+      applyTheme(currentTheme);
+    })
+    .catch(error => {
+      Logger.error('Error retrieving theme preference:', error);
+      // Fall back to light
+      currentTheme = 'light';
+      applyTheme(currentTheme);
+    });
+}
+
+/**
+ * Apply the specified theme
+ * 
+ * @param {string} theme - 'light' or 'dark'
+ */
+function applyTheme(theme) {
+  const htmlElement = document.documentElement;
+  
+  // Set explicit theme attribute
+  htmlElement.setAttribute('data-theme', theme);
+  Logger.log(`Applied ${theme} theme`);
+  
+  // Store the theme preference
+  if (currentTheme !== theme) {
+    currentTheme = theme;
+    browser.storage.local.set({ [THEME_STORAGE_KEY]: theme })
+      .catch(error => Logger.error('Error storing theme preference:', error));
+  }
+  
+  // Update the toggle button icon
+  updateThemeToggleIcon();
+}
+
+/**
+ * Toggle between light and dark themes
+ */
+function toggleTheme() {
+  // Simply toggle between light and dark
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+/**
+ * Update the theme toggle button icon based on current theme
+ */
+function updateThemeToggleIcon() {
+  // Update the moon icon based on current theme
+  const themeIcon = elements.themeToggle.querySelector('svg');
+  
+  if (themeIcon) {
+    if (currentTheme === 'dark') {
+      themeIcon.style.fill = 'currentColor';
+      themeIcon.style.stroke = 'none';
+    } else {
+      themeIcon.style.fill = 'none';
+      themeIcon.style.stroke = 'currentColor';
+    }
   }
 }
 
@@ -345,6 +431,12 @@ function setupEventListeners() {
       });
       window.close();
     }, 1500);
+  });
+
+  // Theme toggle button
+  elements.themeToggle.addEventListener('click', () => {
+    Logger.log("Theme toggle button clicked");
+    toggleTheme();
   });
 }
 

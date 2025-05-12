@@ -1,8 +1,10 @@
 /* General styles */
 :root {
+  /* Light theme variables */
   --primary-color: #6e41e2;
   --primary-dark: #5832c5;
   --text-color: #333;
+  --text-light: #666;
   --bg-color: #f9f9fb;
   --card-bg: #fff;
   --border-color: #e0e0e5;
@@ -11,10 +13,39 @@
   --animation-speed: 0.3s;
 }
 
+/* Dark theme variables */
+html[data-theme='dark'] {
+  --primary-color: #8b68f0;
+  --primary-dark: #6e41e2;
+  --text-color: #e0e0e0;
+  --text-light: #b0b0b0;
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  --hover-bg: #2c2c2c;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* System preference dark mode */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) {
+    --primary-color: #8b68f0;
+    --primary-dark: #6e41e2;
+    --text-color: #e0e0e0;
+    --text-light: #b0b0b0;
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --border-color: #333333;
+    --hover-bg: #2c2c2c;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body {
@@ -37,15 +68,45 @@ header {
   z-index: 10;
 }
 
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 h1 {
   font-size: 16px;
   color: var(--primary-color);
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .controls {
   display: flex;
   gap: 8px;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.theme-toggle:hover {
+  background-color: var(--hover-bg);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Button styling */
@@ -101,7 +162,7 @@ main {
 .stat-card h3 {
   font-size: 12px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-light);
   margin-bottom: 6px;
 }
 
@@ -153,11 +214,11 @@ main {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #666;
+  color: var(--text-light);
 }
 
 .conversation-model {
-  background-color: #f0f0f5;
+  background-color: var(--hover-bg);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 11px;
@@ -167,7 +228,7 @@ main {
 .empty-state {
   text-align: center;
   padding: 24px 12px;
-  color: #666;
+  color: var(--text-light);
 }
 
 .empty-state p {
