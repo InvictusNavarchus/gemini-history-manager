@@ -59,6 +59,7 @@ const elements = {
   confirmAction: document.getElementById('confirmAction'),
   
   // Button elements
+  themeToggle: document.getElementById('themeToggle'),
   exportHistoryBtn: document.getElementById('exportHistory'),
   importHistoryBtn: document.getElementById('importHistory'),
   clearHistoryBtn: document.getElementById('clearHistory'),
@@ -67,6 +68,7 @@ const elements = {
 
 // Constants
 const STORAGE_KEY = 'geminiChatHistory';
+const THEME_STORAGE_KEY = 'geminiHistoryTheme';
 const CHART_COLORS = [
   'rgba(110, 65, 226, 0.8)', // Primary purple
   'rgba(71, 163, 255, 0.8)',  // Blue
@@ -82,6 +84,7 @@ let filteredHistory = []; // Filtered history items
 let currentVisualization = 'modelDistribution';
 let chart = null; // Chart.js instance
 let confirmationCallback = null; // For handling confirmation modal actions
+let currentTheme = null; // Current theme (light/dark/system)
 
 /**
  * Initialize the application
@@ -89,6 +92,10 @@ let confirmationCallback = null; // For handling confirmation modal actions
 async function init() {
   try {
     Logger.log("Initializing History Manager application...");
+    
+    // Set up theme before loading UI
+    initTheme();
+    
     // Load history data
     allHistory = await loadHistoryData();
     
@@ -122,6 +129,103 @@ async function init() {
   } catch (error) {
     Logger.error("Error initializing application:", error);
     showError('Failed to load history data');
+  }
+}
+
+/**
+ * Initialize theme based on storage or system preference
+ */
+function initTheme() {
+  // Get stored theme preference
+  browser.storage.local.get(THEME_STORAGE_KEY)
+    .then(result => {
+      if (result[THEME_STORAGE_KEY]) {
+        currentTheme = result[THEME_STORAGE_KEY];
+        Logger.log(`Retrieved stored theme preference: ${currentTheme}`);
+      } else {
+        // Default to system preference
+        currentTheme = 'system';
+        Logger.log('No stored theme preference, using system preference');
+      }
+      
+      applyTheme(currentTheme);
+    })
+    .catch(error => {
+      Logger.error('Error retrieving theme preference:', error);
+      // Fall back to system preference
+      currentTheme = 'system';
+      applyTheme(currentTheme);
+    });
+}
+
+/**
+ * Apply the specified theme
+ * 
+ * @param {string} theme - 'light', 'dark', or 'system'
+ */
+function applyTheme(theme) {
+  const htmlElement = document.documentElement;
+  
+  if (theme === 'system') {
+    // Remove any explicit theme attribute to use system preference
+    htmlElement.removeAttribute('data-theme');
+    Logger.log('Applied system theme preference');
+  } else {
+    // Set explicit theme
+    htmlElement.setAttribute('data-theme', theme);
+    Logger.log(`Applied ${theme} theme`);
+  }
+  
+  // Store the theme preference
+  if (currentTheme !== theme) {
+    currentTheme = theme;
+    browser.storage.local.set({ [THEME_STORAGE_KEY]: theme })
+      .catch(error => Logger.error('Error storing theme preference:', error));
+  }
+}
+
+/**
+ * Toggle between light, dark, and system themes
+ */
+function toggleTheme() {
+  let newTheme;
+  
+  // Cycle through themes: system -> light -> dark -> system
+  switch (currentTheme) {
+    case 'system':
+      newTheme = 'light';
+      break;
+    case 'light':
+      newTheme = 'dark';
+      break;
+    case 'dark':
+    default:
+      newTheme = 'system';
+      break;
+  }
+  
+  applyTheme(newTheme);
+  
+  // Update the toggle button icon (could be enhanced with different icons)
+  updateThemeToggleIcon();
+}
+
+/**
+ * Update the theme toggle button icon based on current theme
+ */
+function updateThemeToggleIcon() {
+  // This can be enhanced to show different icons for each theme
+  // For now, we'll just use the moon icon with different styling based on theme
+  const themeIcon = elements.themeToggle.querySelector('svg');
+  
+  if (themeIcon) {
+    if (currentTheme === 'dark') {
+      themeIcon.style.fill = 'currentColor';
+      themeIcon.style.stroke = 'none';
+    } else {
+      themeIcon.style.fill = 'none';
+      themeIcon.style.stroke = 'currentColor';
+    }
   }
 }
 
@@ -1054,6 +1158,9 @@ function setupEventListeners() {
       browser.tabs.create({ url: 'https://gemini.google.com/app' });
     });
   }
+
+  // Theme toggle button
+  elements.themeToggle.addEventListener('click', toggleTheme);
 }
 
 /**
