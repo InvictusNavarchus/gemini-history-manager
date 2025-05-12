@@ -63,7 +63,10 @@ const elements = {
   exportHistoryBtn: document.getElementById('exportHistory'),
   importHistoryBtn: document.getElementById('importHistory'),
   clearHistoryBtn: document.getElementById('clearHistory'),
-  importFileInput: document.getElementById('importFileInput')
+  importFileInput: document.getElementById('importFileInput'),
+  
+  // Toast container (will be created dynamically)
+  toastContainer: null
 };
 
 // Constants
@@ -76,6 +79,163 @@ const CHART_COLORS = [
   'rgba(239, 83, 80, 0.8)',   // Red
   'rgba(171, 71, 188, 0.8)'   // Pink
 ];
+
+/**
+ * Toast notification system
+ */
+const Toast = {
+  types: {
+    SUCCESS: 'success',
+    ERROR: 'error',
+    INFO: 'info',
+    WARNING: 'warning'
+  },
+  
+  /**
+   * Create a toast notification
+   * @param {string} message - The message to display
+   * @param {string} type - Type of toast: 'success', 'error', 'info', or 'warning'
+   * @param {number} duration - Duration in ms before auto-hide, default 5000ms
+   * @returns {HTMLElement} - The created toast element
+   */
+  create: function(message, type = this.types.INFO, duration = 5000) {
+    Logger.log(`Toast: ${type} - ${message}`);
+    
+    // Create toast container if it doesn't exist
+    if (!elements.toastContainer) {
+      elements.toastContainer = document.createElement('div');
+      elements.toastContainer.className = 'toast-container';
+      document.body.appendChild(elements.toastContainer);
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Toast icon
+    const icon = document.createElement('div');
+    icon.className = 'toast-icon';
+    
+    // Icon content based on type
+    switch (type) {
+      case this.types.SUCCESS:
+        icon.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        `;
+        break;
+      case this.types.ERROR:
+        icon.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        `;
+        break;
+      case this.types.WARNING:
+        icon.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        `;
+        break;
+      case this.types.INFO:
+      default:
+        icon.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        `;
+        break;
+    }
+    
+    // Toast content
+    const content = document.createElement('div');
+    content.className = 'toast-content';
+    content.textContent = message;
+    
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', () => this.remove(toast));
+    
+    // Add progress bar if duration > 0
+    if (duration > 0) {
+      const progressContainer = document.createElement('div');
+      progressContainer.className = 'toast-progress';
+      
+      const progressBar = document.createElement('div');
+      progressBar.className = 'toast-progress-bar';
+      progressBar.style.animation = `progress-animation ${duration/1000}s linear forwards`;
+      
+      progressContainer.appendChild(progressBar);
+      toast.appendChild(progressContainer);
+      
+      // Auto remove after duration
+      setTimeout(() => {
+        if (toast.parentNode) {
+          this.remove(toast);
+        }
+      }, duration);
+    }
+    
+    // Assemble toast
+    toast.appendChild(icon);
+    toast.appendChild(content);
+    toast.appendChild(closeBtn);
+    
+    // Add to container
+    elements.toastContainer.appendChild(toast);
+    
+    return toast;
+  },
+  
+  /**
+   * Remove a toast with animation
+   * @param {HTMLElement} toast - The toast element to remove
+   */
+  remove: function(toast) {
+    toast.classList.add('hide');
+    
+    // Wait for animation to finish before removing from DOM
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+      
+      // If this was the last toast, remove the container
+      if (elements.toastContainer && elements.toastContainer.children.length === 0) {
+        document.body.removeChild(elements.toastContainer);
+        elements.toastContainer = null;
+      }
+    }, 300); // Match the CSS animation duration
+  },
+  
+  // Convenience methods for different toast types
+  success: function(message, duration) {
+    return this.create(message, this.types.SUCCESS, duration);
+  },
+  
+  error: function(message, duration) {
+    return this.create(message, this.types.ERROR, duration);
+  },
+  
+  info: function(message, duration) {
+    return this.create(message, this.types.INFO, duration);
+  },
+  
+  warning: function(message, duration) {
+    return this.create(message, this.types.WARNING, duration);
+  }
+};
 
 // State management
 let allHistory = []; // All history items
@@ -575,9 +735,12 @@ async function deleteConversation(url) {
       elements.emptyState.style.display = 'flex';
     }
     
+    // Show success notification
+    Toast.success('Conversation deleted successfully');
+    
   } catch (error) {
     console.error('Error deleting conversation:', error);
-    alert('Failed to delete conversation');
+    Toast.error('Failed to delete conversation');
   }
 }
 
@@ -861,7 +1024,7 @@ function createActivityOverTime() {
 function exportHistoryData() {
   try {
     if (allHistory.length === 0) {
-      alert('No history data to export');
+      Toast.warning('No history data to export');
       return;
     }
     
@@ -888,9 +1051,12 @@ function exportHistoryData() {
     document.body.removeChild(downloadLink);
     
     URL.revokeObjectURL(url);
+    
+    // Show success notification
+    Toast.success('History data exported successfully');
   } catch (error) {
     console.error('Error exporting history:', error);
-    alert('Failed to export history data');
+    Toast.error('Failed to export history data');
   }
 }
 
@@ -914,7 +1080,7 @@ async function handleImportFile(event) {
     const newItems = importedData.filter(item => !existingUrls.has(item.url));
     
     if (newItems.length === 0) {
-      alert('No new conversations found in import file');
+      Toast.warning('No new conversations found in import file');
       return;
     }
     
@@ -943,10 +1109,10 @@ async function handleImportFile(event) {
     updateConversationList();
     createVisualization(currentVisualization);
     
-    alert(`Import complete: Added ${newItems.length} new conversations`);
+    Toast.success(`Import complete: Added ${newItems.length} new conversation${newItems.length !== 1 ? 's' : ''}`);
   } catch (error) {
     console.error('Import error:', error);
-    alert(`Import error: ${error.message}`);
+    Toast.error(`Import error: ${error.message}`);
   }
   
   // Reset the input
@@ -1092,9 +1258,12 @@ async function clearAllHistory() {
     createVisualization(currentVisualization);
     elements.emptyState.style.display = 'flex';
     
+    // Show success notification
+    Toast.success('All history has been cleared');
+    
   } catch (error) {
     console.error('Error clearing history:', error);
-    alert('Failed to clear history');
+    Toast.error('Failed to clear history');
   }
 }
 
