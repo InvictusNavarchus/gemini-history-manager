@@ -310,7 +310,6 @@ main {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
-  color: var(--text-color);
   background-color: #fff;
 }
 
