@@ -16,6 +16,20 @@ const Logger = {
   }
 };
 
+// Extend dayjs with necessary plugins
+// Assume these are loaded globally, e.g., window.dayjs_plugin_relativeTime
+if (window.dayjs_plugin_relativeTime) {
+  dayjs.extend(window.dayjs_plugin_relativeTime);
+}
+if (window.dayjs_plugin_isToday) {
+  dayjs.extend(window.dayjs_plugin_isToday);
+}
+if (window.dayjs_plugin_localizedFormat) {
+  dayjs.extend(window.dayjs_plugin_localizedFormat);
+}
+// Note: isSameOrBefore, isSameOrAfter can be constructed from core .isSame, .isBefore, .isAfter
+// For example, a.isSameOrBefore(b, unit) is (a.isSame(b, unit) || a.isBefore(b, unit))
+
 // DOM Elements
 const elements = {
   // Stats elements
@@ -92,6 +106,28 @@ let filteredHistory = []; // Filtered history items
 let currentVisualization = 'modelDistribution';
 let chart = null; // Chart.js instance
 let confirmationCallback = null; // For handling confirmation modal actions
+
+/**
+ * Day.js based date formatting helper
+ * Provides different formatting based on how recent the date is.
+ * - For today: Shows time only (e.g., "2:30 PM")
+ * - For this year: Shows month and day (e.g., "Jan 15")
+ * - For previous years or when includeYear is true: Shows month, day and year (e.g., "Jan 15, 2023")
+ * @param {string|number|Date|dayjs.Dayjs} dateInput - The date to format
+ * @param {boolean} [includeYear=false] - Whether to force include the year
+ * @returns {string} Formatted date string
+ */
+const dayjsFormatDate = (dateInput, includeYear = false) => {
+  const d = dayjs(dateInput);
+  if (d.isToday()) { // Requires isToday plugin
+    return d.format('LT'); // Localized time, e.g., "8:30 PM" - requires localizedFormat plugin
+  }
+  if (d.year() === dayjs().year() && !includeYear) {
+    return d.format('MMM D'); // e.g., "Jan 15"
+  }
+  return d.format('MMM D, YYYY'); // e.g., "Jan 15, 2023"
+};
+
 
 /**
  * Initialize the application
@@ -276,6 +312,8 @@ function updateFilteredHistory() {
     Logger.log(`Custom date range: ${startDateValue} to ${endDateValue}`);
   }
   
+  const now = dayjs();
+  
   // Apply filters
   filteredHistory = allHistory.filter(item => {
     // Model filter
@@ -283,48 +321,39 @@ function updateFilteredHistory() {
       return false;
     }
     
+    const itemDate = dayjs(item.timestamp);
+    
     // Date filter
     if (dateFilterValue !== 'all') {
-      const itemDate = new Date(item.timestamp);
-      const now = new Date();
-      
       if (dateFilterValue === 'today') {
-        // Today only
-        if (!isSameDay(itemDate, now)) {
+        // Today only (requires isToday plugin or check .isSame(now, 'day'))
+        if (!itemDate.isSame(now, 'day')) {
           return false;
         }
       } else if (dateFilterValue === 'week') {
         // This week
-        const weekStart = new Date(now);
-        weekStart.setDate(now.getDate() - now.getDay());
-        weekStart.setHours(0, 0, 0, 0);
-        
-        if (itemDate < weekStart) {
+        const weekStart = now.startOf('week');
+        if (itemDate.isBefore(weekStart)) {
           return false;
         }
       } else if (dateFilterValue === 'month') {
         // This month
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        
-        if (itemDate < monthStart) {
+        const monthStart = now.startOf('month');
+        if (itemDate.isBefore(monthStart)) {
           return false;
         }
       } else if (dateFilterValue === 'custom' && (startDateValue || endDateValue)) {
         // Custom date range
         if (startDateValue) {
-          const startDate = new Date(startDateValue);
-          startDate.setHours(0, 0, 0, 0);
-          
-          if (itemDate < startDate) {
+          const startDate = dayjs(startDateValue).startOf('day');
+          if (itemDate.isBefore(startDate)) {
             return false;
           }
         }
         
         if (endDateValue) {
-          const endDate = new Date(endDateValue);
-          endDate.setHours(23, 59, 59, 999);
-          
-          if (itemDate > endDate) {
+          const endDate = dayjs(endDateValue).endOf('day');
+          if (itemDate.isAfter(endDate)) {
             return false;
           }
         }
@@ -357,10 +386,10 @@ function sortFilteredHistory() {
   
   switch (sortOption) {
     case 'date-desc':
-      filteredHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      filteredHistory.sort((a, b) => dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf());
       break;
     case 'date-asc':
-      filteredHistory.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      filteredHistory.sort((a, b) => dayjs(a.timestamp).valueOf() - dayjs(b.timestamp).valueOf());
       break;
     case 'title':
       filteredHistory.sort((a, b) => {
@@ -432,7 +461,7 @@ function createConversationItem(entry) {
   
   const date = document.createElement('span');
   date.className = 'conversation-date';
-  date.textContent = formatDate(new Date(entry.timestamp));
+  date.textContent = dayjsFormatDate(entry.timestamp); // Use new dayjs formatter
   
   const model = document.createElement('span');
   model.className = 'conversation-model';
@@ -490,7 +519,8 @@ function createConversationItem(entry) {
 function showConversationDetails(conversation) {
   // Set modal content
   elements.detailTitle.textContent = conversation.title || 'Untitled Conversation';
-  elements.detailDate.textContent = new Date(conversation.timestamp).toLocaleString();
+  // Use localizedFormat for a comprehensive date-time string, e.g., "August 16, 2018 8:02 PM"
+  elements.detailDate.textContent = dayjs(conversation.timestamp).format('llll'); // Requires localizedFormat plugin
   elements.detailModel.textContent = conversation.model || 'Unknown';
   
   // Account info
@@ -631,14 +661,14 @@ function updateStats(history) {
   
   // Find first and last conversation timestamps
   const sortedByDate = [...history].sort((a, b) => 
-    new Date(a.timestamp) - new Date(b.timestamp)
+    dayjs(a.timestamp).valueOf() - dayjs(b.timestamp).valueOf()
   );
   
-  const firstDate = new Date(sortedByDate[0].timestamp);
-  const lastDate = new Date(sortedByDate[sortedByDate.length - 1].timestamp);
+  const firstDate = dayjs(sortedByDate[0].timestamp);
+  const lastDate = dayjs(sortedByDate[sortedByDate.length - 1].timestamp);
   
-  elements.firstConversationTime.textContent = formatDate(firstDate, true);
-  elements.lastConversationTime.textContent = formatTimeAgo(lastDate);
+  elements.firstConversationTime.textContent = dayjsFormatDate(firstDate, true); // Use new dayjs formatter
+  elements.lastConversationTime.textContent = lastDate.fromNow(); // Requires relativeTime plugin
   
   // Count total files uploaded
   const totalFiles = history.reduce((acc, entry) => {
@@ -683,12 +713,11 @@ function setupDateFilters() {
   });
   
   // Set default dates (last 30 days for start, today for end)
-  const today = new Date();
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(today.getDate() - 30);
+  const today = dayjs();
+  const thirtyDaysAgo = today.subtract(30, 'days');
   
-  elements.startDate.value = formatDateForInput(thirtyDaysAgo);
-  elements.endDate.value = formatDateForInput(today);
+  elements.startDate.value = thirtyDaysAgo.format('YYYY-MM-DD');
+  elements.endDate.value = today.format('YYYY-MM-DD');
 }
 
 /**
@@ -788,9 +817,7 @@ function createActivityOverTime() {
   const dateGroups = {};
   
   allHistory.forEach(entry => {
-    const date = new Date(entry.timestamp);
-    const dateStr = formatDateForGrouping(date);
-    
+    const dateStr = dayjs(entry.timestamp).format('YYYY-MM-DD');
     if (!dateGroups[dateStr]) {
       dateGroups[dateStr] = 0;
     }
@@ -798,33 +825,29 @@ function createActivityOverTime() {
   });
   
   // Get all dates in the range
-  const dates = Object.keys(dateGroups).sort();
+  const dates = Object.keys(dateGroups).sort((a,b) => dayjs(a).valueOf() - dayjs(b).valueOf());
   
   // Fill in missing dates
   if (dates.length > 1) {
-    const startDate = new Date(dates[0]);
-    const endDate = new Date(dates[dates.length - 1]);
+    const firstChartDate = dayjs(dates[0]);
+    const lastChartDate = dayjs(dates[dates.length - 1]);
     
-    // Ensure continuous dates
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      const dateStr = formatDateForGrouping(currentDate);
+    let currentDate = firstChartDate;
+    while (currentDate.isSame(lastChartDate, 'day') || currentDate.isBefore(lastChartDate, 'day')) {
+      const dateStr = currentDate.format('YYYY-MM-DD');
       if (!dateGroups[dateStr]) {
         dateGroups[dateStr] = 0;
       }
-      currentDate.setDate(currentDate.getDate() + 1);
+      currentDate = currentDate.add(1, 'day');
     }
   }
   
   // Sort dates for chart
-  const sortedDates = Object.keys(dateGroups).sort();
+  const sortedDates = Object.keys(dateGroups).sort((a,b) => dayjs(a).valueOf() - dayjs(b).valueOf());
   const counts = sortedDates.map(date => dateGroups[date]);
   
   // Format dates for display
-  const displayDates = sortedDates.map(date => {
-    const [year, month, day] = date.split('-');
-    return `${month}/${day}`; // Short format MM/DD
-  });
+  const displayDates = sortedDates.map(date => dayjs(date).format('MM/DD')); // Short format MM/DD
   
   // Create chart
   const ctx = elements.vizChart.getContext('2d');
@@ -867,15 +890,12 @@ function createActivityOverTime() {
 
 /**
  * Exports history data to a JSON file
- * 
- * Creates a downloadable JSON file containing either:
+ * * Creates a downloadable JSON file containing either:
  * - All history data if no filters are applied
  * - Only filtered history data if filters are active
- * 
- * The file will be named with the current date (YYYY-MM-DD) format
+ * * The file will be named with the current date (YYYY-MM-DD) format
  * and automatically trigger a download in the browser.
- * 
- * @returns {void}
+ * * @returns {void}
  * @throws {Error} Will throw an error if file creation fails
  */
 function exportHistoryData() {
@@ -900,7 +920,8 @@ function exportHistoryData() {
     // Create download link
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
-    downloadLink.download = `gemini-history-export-${formatDateForFilename(new Date())}.json`;
+    // Use dayjs for filename date formatting
+    downloadLink.download = `gemini-history-export-${dayjs().format('YYYY-MM-DD')}.json`;
     
     document.body.appendChild(downloadLink);
     downloadLink.click();
@@ -915,11 +936,9 @@ function exportHistoryData() {
 
 /**
  * Reads a file and returns its contents as text
- * 
- * Uses the FileReader API to asynchronously read a file's contents
+ * * Uses the FileReader API to asynchronously read a file's contents
  * and convert it to a text string.
- * 
- * @param {File} file - The file object to read
+ * * @param {File} file - The file object to read
  * @returns {Promise<string>} A promise that resolves with the file contents as text
  * @throws {Error} Will throw an error if file reading fails
  * @example
@@ -936,174 +955,14 @@ function readFile(file) {
   });
 }
 
-/**
- * Formats a date object for display based on relative time from now
- * 
- * Provides different formatting based on how recent the date is:
- * - For today: Shows time only (HH:MM)
- * - For this year: Shows month and day (Jan 15)
- * - For previous years: Shows month, day and year (Jan 15, 2023)
- * 
- * @param {Date} date - The date object to format
- * @param {boolean} [includeYear=false] - Whether to force include the year even for current year
- * @returns {string} Formatted date string
- * @example
- * // If today is Jan 15, 2024
- * formatDate(new Date()); // Returns "14:30" (if current time is 2:30 PM)
- * formatDate(new Date('2024-01-10')); // Returns "Jan 10"
- * formatDate(new Date('2023-12-25')); // Returns "Dec 25, 2023"
- * formatDate(new Date('2024-01-10'), true); // Returns "Jan 10, 2024" (with includeYear=true)
- */
-function formatDate(date, includeYear = false) {
-  // For today, show time only
-  const today = new Date();
-  if (isSameDay(date, today)) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-  
-  // For this year, show month and day
-  if (date.getFullYear() === today.getFullYear() && !includeYear) {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-  }
-  
-  // For other years, include year
-  return date.toLocaleDateString([], { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-}
+// Removed helper functions:
+// - formatDate (replaced by dayjsFormatDate)
+// - formatDateForInput (replaced by dayjs().format('YYYY-MM-DD'))
+// - formatDateForGrouping (replaced by dayjs().format('YYYY-MM-DD'))
+// - formatDateForFilename (replaced by dayjs().format('YYYY-MM-DD'))
+// - formatTimeAgo (replaced by dayjs().fromNow())
+// - isSameDay (replaced by dayjs().isSame(otherDate, 'day'))
 
-/**
- * Formats a date for input fields in YYYY-MM-DD format
- * 
- * Creates a string representation of a date that can be used
- * as a value for HTML date input elements.
- * 
- * @param {Date} date - The date to format
- * @returns {string} Date formatted as YYYY-MM-DD
- * @example
- * const inputDateValue = formatDateForInput(new Date('2024-01-15'));
- * console.log(inputDateValue); // "2024-01-15"
- */
-function formatDateForInput(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Formats a date for grouping in charts (YYYY-MM-DD)
- * 
- * Creates a standardized string representation of a date that
- * can be used as a consistent key for grouping date entries.
- * 
- * @param {Date} date - The date to format
- * @returns {string} Date formatted as YYYY-MM-DD
- * @example
- * const groupKey = formatDateForGrouping(new Date('2024-01-15T14:30:00'));
- * console.log(groupKey); // "2024-01-15"
- */
-function formatDateForGrouping(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Formats a date for use in filenames (YYYY-MM-DD)
- * 
- * Creates a filename-friendly string representation of a date
- * to be used when naming exported files.
- * 
- * @param {Date} date - The date to format
- * @returns {string} Date formatted as YYYY-MM-DD
- * @example
- * const filename = `report-${formatDateForFilename(new Date())}.json`;
- * console.log(filename); // "report-2024-01-15.json"
- */
-function formatDateForFilename(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Formats a date as a human-readable relative time string
- * 
- * Converts a date to a string representing the relative time from now:
- * - Seconds: "Just now"
- * - Minutes: "X mins ago"
- * - Hours: "X hours ago"
- * - Days: "X days ago"
- * - Months: "X months ago"
- * - Years: "X years ago"
- * 
- * @param {Date} date - The date to calculate relative time from
- * @returns {string} Human-readable relative time string
- * @example
- * // If current time is 2:30 PM
- * formatTimeAgo(new Date(Date.now() - 5 * 60 * 1000)); // "5 mins ago"
- * formatTimeAgo(new Date(Date.now() - 2 * 60 * 60 * 1000)); // "2 hours ago"
- * formatTimeAgo(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)); // "3 days ago"
- */
-function formatTimeAgo(date) {
-  const now = new Date();
-  const diffMs = now - date;
-  const diffSecs = Math.floor(diffMs / 1000);
-  
-  if (diffSecs < 60) {
-    return 'Just now';
-  }
-  
-  const diffMins = Math.floor(diffSecs / 60);
-  if (diffMins < 60) {
-    return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) {
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) {
-    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffMonths = Math.floor(diffDays / 30);
-  if (diffMonths < 12) {
-    return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffYears = Math.floor(diffDays / 365);
-  return `${diffYears} year${diffYears !== 1 ? 's' : ''} ago`;
-}
-
-/**
- * Checks if two dates represent the same calendar day
- * 
- * Compares year, month, and day components of two Date objects
- * to determine if they represent the same calendar day.
- * This ignores time components (hours, minutes, seconds).
- * 
- * @param {Date} date1 - First date to compare
- * @param {Date} date2 - Second date to compare
- * @returns {boolean} True if dates represent the same calendar day, false otherwise
- * @example
- * isSameDay(new Date('2024-01-15T09:00:00'), new Date('2024-01-15T15:30:00')); // true
- * isSameDay(new Date('2024-01-15'), new Date('2024-01-16')); // false
- */
-function isSameDay(date1, date2) {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
 
 /**
  * Handle import file
@@ -1131,7 +990,7 @@ async function handleImportFile(event) {
     
     // Merge and sort by timestamp (newest first)
     const mergedData = [...allHistory, ...newItems].sort((a, b) => {
-      return new Date(b.timestamp) - new Date(a.timestamp);
+      return dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf();
     });
     
     // Save merged data
