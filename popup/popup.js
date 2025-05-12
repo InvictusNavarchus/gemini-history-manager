@@ -3,19 +3,6 @@
  * Handles UI interactions and displays chat history data
  */
 
-// Logger Module
-const Logger = {
-  LOG_PREFIX: "[Gemini History]",
-  log: (...args) => console.log(Logger.LOG_PREFIX, ...args),
-  warn: (...args) => console.warn(Logger.LOG_PREFIX, ...args),
-  error: (...args) => console.error(Logger.LOG_PREFIX, ...args),
-  debug: (...args) => {
-    if (localStorage.getItem('gemini_debug') === 'true') {
-      console.debug(Logger.LOG_PREFIX, ...args);
-    }
-  }
-};
-
 // Initialize Day.js plugins
 initDayjsPlugins();
 
