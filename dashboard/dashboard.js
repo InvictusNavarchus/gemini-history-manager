@@ -518,10 +518,8 @@ function showConversationDetails(conversation) {
     elements.detailFilesGroup.style.display = 'none';
   }
   
-  // Set up open button
-  elements.openConversation.onclick = () => {
-    browser.tabs.create({ url: conversation.url });
-  };
+  // Set up open link href
+  elements.openConversation.href = conversation.url;
   
   // Set up delete button
   elements.deleteConversation.onclick = () => {
