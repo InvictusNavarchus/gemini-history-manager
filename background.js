@@ -66,7 +66,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'openHistoryPage':
       // Open the history page in a new tab
       browser.tabs.create({
-        url: '/popup/history.html'
+        url: '/popup/dashboard.html'
       });
       break;
       
