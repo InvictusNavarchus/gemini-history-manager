@@ -16,7 +16,8 @@ const elements = {
   importHistoryBtn: document.getElementById('importHistory'),
   openFullPageBtn: document.getElementById('openFullPage'),
   importFileInput: document.getElementById('importFileInput'),
-  themeToggle: document.getElementById('themeToggle')
+  themeToggle: document.getElementById('themeToggle'),
+  footerVersion: document.querySelector('footer p') // Add reference to footer version element
 };
 
 // Constants
@@ -37,6 +38,9 @@ async function initPopup() {
     // Initialize theme before loading UI
     initTheme();
     
+    // Load extension version from manifest
+    loadExtensionVersion();
+    
     // Load and display chat history data
     const historyData = await loadHistoryData();
     
@@ -56,6 +60,23 @@ async function initPopup() {
   } catch (error) {
     Logger.error("Error initializing popup:", error);
     showError('Failed to load history data');
+  }
+}
+
+/**
+ * Loads and displays the extension version from manifest.json
+ */
+function loadExtensionVersion() {
+  try {
+    const manifestData = browser.runtime.getManifest();
+    if (manifestData && manifestData.version && elements.footerVersion) {
+      elements.footerVersion.textContent = `Gemini History Manager v${manifestData.version}`;
+      Logger.log(`Extension version loaded: ${manifestData.version}`);
+    } else {
+      Logger.warn("Could not load extension version from manifest");
+    }
+  } catch (error) {
+    Logger.error("Error loading extension version:", error);
   }
 }
 
