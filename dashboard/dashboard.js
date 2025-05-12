@@ -84,7 +84,7 @@ let filteredHistory = []; // Filtered history items
 let currentVisualization = 'modelDistribution';
 let chart = null; // Chart.js instance
 let confirmationCallback = null; // For handling confirmation modal actions
-let currentTheme = null; // Current theme (light/dark/system)
+let currentTheme = null; // Current theme (light/dark)
 
 /**
  * Initialize the application
@@ -143,17 +143,18 @@ function initTheme() {
         currentTheme = result[THEME_STORAGE_KEY];
         Logger.log(`Retrieved stored theme preference: ${currentTheme}`);
       } else {
-        // Default to system preference
-        currentTheme = 'system';
-        Logger.log('No stored theme preference, using system preference');
+        // Default to system preference via CSS media query, but track as 'light'
+        // The CSS will handle the system preference via @media (prefers-color-scheme: dark)
+        currentTheme = 'light';
+        Logger.log('No stored theme preference, defaulting to light with system detection via CSS');
       }
       
       applyTheme(currentTheme);
     })
     .catch(error => {
       Logger.error('Error retrieving theme preference:', error);
-      // Fall back to system preference
-      currentTheme = 'system';
+      // Fall back to light
+      currentTheme = 'light';
       applyTheme(currentTheme);
     });
 }
@@ -161,20 +162,14 @@ function initTheme() {
 /**
  * Apply the specified theme
  * 
- * @param {string} theme - 'light', 'dark', or 'system'
+ * @param {string} theme - 'light' or 'dark'
  */
 function applyTheme(theme) {
   const htmlElement = document.documentElement;
   
-  if (theme === 'system') {
-    // Remove any explicit theme attribute to use system preference
-    htmlElement.removeAttribute('data-theme');
-    Logger.log('Applied system theme preference');
-  } else {
-    // Set explicit theme
-    htmlElement.setAttribute('data-theme', theme);
-    Logger.log(`Applied ${theme} theme`);
-  }
+  // Set explicit theme attribute
+  htmlElement.setAttribute('data-theme', theme);
+  Logger.log(`Applied ${theme} theme`);
   
   // Store the theme preference
   if (currentTheme !== theme) {
@@ -182,40 +177,25 @@ function applyTheme(theme) {
     browser.storage.local.set({ [THEME_STORAGE_KEY]: theme })
       .catch(error => Logger.error('Error storing theme preference:', error));
   }
+  
+  // Update the toggle button icon
+  updateThemeToggleIcon();
 }
 
 /**
- * Toggle between light, dark, and system themes
+ * Toggle between light and dark themes
  */
 function toggleTheme() {
-  let newTheme;
-  
-  // Cycle through themes: system -> light -> dark -> system
-  switch (currentTheme) {
-    case 'system':
-      newTheme = 'light';
-      break;
-    case 'light':
-      newTheme = 'dark';
-      break;
-    case 'dark':
-    default:
-      newTheme = 'system';
-      break;
-  }
-  
+  // Simply toggle between light and dark
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
   applyTheme(newTheme);
-  
-  // Update the toggle button icon (could be enhanced with different icons)
-  updateThemeToggleIcon();
 }
 
 /**
  * Update the theme toggle button icon based on current theme
  */
 function updateThemeToggleIcon() {
-  // This can be enhanced to show different icons for each theme
-  // For now, we'll just use the moon icon with different styling based on theme
+  // Update the moon icon based on current theme
   const themeIcon = elements.themeToggle.querySelector('svg');
   
   if (themeIcon) {
