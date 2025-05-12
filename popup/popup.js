@@ -22,7 +22,6 @@ const elements = {
 
 // Constants
 const STORAGE_KEY = 'geminiChatHistory';
-const THEME_STORAGE_KEY = 'geminiHistoryTheme';
 const MAX_PREVIEW_CONVERSATIONS = 5;
 
 // Current theme state (shared with dashboard)
@@ -36,7 +35,7 @@ async function initPopup() {
     Logger.log("Initializing Gemini History Manager popup...");
     
     // Initialize theme before loading UI
-    initTheme();
+    initThemeForPopup();
     
     // Load extension version from manifest
     loadExtensionVersion();
@@ -83,78 +82,12 @@ function loadExtensionVersion() {
 /**
  * Initialize theme based on storage or system preference
  */
-function initTheme() {
-  // Get stored theme preference
-  browser.storage.local.get(THEME_STORAGE_KEY)
-    .then(result => {
-      if (result[THEME_STORAGE_KEY]) {
-        currentTheme = result[THEME_STORAGE_KEY];
-        Logger.log(`Retrieved stored theme preference: ${currentTheme}`);
-      } else {
-        // Default to system preference via CSS media query, but track as 'light'
-        // The CSS will handle the system preference via @media (prefers-color-scheme: dark)
-        currentTheme = 'light';
-        Logger.log('No stored theme preference, defaulting to light with system detection via CSS');
-      }
-      
-      applyTheme(currentTheme);
-    })
-    .catch(error => {
-      Logger.error('Error retrieving theme preference:', error);
-      // Fall back to light
-      currentTheme = 'light';
-      applyTheme(currentTheme);
-    });
-}
-
-/**
- * Apply the specified theme
- * 
- * @param {string} theme - 'light' or 'dark'
- */
-function applyTheme(theme) {
-  const htmlElement = document.documentElement;
-  
-  // Set explicit theme attribute
-  htmlElement.setAttribute('data-theme', theme);
-  Logger.log(`Applied ${theme} theme`);
-  
-  // Store the theme preference
-  if (currentTheme !== theme) {
+function initThemeForPopup() {
+  // Use the shared initTheme function from utils.js
+  window.initTheme((theme) => {
     currentTheme = theme;
-    browser.storage.local.set({ [THEME_STORAGE_KEY]: theme })
-      .catch(error => Logger.error('Error storing theme preference:', error));
-  }
-  
-  // Update the toggle button icon
-  updateThemeToggleIcon();
-}
-
-/**
- * Toggle between light and dark themes
- */
-function toggleTheme() {
-  // Simply toggle between light and dark
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  applyTheme(newTheme);
-}
-
-/**
- * Update the theme toggle button icon based on current theme
- */
-function updateThemeToggleIcon() {
-  // Update the moon icon based on current theme
-  const themeIcon = elements.themeToggle.querySelector('svg');
-  
-  if (themeIcon) {
-    if (currentTheme === 'dark') {
-      themeIcon.style.fill = 'currentColor';
-      themeIcon.style.stroke = 'none';
-    } else {
-      themeIcon.style.fill = 'none';
-      themeIcon.style.stroke = 'currentColor';
-    }
-  }
+    applyTheme(currentTheme, elements.themeToggle.querySelector('svg'));
+  });
 }
 
 /**
@@ -457,7 +390,7 @@ function setupEventListeners() {
   // Theme toggle button
   elements.themeToggle.addEventListener('click', () => {
     Logger.log("Theme toggle button clicked");
-    toggleTheme();
+    currentTheme = window.toggleTheme(currentTheme, elements.themeToggle.querySelector('svg'));
   });
 }
 
