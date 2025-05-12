@@ -16,22 +16,8 @@ const Logger = {
   }
 };
 
-// Extend dayjs with necessary plugins
-// Assume these are loaded globally, e.g., window.dayjs_plugin_relativeTime
-if (window.dayjs_plugin_relativeTime) {
-  dayjs.extend(window.dayjs_plugin_relativeTime);
-}
-if (window.dayjs_plugin_isToday) {
-  dayjs.extend(window.dayjs_plugin_isToday);
-}
-if (window.dayjs_plugin_localizedFormat) {
-  dayjs.extend(window.dayjs_plugin_localizedFormat);
-}
-if (window.dayjs_plugin_utc) {
-  dayjs.extend(window.dayjs_plugin_utc);
-}
-// Note: isSameOrBefore, isSameOrAfter can be constructed from core .isSame, .isBefore, .isAfter
-// For example, a.isSameOrBefore(b, unit) is (a.isSame(b, unit) || a.isBefore(b, unit))
+// Initialize Day.js plugins
+initDayjsPlugins();
 
 // DOM Elements
 const elements = {
@@ -109,66 +95,6 @@ let filteredHistory = []; // Filtered history items
 let currentVisualization = 'modelDistribution';
 let chart = null; // Chart.js instance
 let confirmationCallback = null; // For handling confirmation modal actions
-
-/**
- * Parse timestamp to dayjs object, handling different timestamp formats
- * - Full ISO 8601 with Z (UTC): "2025-05-12T07:09:57.992Z"
- * - Local time without Z: "2025-05-12T11:32:40"
- * - With timezone offset: "2025-05-12T11:32:40+01:00"
- * @param {string|number|Date|dayjs.Dayjs} timestamp - The timestamp to parse
- * @returns {dayjs.Dayjs} A dayjs object in local time
- */
-const parseTimestamp = (timestamp) => {
-  if (!timestamp) return dayjs(); // Return current time if no timestamp
-  
-  // If already a dayjs object, return it
-  if (dayjs.isDayjs(timestamp)) return timestamp;
-  
-  const timestampStr = String(timestamp);
-  
-  // Check if it's full ISO 8601 with Z (UTC)
-  if (timestampStr.endsWith('Z')) {
-    // Parse as UTC and convert to local
-    return dayjs(timestamp).local();
-  }
-  
-  // Handle string with timezone offset (contains + or -)
-  if (timestampStr.includes('+') || (timestampStr.includes('-') && timestampStr.indexOf('-') > 8)) {
-    // dayjs will automatically handle the offset
-    return dayjs(timestamp);
-  }
-  
-  // Handle local time string without Z
-  // Assume it's already in local time
-  return dayjs(timestamp);
-};
-
-/**
- * Day.js based date formatting helper
- * Provides different formatting based on how recent the date is.
- * - For today: Shows time only (e.g., "2:30 PM")
- * - For this year: Shows month and day (e.g., "Jan 15")
- * - For previous years or when includeYear is true: Shows month, day and year (e.g., "Jan 15, 2023")
- * @param {string|number|Date|dayjs.Dayjs} dateInput - The date to format
- * @param {boolean} [includeYear=false] - Whether to force include the year
- * @returns {string} Formatted date string
- */
-const dayjsFormatDate = (dateInput, includeYear = false) => {
-  const d = parseTimestamp(dateInput);
-  
-  if (!d.isValid()) {
-    Logger.warn(`Invalid date input: ${dateInput}`);
-    return 'Invalid date';
-  }
-  
-  if (d.isToday()) { // Requires isToday plugin
-    return d.format('LT'); // Localized time, e.g., "8:30 PM" - requires localizedFormat plugin
-  }
-  if (d.year() === dayjs().year() && !includeYear) {
-    return d.format('MMM D'); // e.g., "Jan 15"
-  }
-  return d.format('MMM D, YYYY'); // e.g., "Jan 15, 2023"
-};
 
 /**
  * Initialize the application
@@ -974,36 +900,6 @@ function exportHistoryData() {
     alert('Failed to export history data');
   }
 }
-
-/**
- * Reads a file and returns its contents as text
- * * Uses the FileReader API to asynchronously read a file's contents
- * and convert it to a text string.
- * * @param {File} file - The file object to read
- * @returns {Promise<string>} A promise that resolves with the file contents as text
- * @throws {Error} Will throw an error if file reading fails
- * @example
- * // Example usage:
- * const fileContent = await readFile(fileObject);
- * console.log(fileContent); // File contents as string
- */
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = event => resolve(event.target.result);
-    reader.onerror = error => reject(error);
-    reader.readAsText(file);
-  });
-}
-
-// Removed helper functions:
-// - formatDate (replaced by dayjsFormatDate)
-// - formatDateForInput (replaced by dayjs().format('YYYY-MM-DD'))
-// - formatDateForGrouping (replaced by dayjs().format('YYYY-MM-DD'))
-// - formatDateForFilename (replaced by dayjs().format('YYYY-MM-DD'))
-// - formatTimeAgo (replaced by dayjs().fromNow())
-// - isSameDay (replaced by dayjs().isSame(otherDate, 'day'))
-
 
 /**
  * Handle import file

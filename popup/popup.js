@@ -17,44 +17,7 @@ const Logger = {
 };
 
 // Initialize Day.js plugins
-// It's assumed that dayjs core and these plugins are loaded globally,
-// e.g., via script tags in the HTML or through the extension's manifest.
-// The `dayjs.extend` syntax is used as per the prompt's implication.
-try {
-  if (dayjs && typeof dayjs.extend === 'function') {
-    if (dayjs_plugin_relativeTime) {
-      dayjs.extend(dayjs_plugin_relativeTime);
-      Logger.debug("Day.js relativeTime plugin extended.");
-    } else {
-      Logger.warn("Day.js relativeTime plugin (dayjs_plugin_relativeTime) not found. 'Time ago' functionality might be affected.");
-    }
-    if (dayjs_plugin_calendar) {
-      dayjs.extend(dayjs_plugin_calendar);
-      Logger.debug("Day.js calendar plugink extended.");
-    } else {
-      Logger.warn("Day.js calendar plugin (dayjs_plugin_calendar) not found.");
-    }
-    if (dayjs_plugin_localizedFormat) {
-      dayjs.extend(dayjs_plugin_localizedFormat);
-      Logger.debug("Day.js localizedFormat plugin extended.");
-    } else {
-      Logger.warn("Day.js localizedFormat plugin (dayjs_plugin_localizedFormat) not found. Some date formats might be affected.");
-    }
-    if (dayjs_plugin_utc) {
-      dayjs.extend(dayjs_plugin_utc);
-      Logger.debug("Day.js utc plugin extended.");
-    } else {
-      Logger.warn("Day.js utc plugin (dayjs_plugin_utc) not found.");
-    }
-  } else if (dayjs) {
-    Logger.warn("dayjs.extend is not a function. Plugins might not be loaded correctly.");
-  } else {
-    Logger.error("Day.js (dayjs) not found. Date functionalities will not work.");
-  }
-} catch (e) {
-    Logger.error("Error extending Day.js plugins:", e);
-}
-
+initDayjsPlugins();
 
 // DOM Elements
 const elements = {
@@ -71,39 +34,6 @@ const elements = {
 // Constants
 const STORAGE_KEY = 'geminiChatHistory';
 const MAX_PREVIEW_CONVERSATIONS = 5;
-
-/**
- * Parse timestamp to dayjs object, handling different timestamp formats
- * - Full ISO 8601 with Z (UTC): "2025-05-12T07:09:57.992Z"
- * - Local time without Z: "2025-05-12T11:32:40"
- * - With timezone offset: "2025-05-12T11:32:40+01:00"
- * @param {string|number|Date|dayjs.Dayjs} timestamp - The timestamp to parse
- * @returns {dayjs.Dayjs} A dayjs object in local time
- */
-const parseTimestamp = (timestamp) => {
-  if (!timestamp) return dayjs(); // Return current time if no timestamp
-  
-  // If already a dayjs object, return it
-  if (dayjs.isDayjs(timestamp)) return timestamp;
-  
-  const timestampStr = String(timestamp);
-  
-  // Check if it's full ISO 8601 with Z (UTC)
-  if (timestampStr.endsWith('Z')) {
-    // Parse as UTC and convert to local
-    return dayjs(timestamp).local();
-  }
-  
-  // Handle string with timezone offset (contains + or -)
-  if (timestampStr.includes('+') || (timestampStr.includes('-') && timestampStr.indexOf('-') > 8)) {
-    // dayjs will automatically handle the offset
-    return dayjs(timestamp);
-  }
-  
-  // Handle local time string without Z
-  // Assume it's already in local time
-  return dayjs(timestamp);
-};
 
 /**
  * Initializes the popup
@@ -174,7 +104,7 @@ function updateStats(historyData) {
   elements.mostUsedModel.textContent = mostUsed ? mostUsed[0] : '-';
   Logger.log(`Most used model: ${mostUsed ? mostUsed[0] : 'None'} (${mostUsed ? mostUsed[1] : 0} uses)`);
   
-  // Format last conversation time using updated parseTimestamp
+  // Format last conversation time 
   if (historyData[0] && historyData[0].timestamp) {
     const lastDateDayjs = parseTimestamp(historyData[0].timestamp);
     // Check if relativeTime plugin is loaded and fromNow method exists
@@ -429,47 +359,6 @@ function setupEventListeners() {
       window.close();
     }, 1500);
   });
-}
-
-/**
- * Reads a file as text
- */
-function readFile(file) {
-  Logger.debug(`Reading file: ${file.name}`);
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = event => {
-      Logger.debug(`File ${file.name} read successfully.`);
-      resolve(event.target.result);
-    };
-    reader.onerror = error => {
-      Logger.error(`Error reading file ${file.name}:`, error);
-      reject(error);
-    };
-    reader.readAsText(file);
-  });
-}
-
-/**
- * Formats a Day.js object for display in the conversation list using the calendar plugin.
- * Now uses our parseTimestamp function to handle different timestamp formats.
- * @param {Object} djsDate - A Day.js date object.
- * @returns {string} Formatted date string (e.g., "Today at 2:30 PM", "Yesterday at 10:00 AM", "01/15/2023").
- */
-function formatDateForDisplay(djsDate) {
-  if (!djsDate || !djsDate.isValid()) {
-    Logger.warn("Invalid date for formatDateForDisplay");
-    return "Invalid Date";
-  }
-  
-  // Use the Day.js calendar plugin for human-friendly, relative time display.
-  if (typeof djsDate.calendar === 'function') {
-    return djsDate.calendar();
-  } else {
-    // Fallback if calendar plugin somehow isn't loaded on the instance
-    Logger.warn("Day.js calendar function not found on date instance, falling back to basic format.");
-    return djsDate.format('YYYY-MM-DD HH:mm'); 
-  }
 }
 
 // Initialize the popup when DOM is loaded
