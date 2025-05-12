@@ -12,7 +12,6 @@
      */
     const CONFIG = {
         STORAGE_KEY: 'geminiChatHistory',
-        TIMEZONE: 'Asia/Jakarta',
         BASE_URL: 'https://gemini.google.com/app',
         LOG_PREFIX: "[Gemini History]"
     };
@@ -319,41 +318,16 @@
      */
     const Utils = {
         /**
-         * Gets the current timestamp formatted according to the configured timezone.
-         * Uses Intl.DateTimeFormat for proper timezone handling.
+         * Gets the current timestamp in ISO 8601 UTC format.
          * 
-         * @returns {string} - Formatted timestamp string in ISO-like format (YYYY-MM-DDTHH:MM:SS)
+         * @returns {string} - Formatted timestamp string in ISO 8601 UTC format (YYYY-MM-DDTHH:MM:SSZ)
          */
-        getCurrentJakartaTimestamp: function() {
+        getCurrentTimestamp: function() {
             try {
-                const now = new Date();
-                const options = {
-                    timeZone: CONFIG.TIMEZONE,
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                };
-                const formatter = new Intl.DateTimeFormat('en-CA', options);
-                const parts = formatter.formatToParts(now).reduce((acc, part) => {
-                    acc[part.type] = part.value;
-                    return acc;
-                }, {});
-
-                const yyyy = parts.year;
-                const mm = String(parts.month).padStart(2, '0');
-                const dd = String(parts.day).padStart(2, '0');
-                const hh = String(parts.hour).padStart(2, '0');
-                const MM = String(parts.minute).padStart(2, '0');
-                const ss = String(parts.second).padStart(2, '0');
-
-                return `${yyyy}-${mm}-${dd}T${hh}:${MM}:${ss}`;
+                return new Date().toISOString(); // Returns ISO 8601 format with UTC timezone
             } catch (e) {
-                Logger.error("Error getting Jakarta Time timestamp:", e);
-                return new Date().toISOString(); // Fallback
+                Logger.error("Error getting ISO UTC timestamp:", e);
+                return new Date().toISOString(); // Same fallback since it's the primary method
             }
         },
 
@@ -899,7 +873,7 @@
             const accountInfo = InputExtractor.getAccountInfo();
 
             return {
-                timestamp: Utils.getCurrentJakartaTimestamp(),
+                timestamp: Utils.getCurrentTimestamp(),
                 url: window.location.href,
                 model: STATE.pendingModelName,
                 prompt: STATE.pendingPrompt,
