@@ -108,6 +108,39 @@ let chart = null; // Chart.js instance
 let confirmationCallback = null; // For handling confirmation modal actions
 
 /**
+ * Parse timestamp to dayjs object, handling different timestamp formats
+ * - Full ISO 8601 with Z (UTC): "2025-05-12T07:09:57.992Z"
+ * - Local time without Z: "2025-05-12T11:32:40"
+ * - With timezone offset: "2025-05-12T11:32:40+01:00"
+ * @param {string|number|Date|dayjs.Dayjs} timestamp - The timestamp to parse
+ * @returns {dayjs.Dayjs} A dayjs object in local time
+ */
+const parseTimestamp = (timestamp) => {
+  if (!timestamp) return dayjs(); // Return current time if no timestamp
+  
+  // If already a dayjs object, return it
+  if (dayjs.isDayjs(timestamp)) return timestamp;
+  
+  const timestampStr = String(timestamp);
+  
+  // Check if it's full ISO 8601 with Z (UTC)
+  if (timestampStr.endsWith('Z')) {
+    // Parse as UTC and convert to local
+    return dayjs(timestamp).local();
+  }
+  
+  // Handle string with timezone offset (contains + or -)
+  if (timestampStr.includes('+') || (timestampStr.includes('-') && timestampStr.indexOf('-') > 8)) {
+    // dayjs will automatically handle the offset
+    return dayjs(timestamp);
+  }
+  
+  // Handle local time string without Z
+  // Assume it's already in local time
+  return dayjs(timestamp);
+};
+
+/**
  * Day.js based date formatting helper
  * Provides different formatting based on how recent the date is.
  * - For today: Shows time only (e.g., "2:30 PM")
@@ -118,7 +151,13 @@ let confirmationCallback = null; // For handling confirmation modal actions
  * @returns {string} Formatted date string
  */
 const dayjsFormatDate = (dateInput, includeYear = false) => {
-  const d = dayjs(dateInput);
+  const d = parseTimestamp(dateInput);
+  
+  if (!d.isValid()) {
+    Logger.warn(`Invalid date input: ${dateInput}`);
+    return 'Invalid date';
+  }
+  
   if (d.isToday()) { // Requires isToday plugin
     return d.format('LT'); // Localized time, e.g., "8:30 PM" - requires localizedFormat plugin
   }
@@ -127,7 +166,6 @@ const dayjsFormatDate = (dateInput, includeYear = false) => {
   }
   return d.format('MMM D, YYYY'); // e.g., "Jan 15, 2023"
 };
-
 
 /**
  * Initialize the application
@@ -321,7 +359,7 @@ function updateFilteredHistory() {
       return false;
     }
     
-    const itemDate = dayjs(item.timestamp);
+    const itemDate = parseTimestamp(item.timestamp);
     
     // Date filter
     if (dateFilterValue !== 'all') {
@@ -386,10 +424,10 @@ function sortFilteredHistory() {
   
   switch (sortOption) {
     case 'date-desc':
-      filteredHistory.sort((a, b) => dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf());
+      filteredHistory.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
       break;
     case 'date-asc':
-      filteredHistory.sort((a, b) => dayjs(a.timestamp).valueOf() - dayjs(b.timestamp).valueOf());
+      filteredHistory.sort((a, b) => parseTimestamp(a.timestamp).valueOf() - parseTimestamp(b.timestamp).valueOf());
       break;
     case 'title':
       filteredHistory.sort((a, b) => {
@@ -461,7 +499,7 @@ function createConversationItem(entry) {
   
   const date = document.createElement('span');
   date.className = 'conversation-date';
-  date.textContent = dayjsFormatDate(entry.timestamp); // Use new dayjs formatter
+  date.textContent = dayjsFormatDate(entry.timestamp); // Use updated parser/formatter
   
   const model = document.createElement('span');
   model.className = 'conversation-model';
@@ -519,8 +557,8 @@ function createConversationItem(entry) {
 function showConversationDetails(conversation) {
   // Set modal content
   elements.detailTitle.textContent = conversation.title || 'Untitled Conversation';
-  // Use localizedFormat for a comprehensive date-time string, e.g., "August 16, 2018 8:02 PM"
-  elements.detailDate.textContent = dayjs(conversation.timestamp).format('llll'); // Requires localizedFormat plugin
+  // Use parseTimestamp to ensure correct timezone handling
+  elements.detailDate.textContent = parseTimestamp(conversation.timestamp).format('llll'); // Requires localizedFormat plugin
   elements.detailModel.textContent = conversation.model || 'Unknown';
   
   // Account info
@@ -661,11 +699,11 @@ function updateStats(history) {
   
   // Find first and last conversation timestamps
   const sortedByDate = [...history].sort((a, b) => 
-    dayjs(a.timestamp).valueOf() - dayjs(b.timestamp).valueOf()
+    parseTimestamp(a.timestamp).valueOf() - parseTimestamp(b.timestamp).valueOf()
   );
   
-  const firstDate = dayjs(sortedByDate[0].timestamp);
-  const lastDate = dayjs(sortedByDate[sortedByDate.length - 1].timestamp);
+  const firstDate = parseTimestamp(sortedByDate[0].timestamp);
+  const lastDate = parseTimestamp(sortedByDate[sortedByDate.length - 1].timestamp);
   
   elements.firstConversationTime.textContent = dayjsFormatDate(firstDate, true); // Use new dayjs formatter
   elements.lastConversationTime.textContent = lastDate.fromNow(); // Requires relativeTime plugin
@@ -817,7 +855,7 @@ function createActivityOverTime() {
   const dateGroups = {};
   
   allHistory.forEach(entry => {
-    const dateStr = dayjs(entry.timestamp).format('YYYY-MM-DD');
+    const dateStr = parseTimestamp(entry.timestamp).format('YYYY-MM-DD');
     if (!dateGroups[dateStr]) {
       dateGroups[dateStr] = 0;
     }
@@ -990,7 +1028,7 @@ async function handleImportFile(event) {
     
     // Merge and sort by timestamp (newest first)
     const mergedData = [...allHistory, ...newItems].sort((a, b) => {
-      return dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf();
+      return parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf();
     });
     
     // Save merged data

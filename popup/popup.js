@@ -67,6 +67,39 @@ const STORAGE_KEY = 'geminiChatHistory';
 const MAX_PREVIEW_CONVERSATIONS = 5;
 
 /**
+ * Parse timestamp to dayjs object, handling different timestamp formats
+ * - Full ISO 8601 with Z (UTC): "2025-05-12T07:09:57.992Z"
+ * - Local time without Z: "2025-05-12T11:32:40"
+ * - With timezone offset: "2025-05-12T11:32:40+01:00"
+ * @param {string|number|Date|dayjs.Dayjs} timestamp - The timestamp to parse
+ * @returns {dayjs.Dayjs} A dayjs object in local time
+ */
+const parseTimestamp = (timestamp) => {
+  if (!timestamp) return dayjs(); // Return current time if no timestamp
+  
+  // If already a dayjs object, return it
+  if (dayjs.isDayjs(timestamp)) return timestamp;
+  
+  const timestampStr = String(timestamp);
+  
+  // Check if it's full ISO 8601 with Z (UTC)
+  if (timestampStr.endsWith('Z')) {
+    // Parse as UTC and convert to local
+    return dayjs(timestamp).local();
+  }
+  
+  // Handle string with timezone offset (contains + or -)
+  if (timestampStr.includes('+') || (timestampStr.includes('-') && timestampStr.indexOf('-') > 8)) {
+    // dayjs will automatically handle the offset
+    return dayjs(timestamp);
+  }
+  
+  // Handle local time string without Z
+  // Assume it's already in local time
+  return dayjs(timestamp);
+};
+
+/**
  * Initializes the popup
  */
 async function initPopup() {
@@ -135,17 +168,16 @@ function updateStats(historyData) {
   elements.mostUsedModel.textContent = mostUsed ? mostUsed[0] : '-';
   Logger.log(`Most used model: ${mostUsed ? mostUsed[0] : 'None'} (${mostUsed ? mostUsed[1] : 0} uses)`);
   
-  // Format last conversation time using Day.js
-  if (historyData[0] && historyData[0].timestamp && dayjs) {
-    const lastTimestamp = historyData[0].timestamp;
-    const lastDateDayjs = dayjs(lastTimestamp);
+  // Format last conversation time using updated parseTimestamp
+  if (historyData[0] && historyData[0].timestamp) {
+    const lastDateDayjs = parseTimestamp(historyData[0].timestamp);
     // Check if relativeTime plugin is loaded and fromNow method exists
     if (lastDateDayjs.isValid() && typeof lastDateDayjs.fromNow === 'function') {
         elements.lastConversationTime.textContent = lastDateDayjs.fromNow();
         Logger.log(`Last conversation: ${lastDateDayjs.fromNow()} (${lastDateDayjs.toISOString()})`);
     } else {
         elements.lastConversationTime.textContent = 'Invalid date';
-        Logger.warn(`Could not format last conversation time: ${lastTimestamp}. Day.js valid: ${lastDateDayjs.isValid()}, fromNow exists: ${typeof lastDateDayjs.fromNow === 'function'}`);
+        Logger.warn(`Could not format last conversation time: ${historyData[0].timestamp}. Day.js valid: ${lastDateDayjs.isValid()}, fromNow exists: ${typeof lastDateDayjs.fromNow === 'function'}`);
     }
   } else {
     elements.lastConversationTime.textContent = '-';
@@ -189,8 +221,8 @@ function createConversationItem(entry) {
   
   const date = document.createElement('span');
   date.className = 'conversation-date';
-  if (entry.timestamp && dayjs) {
-    date.textContent = formatDateForDisplay(dayjs(entry.timestamp));
+  if (entry.timestamp) {
+    date.textContent = formatDateForDisplay(parseTimestamp(entry.timestamp));
   } else {
     date.textContent = 'No date';
   }
@@ -414,26 +446,22 @@ function readFile(file) {
 
 /**
  * Formats a Day.js object for display in the conversation list using the calendar plugin.
- * Replaces the original formatDate and its custom Day.js logic.
+ * Now uses our parseTimestamp function to handle different timestamp formats.
  * @param {Object} djsDate - A Day.js date object.
  * @returns {string} Formatted date string (e.g., "Today at 2:30 PM", "Yesterday at 10:00 AM", "01/15/2023").
  */
 function formatDateForDisplay(djsDate) {
-  if (!dayjs || !djsDate || !djsDate.isValid()) {
-    Logger.warn("Invalid date or Day.js not available for formatDateForDisplay");
+  if (!djsDate || !djsDate.isValid()) {
+    Logger.warn("Invalid date for formatDateForDisplay");
     return "Invalid Date";
   }
   
   // Use the Day.js calendar plugin for human-friendly, relative time display.
-  // The output format will depend on the proximity of the date and the loaded locale/plugins.
-  // For example: "Today at 2:30 PM", "Yesterday at 10:00 AM", "Last Monday at 5:00 PM", or "01/15/2023".
   if (typeof djsDate.calendar === 'function') {
     return djsDate.calendar();
   } else {
-    // Fallback if calendar plugin somehow isn't loaded on the instance,
-    // though it should be if extended globally. This is a safety measure.
+    // Fallback if calendar plugin somehow isn't loaded on the instance
     Logger.warn("Day.js calendar function not found on date instance, falling back to basic format.");
-    // Using a generic ISO-like format as a fallback that's clearly different from calendar output
     return djsDate.format('YYYY-MM-DD HH:mm'); 
   }
 }
