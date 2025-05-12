@@ -19,31 +19,31 @@ const Logger = {
 // Initialize Day.js plugins
 // It's assumed that dayjs core and these plugins are loaded globally,
 // e.g., via script tags in the HTML or through the extension's manifest.
-// The `window.dayjs.extend` syntax is used as per the prompt's implication.
+// The `dayjs.extend` syntax is used as per the prompt's implication.
 try {
-  if (window.dayjs && typeof window.dayjs.extend === 'function') {
-    if (window.dayjs_plugin_relativeTime) {
-      window.dayjs.extend(window.dayjs_plugin_relativeTime);
+  if (dayjs && typeof dayjs.extend === 'function') {
+    if (dayjs_plugin_relativeTime) {
+      dayjs.extend(dayjs_plugin_relativeTime);
       Logger.debug("Day.js relativeTime plugin extended.");
     } else {
-      Logger.warn("Day.js relativeTime plugin (window.dayjs_plugin_relativeTime) not found. 'Time ago' functionality might be affected.");
+      Logger.warn("Day.js relativeTime plugin (dayjs_plugin_relativeTime) not found. 'Time ago' functionality might be affected.");
     }
-    if (window.dayjs_plugin_calendar) {
-      window.dayjs.extend(window.dayjs_plugin_calendar);
+    if (dayjs_plugin_calendar) {
+      dayjs.extend(dayjs_plugin_calendar);
       Logger.debug("Day.js calendar plugink extended.");
     } else {
-      Logger.warn("Day.js calendar plugin (window.dayjs_plugin_calendar) not found.");
+      Logger.warn("Day.js calendar plugin (dayjs_plugin_calendar) not found.");
     }
-    if (window.dayjs_plugin_localizedFormat) {
-      window.dayjs.extend(window.dayjs_plugin_localizedFormat);
+    if (dayjs_plugin_localizedFormat) {
+      dayjs.extend(dayjs_plugin_localizedFormat);
       Logger.debug("Day.js localizedFormat plugin extended.");
     } else {
-      Logger.warn("Day.js localizedFormat plugin (window.dayjs_plugin_localizedFormat) not found. Some date formats might be affected.");
+      Logger.warn("Day.js localizedFormat plugin (dayjs_plugin_localizedFormat) not found. Some date formats might be affected.");
     }
-  } else if (window.dayjs) {
-    Logger.warn("window.dayjs.extend is not a function. Plugins might not be loaded correctly.");
+  } else if (dayjs) {
+    Logger.warn("dayjs.extend is not a function. Plugins might not be loaded correctly.");
   } else {
-    Logger.error("Day.js (window.dayjs) not found. Date functionalities will not work.");
+    Logger.error("Day.js (dayjs) not found. Date functionalities will not work.");
   }
 } catch (e) {
     Logger.error("Error extending Day.js plugins:", e);
@@ -136,9 +136,9 @@ function updateStats(historyData) {
   Logger.log(`Most used model: ${mostUsed ? mostUsed[0] : 'None'} (${mostUsed ? mostUsed[1] : 0} uses)`);
   
   // Format last conversation time using Day.js
-  if (historyData[0] && historyData[0].timestamp && window.dayjs) {
+  if (historyData[0] && historyData[0].timestamp && dayjs) {
     const lastTimestamp = historyData[0].timestamp;
-    const lastDateDayjs = window.dayjs(lastTimestamp);
+    const lastDateDayjs = dayjs(lastTimestamp);
     // Check if relativeTime plugin is loaded and fromNow method exists
     if (lastDateDayjs.isValid() && typeof lastDateDayjs.fromNow === 'function') {
         elements.lastConversationTime.textContent = lastDateDayjs.fromNow();
@@ -189,8 +189,8 @@ function createConversationItem(entry) {
   
   const date = document.createElement('span');
   date.className = 'conversation-date';
-  if (entry.timestamp && window.dayjs) {
-    date.textContent = formatDateForDisplay(window.dayjs(entry.timestamp));
+  if (entry.timestamp && dayjs) {
+    date.textContent = formatDateForDisplay(dayjs(entry.timestamp));
   } else {
     date.textContent = 'No date';
   }
@@ -304,7 +304,7 @@ function setupEventListeners() {
   // Export history
   elements.exportHistoryBtn.addEventListener('click', async () => {
     Logger.log("Export history button clicked");
-    if (!window.dayjs) {
+    if (!dayjs) {
         Logger.error("Day.js not available for formatting filename in export.");
         alert('Date library not available. Cannot export.'); // Consider using a less intrusive notification
         return;
@@ -324,7 +324,7 @@ function setupEventListeners() {
       
       const url = URL.createObjectURL(blob);
       // Format date for filename using Day.js
-      const filename = `gemini-history-export-${window.dayjs().format('YYYY-MM-DD')}.json`;
+      const filename = `gemini-history-export-${dayjs().format('YYYY-MM-DD')}.json`;
       
       const downloadLink = document.createElement('a');
       downloadLink.href = url;
@@ -419,7 +419,7 @@ function readFile(file) {
  * @returns {string} Formatted date string (e.g., "Today at 2:30 PM", "Yesterday at 10:00 AM", "01/15/2023").
  */
 function formatDateForDisplay(djsDate) {
-  if (!window.dayjs || !djsDate || !djsDate.isValid()) {
+  if (!dayjs || !djsDate || !djsDate.isValid()) {
     Logger.warn("Invalid date or Day.js not available for formatDateForDisplay");
     return "Invalid Date";
   }
