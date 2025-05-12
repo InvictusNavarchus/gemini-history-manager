@@ -1027,6 +1027,12 @@ function setupEventListeners() {
   
   // Import button and file input
   elements.importHistoryBtn.addEventListener('click', () => {
+    // Clear URL parameters if they exist
+    if (window.location.search) {
+      const currentPath = window.location.pathname;
+      window.history.replaceState({}, document.title, currentPath);
+    }
+    
     elements.importFileInput.click();
   });
   
