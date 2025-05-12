@@ -16,6 +16,40 @@ const Logger = {
   }
 };
 
+// Initialize Day.js plugins
+// It's assumed that dayjs core and these plugins are loaded globally,
+// e.g., via script tags in the HTML or through the extension's manifest.
+// The `window.dayjs.extend` syntax is used as per the prompt's implication.
+try {
+  if (window.dayjs && typeof window.dayjs.extend === 'function') {
+    if (window.dayjs_plugin_relativeTime) {
+      window.dayjs.extend(window.dayjs_plugin_relativeTime);
+      Logger.debug("Day.js relativeTime plugin extended.");
+    } else {
+      Logger.warn("Day.js relativeTime plugin (window.dayjs_plugin_relativeTime) not found. 'Time ago' functionality might be affected.");
+    }
+    if (window.dayjs_plugin_calendar) {
+      window.dayjs.extend(window.dayjs_plugin_calendar);
+      Logger.debug("Day.js calendar plugink extended.");
+    } else {
+      Logger.warn("Day.js calendar plugin (window.dayjs_plugin_calendar) not found.");
+    }
+    if (window.dayjs_plugin_localizedFormat) {
+      window.dayjs.extend(window.dayjs_plugin_localizedFormat);
+      Logger.debug("Day.js localizedFormat plugin extended.");
+    } else {
+      Logger.warn("Day.js localizedFormat plugin (window.dayjs_plugin_localizedFormat) not found. Some date formats might be affected.");
+    }
+  } else if (window.dayjs) {
+    Logger.warn("window.dayjs.extend is not a function. Plugins might not be loaded correctly.");
+  } else {
+    Logger.error("Day.js (window.dayjs) not found. Date functionalities will not work.");
+  }
+} catch (e) {
+    Logger.error("Error extending Day.js plugins:", e);
+}
+
+
 // DOM Elements
 const elements = {
   totalConversations: document.getElementById('totalConversations'),
@@ -69,7 +103,11 @@ async function loadHistoryData() {
     const data = await browser.storage.local.get(STORAGE_KEY);
     const history = data[STORAGE_KEY] || [];
     Logger.log(`Retrieved ${history.length} history entries from storage`);
-    return history;
+    // Ensure timestamps are valid for dayjs processing
+    return history.map(entry => ({
+        ...entry,
+        timestamp: entry.timestamp // Assuming timestamp is already in a format dayjs can parse (ISO 8601, Unix ms)
+    }));
   } catch (error) {
     Logger.error("Error loading history data:", error);
     throw error;
@@ -97,11 +135,20 @@ function updateStats(historyData) {
   elements.mostUsedModel.textContent = mostUsed ? mostUsed[0] : '-';
   Logger.log(`Most used model: ${mostUsed ? mostUsed[0] : 'None'} (${mostUsed ? mostUsed[1] : 0} uses)`);
   
-  // Format last conversation time
-  if (historyData[0] && historyData[0].timestamp) {
-    const lastDate = new Date(historyData[0].timestamp);
-    elements.lastConversationTime.textContent = formatTimeAgo(lastDate);
-    Logger.log(`Last conversation: ${formatTimeAgo(lastDate)} (${lastDate.toISOString()})`);
+  // Format last conversation time using Day.js
+  if (historyData[0] && historyData[0].timestamp && window.dayjs) {
+    const lastTimestamp = historyData[0].timestamp;
+    const lastDateDayjs = window.dayjs(lastTimestamp);
+    // Check if relativeTime plugin is loaded and fromNow method exists
+    if (lastDateDayjs.isValid() && typeof lastDateDayjs.fromNow === 'function') {
+        elements.lastConversationTime.textContent = lastDateDayjs.fromNow();
+        Logger.log(`Last conversation: ${lastDateDayjs.fromNow()} (${lastDateDayjs.toISOString()})`);
+    } else {
+        elements.lastConversationTime.textContent = 'Invalid date';
+        Logger.warn(`Could not format last conversation time: ${lastTimestamp}. Day.js valid: ${lastDateDayjs.isValid()}, fromNow exists: ${typeof lastDateDayjs.fromNow === 'function'}`);
+    }
+  } else {
+    elements.lastConversationTime.textContent = '-';
   }
 }
 
@@ -142,7 +189,11 @@ function createConversationItem(entry) {
   
   const date = document.createElement('span');
   date.className = 'conversation-date';
-  date.textContent = formatDate(new Date(entry.timestamp));
+  if (entry.timestamp && window.dayjs) {
+    date.textContent = formatDateForDisplay(window.dayjs(entry.timestamp));
+  } else {
+    date.textContent = 'No date';
+  }
   
   const model = document.createElement('span');
   model.className = 'conversation-model';
@@ -253,11 +304,16 @@ function setupEventListeners() {
   // Export history
   elements.exportHistoryBtn.addEventListener('click', async () => {
     Logger.log("Export history button clicked");
+    if (!window.dayjs) {
+        Logger.error("Day.js not available for formatting filename in export.");
+        alert('Date library not available. Cannot export.'); // Consider using a less intrusive notification
+        return;
+    }
     try {
       const historyData = await loadHistoryData();
       if (historyData.length === 0) {
         Logger.warn('No history data to export');
-        alert('No history data to export');
+        alert('No history data to export'); // Consider using a less intrusive notification
         return;
       }
       
@@ -267,7 +323,8 @@ function setupEventListeners() {
       });
       
       const url = URL.createObjectURL(blob);
-      const filename = `gemini-history-export-${formatDateForFilename(new Date())}.json`;
+      // Format date for filename using Day.js
+      const filename = `gemini-history-export-${window.dayjs().format('YYYY-MM-DD')}.json`;
       
       const downloadLink = document.createElement('a');
       downloadLink.href = url;
@@ -281,7 +338,7 @@ function setupEventListeners() {
       Logger.log(`History exported successfully as ${filename}`);
     } catch (error) {
       Logger.error('Error exporting history:', error);
-      alert('Failed to export history data');
+      alert('Failed to export history data'); // Consider using a less intrusive notification
     }
   });
 
@@ -356,63 +413,29 @@ function readFile(file) {
 }
 
 /**
- * Formats a date for display in the conversation list
+ * Formats a Day.js object for display in the conversation list using the calendar plugin.
+ * Replaces the original formatDate and its custom Day.js logic.
+ * @param {Object} djsDate - A Day.js date object.
+ * @returns {string} Formatted date string (e.g., "Today at 2:30 PM", "Yesterday at 10:00 AM", "01/15/2023").
  */
-function formatDate(date) {
-  // For today, show time only
-  const today = new Date();
-  if (date.toDateString() === today.toDateString()) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function formatDateForDisplay(djsDate) {
+  if (!window.dayjs || !djsDate || !djsDate.isValid()) {
+    Logger.warn("Invalid date or Day.js not available for formatDateForDisplay");
+    return "Invalid Date";
   }
   
-  // For this year, show month and day
-  if (date.getFullYear() === today.getFullYear()) {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  // Use the Day.js calendar plugin for human-friendly, relative time display.
+  // The output format will depend on the proximity of the date and the loaded locale/plugins.
+  // For example: "Today at 2:30 PM", "Yesterday at 10:00 AM", "Last Monday at 5:00 PM", or "01/15/2023".
+  if (typeof djsDate.calendar === 'function') {
+    return djsDate.calendar();
+  } else {
+    // Fallback if calendar plugin somehow isn't loaded on the instance,
+    // though it should be if extended globally. This is a safety measure.
+    Logger.warn("Day.js calendar function not found on date instance, falling back to basic format.");
+    // Using a generic ISO-like format as a fallback that's clearly different from calendar output
+    return djsDate.format('YYYY-MM-DD HH:mm'); 
   }
-  
-  // For other years, include year
-  return date.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-/**
- * Formats a time difference as a human-readable string (e.g. "5 minutes ago")
- */
-function formatTimeAgo(date) {
-  const now = new Date();
-  const diffMs = now - date;
-  const diffSecs = Math.floor(diffMs / 1000);
-  
-  if (diffSecs < 60) {
-    return 'Just now';
-  }
-  
-  const diffMins = Math.floor(diffSecs / 60);
-  if (diffMins < 60) {
-    return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) {
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) {
-    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffMonths = Math.floor(diffDays / 30);
-  return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
-}
-
-/**
- * Formats a date for use in filenames
- */
-function formatDateForFilename(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
 
 // Initialize the popup when DOM is loaded
