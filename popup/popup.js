@@ -40,6 +40,12 @@ try {
     } else {
       Logger.warn("Day.js localizedFormat plugin (dayjs_plugin_localizedFormat) not found. Some date formats might be affected.");
     }
+    if (dayjs_plugin_utc) {
+      dayjs.extend(dayjs_plugin_utc);
+      Logger.debug("Day.js utc plugin extended.");
+    } else {
+      Logger.warn("Day.js utc plugin (dayjs_plugin_utc) not found.");
+    }
   } else if (dayjs) {
     Logger.warn("dayjs.extend is not a function. Plugins might not be loaded correctly.");
   } else {

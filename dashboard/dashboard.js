@@ -27,6 +27,9 @@ if (window.dayjs_plugin_isToday) {
 if (window.dayjs_plugin_localizedFormat) {
   dayjs.extend(window.dayjs_plugin_localizedFormat);
 }
+if (window.dayjs_plugin_utc) {
+  dayjs.extend(window.dayjs_plugin_utc);
+}
 // Note: isSameOrBefore, isSameOrAfter can be constructed from core .isSame, .isBefore, .isAfter
 // For example, a.isSameOrBefore(b, unit) is (a.isSame(b, unit) || a.isBefore(b, unit))
 
