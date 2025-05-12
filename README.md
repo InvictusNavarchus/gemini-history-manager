@@ -1,5 +1,8 @@
 # Gemini History Manager
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Version](https://img.shields.io/github/manifest-json/v/InvictusNavarchus/gemini-history-manager?label=version)](https://github.com/InvictusNavarchus/gemini-history-manager)
+
 A browser extension to track, manage, and visualize your Google Gemini chat history. It provides tools for organizing, searching, and gaining insights from your interactions.
 
 ## ✨ Features
