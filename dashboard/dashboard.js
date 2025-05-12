@@ -749,7 +749,7 @@ function createModelDistribution() {
   // Create chart
   const ctx = elements.vizChart.getContext('2d');
   chart = new Chart(ctx, {
-    type: 'doughnut',
+    type: 'bar',
     data: {
       labels: labels,
       datasets: [{
@@ -764,16 +764,7 @@ function createModelDistribution() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'right',
-          labels: {
-            boxWidth: 12,
-            font: {
-              size: 11
-            }
-          }
-        },
-        title: {
-          display: false
+          display: false,
         }
       }
     }
