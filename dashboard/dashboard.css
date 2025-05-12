@@ -655,6 +655,25 @@ html[data-theme='dark'] .button,
   background-color: #2c2c2c;
 }
 
+/* Add specific hover effect for dark mode buttons with higher specificity */
+html[data-theme='dark'] .button:hover,
+html[data-theme='dark'] .primary-button:hover,
+html[data-theme='dark'] .danger-button:hover,
+.button.dark:hover {
+  background-color: #3a3a3a;
+}
+
+/* Style for primary button hover in dark mode */
+html[data-theme='dark'] .primary-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Style for danger button hover in dark mode */
+html[data-theme='dark'] .danger-button:hover {
+  background-color: var(--danger-hover);
+  color: #fff;
+}
+
 html[data-theme='dark'] .conversation-model,
 .conversation-model.dark {
   background-color: var(--primary-bg);
