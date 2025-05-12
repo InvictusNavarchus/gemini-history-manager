@@ -386,7 +386,7 @@ function setupEventListeners() {
     setTimeout(() => {
       // Open history page with import parameter
       browser.tabs.create({
-        url: '/popup/history.html?action=import'
+        url: '/dashboard/dashboard.html?action=import'
       });
       window.close();
     }, 1500);
