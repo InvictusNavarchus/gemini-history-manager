@@ -25,15 +25,6 @@
     {
       "matches": ["https://gemini.google.com/*"],
       "js": [
-        "lib/dayjs.min.js",
-        "lib/utc.js",
-        "lib/timezone.js",
-        "lib/relativeTime.js",
-        "lib/calendar.js",
-        "lib/localizedFormat.js",
-        "lib/advancedFormat.js",
-        "lib/chart.min.js",
-        "lib/utils.js",
         "content-scripts/gemini-tracker.js"
       ]
     }
