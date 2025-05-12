@@ -174,7 +174,7 @@ function createImportGuidedExperience() {
   arrowContainer.style.left = `${btnRect.left + (btnRect.width / 2) - 20}px`;
   arrowContainer.style.width = '40px';
   arrowContainer.style.height = '40px';
-  arrowContainer.style.transform = 'rotate(-135deg)'; // Point upward
+  arrowContainer.style.transform = 'rotate(225deg)'; // Point upward
   arrowContainer.style.zIndex = '9999';
   
   // Add the pulsing arrow inside the container
@@ -188,23 +188,6 @@ function createImportGuidedExperience() {
   
   // Add arrow to container
   arrowContainer.appendChild(arrow);
-  
-  // Add guidance text below the arrow
-  const messageDiv = document.createElement('div');
-  messageDiv.className = 'guide-message';
-  messageDiv.style.position = 'absolute';
-  messageDiv.style.top = `${btnRect.bottom + 70}px`; // Below the arrow
-  messageDiv.style.left = '50%';
-  messageDiv.style.transform = 'translateX(-50%)';
-  messageDiv.style.color = '#6e41e2';
-  messageDiv.style.fontSize = '16px';
-  messageDiv.style.fontWeight = 'bold';
-  messageDiv.style.textAlign = 'center';
-  messageDiv.style.padding = '10px';
-  messageDiv.style.borderRadius = '5px';
-  messageDiv.style.backgroundColor = 'rgba(110, 65, 226, 0.1)';
-  messageDiv.style.border = '1px solid rgba(110, 65, 226, 0.2)';
-  messageDiv.textContent = 'Click the Import button to select your file';
   
   // Add keyframes for the animation - now only animating the scale, not rotation
   const style = document.createElement('style');
@@ -227,9 +210,8 @@ function createImportGuidedExperience() {
   
   document.head.appendChild(style);
   
-  // Add elements to DOM
+  // Add element to DOM
   document.body.appendChild(arrowContainer);
-  document.body.appendChild(messageDiv);
   
   // Slightly highlight the import button
   importBtn.style.backgroundColor = '#6e41e2';
@@ -239,7 +221,6 @@ function createImportGuidedExperience() {
   // Create a listener that removes the guided experience when import button is clicked
   const cleanupGuide = () => {
     if (arrowContainer.parentNode) arrowContainer.parentNode.removeChild(arrowContainer);
-    if (messageDiv.parentNode) messageDiv.parentNode.removeChild(messageDiv);
     
     // Remove the added styles from import button
     importBtn.style.backgroundColor = '';
