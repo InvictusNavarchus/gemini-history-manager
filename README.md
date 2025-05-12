@@ -158,3 +158,4 @@ The extension icon should now appear in your browser's toolbar.
 
 ## 📄 License
 
+This project is licensed under the GPL v3 License - see the `LICENSE` file for details.
