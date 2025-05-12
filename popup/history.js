@@ -144,13 +144,114 @@ function checkUrlParameters() {
     const action = urlParams.get('action');
     
     if (action === 'import') {
-      Logger.log("Import action detected in URL parameters, triggering file input");
-      // Small delay to ensure the UI is fully loaded
-      setTimeout(() => {
-        elements.importFileInput.click();
-      }, 300);
+      Logger.log("Import action detected in URL parameters, creating guided import experience");
+      
+      // Create overlay for guided experience
+      createImportGuidedExperience();
     }
   }
+}
+
+/**
+ * Creates a guided experience to highlight the import button
+ * with a simple pulsing arrow below the button
+ */
+function createImportGuidedExperience() {
+  // First, find the import button and get its position
+  const importBtn = elements.importHistoryBtn;
+  if (!importBtn) {
+    Logger.error("Import button not found, cannot create guided experience");
+    return;
+  }
+
+  const btnRect = importBtn.getBoundingClientRect();
+  
+  // Create container for the arrow to handle rotation separately from animation
+  const arrowContainer = document.createElement('div');
+  arrowContainer.className = 'guide-arrow-container';
+  arrowContainer.style.position = 'absolute';
+  arrowContainer.style.top = `${btnRect.bottom + 20}px`;
+  arrowContainer.style.left = `${btnRect.left + (btnRect.width / 2) - 20}px`;
+  arrowContainer.style.width = '40px';
+  arrowContainer.style.height = '40px';
+  arrowContainer.style.transform = 'rotate(-135deg)'; // Point upward
+  arrowContainer.style.zIndex = '9999';
+  
+  // Add the pulsing arrow inside the container
+  const arrow = document.createElement('div');
+  arrow.className = 'guide-arrow';
+  arrow.style.width = '100%';
+  arrow.style.height = '100%';
+  arrow.style.borderRight = '8px solid #6e41e2';
+  arrow.style.borderBottom = '8px solid #6e41e2';
+  arrow.style.animation = 'pulse 1.5s infinite';
+  
+  // Add arrow to container
+  arrowContainer.appendChild(arrow);
+  
+  // Add guidance text below the arrow
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'guide-message';
+  messageDiv.style.position = 'absolute';
+  messageDiv.style.top = `${btnRect.bottom + 70}px`; // Below the arrow
+  messageDiv.style.left = '50%';
+  messageDiv.style.transform = 'translateX(-50%)';
+  messageDiv.style.color = '#6e41e2';
+  messageDiv.style.fontSize = '16px';
+  messageDiv.style.fontWeight = 'bold';
+  messageDiv.style.textAlign = 'center';
+  messageDiv.style.padding = '10px';
+  messageDiv.style.borderRadius = '5px';
+  messageDiv.style.backgroundColor = 'rgba(110, 65, 226, 0.1)';
+  messageDiv.style.border = '1px solid rgba(110, 65, 226, 0.2)';
+  messageDiv.textContent = 'Click the Import button to select your file';
+  
+  // Add keyframes for the animation - now only animating the scale, not rotation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes pulse {
+      0% {
+        opacity: 0.4;
+        transform: scale(0.8);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
+      100% {
+        opacity: 0.4;
+        transform: scale(0.8);
+      }
+    }
+  `;
+  
+  document.head.appendChild(style);
+  
+  // Add elements to DOM
+  document.body.appendChild(arrowContainer);
+  document.body.appendChild(messageDiv);
+  
+  // Slightly highlight the import button
+  importBtn.style.backgroundColor = '#6e41e2';
+  importBtn.style.color = 'white';
+  importBtn.style.boxShadow = '0 0 8px 2px rgba(110, 65, 226, 0.5)';
+  
+  // Create a listener that removes the guided experience when import button is clicked
+  const cleanupGuide = () => {
+    if (arrowContainer.parentNode) arrowContainer.parentNode.removeChild(arrowContainer);
+    if (messageDiv.parentNode) messageDiv.parentNode.removeChild(messageDiv);
+    
+    // Remove the added styles from import button
+    importBtn.style.backgroundColor = '';
+    importBtn.style.color = '';
+    importBtn.style.boxShadow = '';
+    
+    // Remove this event listener
+    importBtn.removeEventListener('click', cleanupGuide);
+  };
+  
+  // Add click event to clean up when import button is clicked
+  importBtn.addEventListener('click', cleanupGuide);
 }
 
 /**
