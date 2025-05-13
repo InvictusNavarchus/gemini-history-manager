@@ -848,7 +848,8 @@ function populateModelFilter() {
 function setupVisualizationOptions() {
   // Set initial state of activity visualization options
   // Hide model selector initially (shown when 'separate' mode is selected)
-  elements.activityModelSelect.style.display = 'none';
+  elements.activityModelSelect.style.visibility = 'hidden';
+  elements.activityModelSelect.style.opacity = '0';
   
   // Set combined mode as default
   const combinedRadio = document.querySelector('input[name="activityDisplayMode"][value="combined"]');
@@ -910,15 +911,14 @@ function createVisualization(type) {
   }
   
   // Toggle visualization options based on selected type
-  elements.vizOptions.style.display = 'block';
-  
-  // Show/hide specific options based on selected visualization
   if (type === 'activityOverTime') {
-    // Show activity over time options
-    elements.activityVizOptions.style.display = 'block';
+    // Show activity options with smooth transition
+    elements.vizOptions.style.visibility = 'visible';
+    elements.vizOptions.style.opacity = '1';
   } else {
-    // Hide all option panels for other visualizations
-    elements.activityVizOptions.style.display = 'none';
+    // Hide options with smooth transition for model distribution
+    elements.vizOptions.style.visibility = 'hidden';
+    elements.vizOptions.style.opacity = '0';
   }
   
   // Charts are based on allHistory, not filteredHistory, as per current logic
@@ -935,7 +935,6 @@ function createVisualization(type) {
   
   switch (type) {
     case 'modelDistribution':
-      elements.vizOptions.style.display = 'none'; // No options needed for model distribution
       createModelDistributionChart();
       break;
     case 'activityOverTime':
@@ -1375,8 +1374,13 @@ function setupEventListeners() {
   document.querySelectorAll('input[name="activityDisplayMode"]').forEach(radio => {
     radio.addEventListener('change', () => {
       // Show/hide model selector based on selected display mode
-      elements.activityModelSelect.style.display = 
-        radio.value === 'separate' ? 'flex' : 'none';
+      if (radio.value === 'separate') {
+        elements.activityModelSelect.style.visibility = 'visible';
+        elements.activityModelSelect.style.opacity = '1';
+      } else {
+        elements.activityModelSelect.style.visibility = 'hidden';
+        elements.activityModelSelect.style.opacity = '0';
+      }
       
       // Re-create chart with new display mode
       if (currentChartVisualization === 'activityOverTime') {

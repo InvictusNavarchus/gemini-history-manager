@@ -598,11 +598,20 @@ main {
 }
 
 /* Visualization Options */
+#vizOptions {
+  /* Fixed height to prevent layout shifts between different chart types */
+  min-height: 84px; /* Reserve space for the options panel */
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
 .viz-options-panel {
   padding: 10px 15px;
   background-color: var(--bg-color);
   border-radius: 6px;
   border: 1px solid var(--border-color);
+  /* Fixed height to prevent layout shifts */
+  height: 84px; /* Accommodates both the display mode row and model selector row */
 }
 
 .viz-option-group {
@@ -610,6 +619,7 @@ main {
   align-items: center;
   gap: 10px;
   margin-bottom: 5px;
+  transition: visibility 0.2s, opacity 0.2s ease-in-out;
 }
 
 .viz-option-group:last-child {
@@ -652,8 +662,10 @@ main {
 }
 
 .viz-container {
-  height: 300px; /* Increased height for better chart visibility */
+  height: 300px; /* Fixed height for chart visibility */
+  min-height: 300px; /* Ensure consistent min-height */
   flex-grow: 1; /* Allow canvas container to grow */
+  transition: height 0.3s ease-in-out; /* Smooth transition if height changes */
 }
 #vizChart {
     max-height: 100%; /* Ensure chart canvas doesn't overflow its container */
