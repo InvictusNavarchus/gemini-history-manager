@@ -76,16 +76,27 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Initialize the extension
+/**
+ * Handle extension installation and updates
+ */
+browser.runtime.onInstalled.addListener((details) => {
+  console.log(`[Gemini History] Extension ${details.reason}:`, details);
+  
+  // Additional setup that should only happen on install could go here
+  if (details.reason === 'install') {
+    // First-time installation specific setup
+    console.log('[Gemini History] Extension installed for the first time');
+  }
+});
+
+/**
+ * Handle browser startup event
+ */
+browser.runtime.onStartup.addListener(() => {
+  console.log('[Gemini History] Browser started');
+});
+
+// Initialize the extension - this only needs to happen once
+// when the background script loads initially
+
 initializeExtension();
-
-// Service worker needs this to stay active
-self.addEventListener('install', (event) => {
-  console.log('[Gemini History] Service worker installed');
-  self.skipWaiting(); // Ensures that new service worker activates immediately
-});
-
-// Ensure the service worker is activated properly
-self.addEventListener('activate', (event) => {
-  console.log('[Gemini History] Service worker activated');
-});
