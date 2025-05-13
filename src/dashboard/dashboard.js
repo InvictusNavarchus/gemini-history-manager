@@ -36,6 +36,10 @@ const elements = {
   // Visualization elements (chart sub-tabs and canvas, within visualization tab)
   vizTabs: document.querySelectorAll('.viz-tab'), // Sub-tabs for charts
   vizChart: document.getElementById('vizChart'),
+  vizOptions: document.getElementById('vizOptions'),
+  activityVizOptions: document.getElementById('activityVizOptions'),
+  activityModelSelect: document.getElementById('activityModelSelect'),
+  activityModelFilter: document.getElementById('activityModelFilter'),
   
   // Conversation list elements (within history tab)
   conversationList: document.getElementById('conversationList'),
@@ -271,6 +275,9 @@ async function init() {
     
     // Populate UI elements that depend on allHistory
     populateModelFilter(); // Populates filter dropdown based on all models in history
+    
+    // Set up visualization options
+    setupVisualizationOptions();
     
     // Setup date filters (doesn't depend on data, just sets up controls)
     setupDateFilters();
@@ -810,16 +817,44 @@ function populateModelFilter() {
     models.add(item.model || 'Unknown');
   });
   
+  // Regular history filter
   const firstOption = elements.modelFilter.firstElementChild;
   elements.modelFilter.innerHTML = '';
   elements.modelFilter.appendChild(firstOption); // Keep "All Models"
   
+  // Activity model filter
+  const firstActivityOption = elements.activityModelFilter.firstElementChild;
+  elements.activityModelFilter.innerHTML = '';
+  elements.activityModelFilter.appendChild(firstActivityOption); // Keep "All Models"
+  
   Array.from(models).sort().forEach(model => {
+    // For history filter
     const option = document.createElement('option');
     option.value = model;
     option.textContent = model;
     elements.modelFilter.appendChild(option);
+    
+    // For activity chart filter
+    const activityOption = document.createElement('option');
+    activityOption.value = model;
+    activityOption.textContent = model;
+    elements.activityModelFilter.appendChild(activityOption);
   });
+}
+
+/**
+ * Set up visualization options initial state
+ */
+function setupVisualizationOptions() {
+  // Set initial state of activity visualization options
+  // Hide model selector initially (shown when 'separate' mode is selected)
+  elements.activityModelSelect.style.display = 'none';
+  
+  // Set combined mode as default
+  const combinedRadio = document.querySelector('input[name="activityDisplayMode"][value="combined"]');
+  if (combinedRadio) {
+    combinedRadio.checked = true;
+  }
 }
 
 /**
@@ -874,6 +909,18 @@ function createVisualization(type) {
     chart.destroy();
   }
   
+  // Toggle visualization options based on selected type
+  elements.vizOptions.style.display = 'block';
+  
+  // Show/hide specific options based on selected visualization
+  if (type === 'activityOverTime') {
+    // Show activity over time options
+    elements.activityVizOptions.style.display = 'block';
+  } else {
+    // Hide all option panels for other visualizations
+    elements.activityVizOptions.style.display = 'none';
+  }
+  
   // Charts are based on allHistory, not filteredHistory, as per current logic
   if (allHistory.length === 0) {
     // Optionally, display a message in the chart area if no data
@@ -888,6 +935,7 @@ function createVisualization(type) {
   
   switch (type) {
     case 'modelDistribution':
+      elements.vizOptions.style.display = 'none'; // No options needed for model distribution
       createModelDistributionChart();
       break;
     case 'activityOverTime':
@@ -962,10 +1010,35 @@ function createModelDistributionChart() {
  * Create activity over time chart
  */
 function createActivityOverTimeChart() {
+  // Get activity display mode
+  const displayMode = document.querySelector('input[name="activityDisplayMode"]:checked').value;
+  const selectedModel = document.getElementById('activityModelFilter').value;
+  
+  // Get all unique models from history
+  const uniqueModels = [...new Set(allHistory.map(entry => entry.model || 'Unknown'))];
+  
+  // Group dates by all conversations
   const dateGroups = {};
+  
+  // For model-specific data: model -> date -> count
+  const modelDateGroups = {};
+  uniqueModels.forEach(model => {
+    modelDateGroups[model] = {};
+  });
+  
+  // Process history entries
   allHistory.forEach(entry => {
     const dateStr = parseTimestamp(entry.timestamp).format('YYYY-MM-DD');
+    const model = entry.model || 'Unknown';
+    
+    // Update overall count
     dateGroups[dateStr] = (dateGroups[dateStr] || 0) + 1;
+    
+    // Update model-specific count
+    if (!modelDateGroups[model][dateStr]) {
+      modelDateGroups[model][dateStr] = 0;
+    }
+    modelDateGroups[model][dateStr]++;
   });
   
   const sortedDates = Object.keys(dateGroups).sort((a,b) => dayjs(a).valueOf() - dayjs(b).valueOf());
@@ -975,34 +1048,96 @@ function createActivityOverTimeChart() {
   if (sortedDates.length > 0) {
     let currentDate = dayjs(sortedDates[0]);
     const lastDate = dayjs(sortedDates[sortedDates.length - 1]);
+    
     while(currentDate.isBefore(lastDate) || currentDate.isSame(lastDate, 'day')) {
-        const dateStr = currentDate.format('YYYY-MM-DD');
-        filledDateGroups[dateStr] = dateGroups[dateStr] || 0;
-        currentDate = currentDate.add(1, 'day');
+      const dateStr = currentDate.format('YYYY-MM-DD');
+      filledDateGroups[dateStr] = dateGroups[dateStr] || 0;
+      
+      // Also fill model-specific data
+      uniqueModels.forEach(model => {
+        if (!modelDateGroups[model][dateStr]) {
+          modelDateGroups[model][dateStr] = 0;
+        }
+      });
+      
+      currentDate = currentDate.add(1, 'day');
     }
   }
 
   const finalSortedDates = Object.keys(filledDateGroups).sort((a,b) => dayjs(a).valueOf() - dayjs(b).valueOf());
-  const counts = finalSortedDates.map(date => filledDateGroups[date]);
   const displayDates = finalSortedDates.map(date => dayjs(date).format('MMM D, YY')); // More readable date format
+  
+  // Create datasets based on display mode
+  let datasets = [];
+  
+  if (displayMode === 'combined' || !finalSortedDates.length) {
+    // Combined mode - just show total conversations
+    const counts = finalSortedDates.map(date => filledDateGroups[date]);
+    datasets = [{
+      label: 'All Conversations',
+      data: counts,
+      backgroundColor: 'rgba(110, 65, 226, 0.2)',
+      borderColor: 'rgba(110, 65, 226, 1)',
+      borderWidth: 2,
+      tension: 0.2, // Smoother line
+      fill: true,
+      pointRadius: 3,
+      pointBackgroundColor: 'white',
+      pointBorderColor: 'rgba(110, 65, 226, 1)'
+    }];
+  } else {
+    // Separate mode - show by model
+    if (selectedModel === 'all') {
+      // Show all models
+      uniqueModels.forEach((model, index) => {
+        const colorIndex = index % CHART_COLORS.length;
+        const backgroundColor = CHART_COLORS[colorIndex].replace('0.8', '0.2');
+        const borderColor = CHART_COLORS[colorIndex].replace('0.8', '1');
+        
+        const modelCounts = finalSortedDates.map(date => modelDateGroups[model][date] || 0);
+        
+        datasets.push({
+          label: model,
+          data: modelCounts,
+          backgroundColor: backgroundColor,
+          borderColor: borderColor,
+          borderWidth: 2,
+          tension: 0.2,
+          fill: true,
+          pointRadius: 3,
+          pointBackgroundColor: 'white',
+          pointBorderColor: borderColor
+        });
+      });
+    } else {
+      // Show specific model
+      const colorIndex = uniqueModels.indexOf(selectedModel) % CHART_COLORS.length;
+      const backgroundColor = CHART_COLORS[colorIndex].replace('0.8', '0.2');
+      const borderColor = CHART_COLORS[colorIndex].replace('0.8', '1');
+      
+      const modelCounts = finalSortedDates.map(date => modelDateGroups[selectedModel][date] || 0);
+      
+      datasets.push({
+        label: selectedModel,
+        data: modelCounts,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
+        borderWidth: 2,
+        tension: 0.2,
+        fill: true,
+        pointRadius: 3,
+        pointBackgroundColor: 'white',
+        pointBorderColor: borderColor
+      });
+    }
+  }
   
   const ctx = elements.vizChart.getContext('2d');
   chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: displayDates,
-      datasets: [{
-        label: 'Conversations',
-        data: counts,
-        backgroundColor: 'rgba(110, 65, 226, 0.2)',
-        borderColor: 'rgba(110, 65, 226, 1)',
-        borderWidth: 2,
-        tension: 0.2, // Smoother line
-        fill: true,
-        pointRadius: 3,
-        pointBackgroundColor: 'white',
-        pointBorderColor: 'rgba(110, 65, 226, 1)'
-      }]
+      datasets: datasets
     },
     options: {
       responsive: true,
@@ -1010,6 +1145,7 @@ function createActivityOverTimeChart() {
       scales: {
         y: {
           beginAtZero: true,
+          stacked: displayMode === 'combined',
           ticks: { 
             precision: 0,
             color: getComputedStyle(document.documentElement).getPropertyValue('--text-light').trim()
@@ -1025,12 +1161,18 @@ function createActivityOverTimeChart() {
       },
       plugins: {
         legend: {
-          display: false
+          display: displayMode === 'separate',
+          position: 'top',
+          labels: {
+            color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(),
+            font: {
+              size: 11
+            }
+          }
         },
         tooltip: {
             callbacks: {
                 title: function(tooltipItems) {
-                    // tooltipItems is an array, take the first one for the date
                     return tooltipItems[0].label;
                 },
                 label: function(context) {
@@ -1227,6 +1369,35 @@ function setupEventListeners() {
       currentChartVisualization = tab.dataset.viz;
       createVisualization(currentChartVisualization); // Re-create chart for the new selection
     });
+  });
+  
+  // Activity over time visualization options
+  document.querySelectorAll('input[name="activityDisplayMode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      // Show/hide model selector based on selected display mode
+      elements.activityModelSelect.style.display = 
+        radio.value === 'separate' ? 'flex' : 'none';
+      
+      // Re-create chart with new display mode
+      if (currentChartVisualization === 'activityOverTime') {
+        // Destroy chart first to avoid Canvas already in use error
+        if (chart) {
+          chart.destroy();
+        }
+        createActivityOverTimeChart();
+      }
+    });
+  });
+  
+  // Activity model filter change event
+  elements.activityModelFilter.addEventListener('change', () => {
+    if (currentChartVisualization === 'activityOverTime') {
+      // Destroy chart first to avoid Canvas already in use error
+      if (chart) {
+        chart.destroy();
+      }
+      createActivityOverTimeChart();
+    }
   });
   
   // Header Buttons

@@ -141,6 +141,27 @@
             <div class="viz-tabs"> <button class="viz-tab active" data-viz="modelDistribution">Model Distribution</button>
               <button class="viz-tab" data-viz="activityOverTime">Activity Over Time</button>
             </div>
+            <div id="vizOptions" style="display: none; margin-top: 10px; margin-bottom: 15px;">
+              <div id="activityVizOptions" class="viz-options-panel">
+                <div class="viz-option-group">
+                  <label>Display Mode:</label>
+                  <div class="viz-radio-buttons">
+                    <label class="viz-radio-label">
+                      <input type="radio" name="activityDisplayMode" value="combined" checked> Combined
+                    </label>
+                    <label class="viz-radio-label">
+                      <input type="radio" name="activityDisplayMode" value="separate"> By Model
+                    </label>
+                  </div>
+                </div>
+                <div id="activityModelSelect" class="viz-option-group" style="display: none;">
+                  <label for="activityModelFilter">Model:</label>
+                  <select id="activityModelFilter">
+                    <option value="all">All Models</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             <div class="viz-container">
               <canvas id="vizChart"></canvas>
             </div>
