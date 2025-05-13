@@ -502,7 +502,10 @@ main {
   margin-top: 8px;
   font-size: 13px;
   color: var(--text-light);
-  white-space: nowrap;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 600px;
