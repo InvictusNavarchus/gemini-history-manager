@@ -141,7 +141,10 @@
             <div class="viz-tabs"> <button class="viz-tab active" data-viz="modelDistribution">Model Distribution</button>
               <button class="viz-tab" data-viz="activityOverTime">Activity Over Time</button>
             </div>
-            <div id="vizOptions" style="visibility: hidden; opacity: 0; margin-top: 10px; margin-bottom: 15px;">
+            <div class="viz-container">
+              <canvas id="vizChart"></canvas>
+            </div>
+            <div id="vizOptions" style="visibility: hidden; opacity: 0; margin-top: 15px; min-height: 84px;">
               <div id="activityVizOptions" class="viz-options-panel">
                 <div class="viz-option-group">
                   <label>Display Mode:</label>
@@ -161,9 +164,6 @@
                   </select>
                 </div>
               </div>
-            </div>
-            <div class="viz-container">
-              <canvas id="vizChart"></canvas>
             </div>
           </div>
         </div>

@@ -851,6 +851,10 @@ function setupVisualizationOptions() {
   elements.activityModelSelect.style.visibility = 'hidden';
   elements.activityModelSelect.style.opacity = '0';
   
+  // Hide the options panel by default since model distribution tab is active initially
+  elements.vizOptions.style.visibility = 'hidden';
+  elements.vizOptions.style.opacity = '0';
+  
   // Set combined mode as default
   const combinedRadio = document.querySelector('input[name="activityDisplayMode"][value="combined"]');
   if (combinedRadio) {
@@ -912,11 +916,11 @@ function createVisualization(type) {
   
   // Toggle visualization options based on selected type
   if (type === 'activityOverTime') {
-    // Show activity options with smooth transition
+    // Show activity options at bottom for Activity Over Time chart
     elements.vizOptions.style.visibility = 'visible';
     elements.vizOptions.style.opacity = '1';
   } else {
-    // Hide options with smooth transition for model distribution
+    // Hide options for Model Distribution chart
     elements.vizOptions.style.visibility = 'hidden';
     elements.vizOptions.style.opacity = '0';
   }
