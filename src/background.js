@@ -16,12 +16,12 @@ function updateBadge(count) {
   STATE.historyCount = count || STATE.historyCount;
   
   // Update badge text with the count
-  browser.browserAction.setBadgeText({
+  browser.action.setBadgeText({
     text: STATE.historyCount > 0 ? STATE.historyCount.toString() : ''
   });
   
   // Set badge background color
-  browser.browserAction.setBadgeBackgroundColor({
+  browser.action.setBadgeBackgroundColor({
     color: '#6e41e2' // Purple color matching Gemini's theme
   });
 }
@@ -47,7 +47,7 @@ function initializeExtension() {
  * Handle browser action icon click
  * Opens the popup by default
  */
-browser.browserAction.onClicked.addListener(() => {
+browser.action.onClicked.addListener(() => {
   // The popup will be shown automatically if defined in manifest
   console.log('[Gemini History] Browser action clicked');
 });
@@ -78,3 +78,14 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Initialize the extension
 initializeExtension();
+
+// Service worker needs this to stay active
+self.addEventListener('install', (event) => {
+  console.log('[Gemini History] Service worker installed');
+  self.skipWaiting(); // Ensures that new service worker activates immediately
+});
+
+// Ensure the service worker is activated properly
+self.addEventListener('activate', (event) => {
+  console.log('[Gemini History] Service worker activated');
+});
