@@ -35,115 +35,142 @@
   </header>
 
   <main>
-    <div class="sidebar">
-      <div class="filters-section">
-        <h2>Filters</h2>
-        <div class="filter-group">
-          <label for="modelFilter">Model</label>
-          <select id="modelFilter">
-            <option value="">All Models</option>
-            <!-- Will be populated dynamically -->
-          </select>
-        </div>
-        <div class="filter-group">
-          <label for="dateFilter">Date Range</label>
-          <select id="dateFilter">
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="custom">Custom Range</option>
-          </select>
-        </div>
-        <div id="customDateRange" class="filter-group date-range" style="display: none;">
-          <div>
-            <label for="startDate">From</label>
-            <input type="date" id="startDate">
-          </div>
-          <div>
-            <label for="endDate">To</label>
-            <input type="date" id="endDate">
-          </div>
-        </div>
-      </div>
-      
-      <div class="stats-section">
-        <h2>Statistics</h2>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3>Total Conversations</h3>
-            <div class="stat-value" id="totalConversations">0</div>
-          </div>
-          <div class="stat-card">
-            <h3>Most Used Model</h3>
-            <div class="stat-value" id="mostUsedModel">-</div>
-            <div class="stat-subtext" id="mostUsedModelCount"></div>
-          </div>
-          <div class="stat-card">
-            <h3>Average Title Length</h3>
-            <div class="stat-value" id="avgTitleLength">-</div>
-            <div class="stat-subtext">characters</div>
-          </div>
-          <div class="stat-card">
-            <h3>First Conversation</h3>
-            <div class="stat-value" id="firstConversationTime">-</div>
-          </div>
-          <div class="stat-card">
-            <h3>Files Uploaded</h3>
-            <div class="stat-value" id="totalFilesUploaded">0</div>
-          </div>
-          <div class="stat-card">
-            <h3>Last Conversation</h3>
-            <div class="stat-value" id="lastConversationTime">-</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="visualization-section">
-        <h2>Visualizations</h2>
-        <div class="viz-tabs">
-          <button class="viz-tab active" data-viz="modelDistribution">Model Distribution</button>
-          <button class="viz-tab" data-viz="activityOverTime">Activity Over Time</button>
-        </div>
-        <div class="viz-container">
-          <canvas id="vizChart"></canvas>
-        </div>
-      </div>
+    <div class="page-tabs-container">
+      <button id="mainHistoryTab" class="page-tab active" data-tab-target="#historyContent">History</button>
+      <button id="mainVisualizationTab" class="page-tab" data-tab-target="#visualizationContent">Visualizations</button>
     </div>
-    
-    <div class="content">
-      <div class="conversation-header">
-        <h2>Conversations <span id="conversationCount">(0)</span></h2>
-        <div class="sorting">
-          <label for="sortBy">Sort by:</label>
-          <select id="sortBy">
-            <option value="date-desc">Newest First</option>
-            <option value="date-asc">Oldest First</option>
-            <option value="title">Title (A-Z)</option>
-            <option value="model">Model</option>
-          </select>
+
+    <div class="page-tab-content-area">
+      <div id="historyContent" class="page-tab-content active">
+        <div class="history-view-layout">
+          <div class="sidebar">
+            <div class="filters-section">
+              <h2>Filters</h2>
+              <div class="filter-group">
+                <label for="modelFilter">Model</label>
+                <select id="modelFilter">
+                  <option value="">All Models</option>
+                  </select>
+              </div>
+              <div class="filter-group">
+                <label for="dateFilter">Date Range</label>
+                <select id="dateFilter">
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+              </div>
+              <div id="customDateRange" class="filter-group date-range" style="display: none;">
+                <div>
+                  <label for="startDate">From</label>
+                  <input type="date" id="startDate">
+                </div>
+                <div>
+                  <label for="endDate">To</label>
+                  <input type="date" id="endDate">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="content">
+            <div class="conversation-header">
+              <h2>Conversations <span id="conversationCount">(0)</span></h2>
+              <div class="sorting">
+                <label for="sortBy">Sort by:</label>
+                <select id="sortBy">
+                  <option value="date-desc">Newest First</option>
+                  <option value="date-asc">Oldest First</option>
+                  <option value="title">Title (A-Z)</option>
+                  <option value="model">Model</option>
+                </select>
+              </div>
+            </div>
+            <div id="conversationList" class="conversation-list">
+              </div>
+            <div id="emptyState" class="empty-state" style="display: none;">
+              <div class="empty-icon">📋</div>
+              <h3>No Conversations Found</h3>
+              <p>Your conversation history will appear here once you chat with Gemini.</p>
+              <button id="startChatBtn" class="button primary-button">Start a Gemini Chat</button>
+            </div>
+            <div id="loadingState" class="loading-state">
+              <div class="spinner"></div>
+              <p>Loading your conversation history...</p>
+            </div>
+          </div>
         </div>
       </div>
-      
-      <div id="conversationList" class="conversation-list">
-        <!-- Conversations will be inserted here dynamically -->
-      </div>
-      
-      <div id="emptyState" class="empty-state" style="display: none;">
-        <div class="empty-icon">📋</div>
-        <h3>No Conversations Found</h3>
-        <p>Your conversation history will appear here once you chat with Gemini.</p>
-        <button id="startChatBtn" class="button primary-button">Start a Gemini Chat</button>
-      </div>
-      
-      <div id="loadingState" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading your conversation history...</p>
+
+      <div id="visualizationContent" class="page-tab-content">
+        <div class="visualization-view-layout">
+          <div class="stats-section">
+            <h2>Statistics</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <h3>Total Conversations</h3>
+                <div class="stat-value" id="totalConversations">0</div>
+              </div>
+              <div class="stat-card">
+                <h3>Most Used Model</h3>
+                <div class="stat-value" id="mostUsedModel">-</div>
+                <div class="stat-subtext" id="mostUsedModelCount"></div>
+              </div>
+              <div class="stat-card">
+                <h3>Average Title Length</h3>
+                <div class="stat-value" id="avgTitleLength">-</div>
+                <div class="stat-subtext">characters</div>
+              </div>
+              <div class="stat-card">
+                <h3>First Conversation</h3>
+                <div class="stat-value" id="firstConversationTime">-</div>
+              </div>
+              <div class="stat-card">
+                <h3>Files Uploaded</h3>
+                <div class="stat-value" id="totalFilesUploaded">0</div>
+              </div>
+              <div class="stat-card">
+                <h3>Last Conversation</h3>
+                <div class="stat-value" id="lastConversationTime">-</div>
+              </div>
+            </div>
+          </div>
+          <div class="visualization-section">
+            <h2>Visualizations</h2>
+            <div class="viz-tabs"> <button class="viz-tab active" data-viz="modelDistribution">Model Distribution</button>
+              <button class="viz-tab" data-viz="activityOverTime">Activity Over Time</button>
+            </div>
+            <div class="viz-container">
+              <canvas id="vizChart"></canvas>
+            </div>
+            <div id="vizOptions" style="visibility: hidden; opacity: 0; margin-top: 15px; min-height: 84px;">
+              <div id="activityVizOptions" class="viz-options-panel">
+                <div class="viz-option-group">
+                  <label>Display Mode:</label>
+                  <div class="viz-radio-buttons">
+                    <label class="viz-radio-label">
+                      <input type="radio" name="activityDisplayMode" value="combined" checked> Combined
+                    </label>
+                    <label class="viz-radio-label">
+                      <input type="radio" name="activityDisplayMode" value="separate"> By Model
+                    </label>
+                  </div>
+                </div>
+                <div id="activityModelSelect" class="viz-option-group" style="visibility: hidden; opacity: 0;">
+                  <label for="activityModelFilter">Model:</label>
+                  <select id="activityModelFilter">
+                    <option value="all">All Models</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
 
-  <!-- Conversation details modal -->
   <div id="conversationModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -183,7 +210,6 @@
     </div>
   </div>
 
-  <!-- Confirmation modal -->
   <div id="confirmationModal" class="modal">
     <div class="modal-content confirmation-modal">
       <div class="modal-header">

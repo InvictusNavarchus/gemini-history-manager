@@ -248,18 +248,82 @@ h1 {
 /* Main content area */
 main {
   display: flex;
+  flex-direction: column; /* Stack tabs and content */
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
   flex-grow: 1;
   width: 100%;
-  gap: 20px;
+  gap: 15px; /* Gap between tabs and content */
 }
 
-/* Sidebar */
+/* Page Tabs Styling */
+.page-tabs-container {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px; /* Spacing for the underline */
+}
+
+.page-tab {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.page-tab:hover {
+  color: var(--primary-color);
+}
+
+.page-tab.active {
+  color: var(--primary-color);
+}
+
+.page-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -11px; /* Align with border-bottom of container */
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+}
+
+.page-tab-content-area {
+  flex-grow: 1;
+}
+
+.page-tab-content {
+  display: none; /* Hidden by default */
+  flex-direction: column; /* Default for tab content */
+  height: 100%;
+}
+
+.page-tab-content.active {
+  display: flex; /* Show active tab content */
+}
+
+/* History View Layout */
+.history-view-layout {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  flex-grow: 1;
+}
+
+/* Sidebar (now only for filters in History tab) */
 .sidebar {
-  width: 340px;
+  width: 300px; /* Adjusted width */
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .sidebar h2 {
@@ -268,54 +332,13 @@ main {
   color: var(--text-color);
 }
 
-/* Stats section */
-.stats-section {
-  background-color: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  padding: 15px;
-  margin-bottom: 20px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.stat-card {
-  padding: 10px;
-  background-color: var(--bg-color);
-  border-radius: 6px;
-  text-align: center;
-}
-
-.stat-card h3 {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-light);
-  margin-bottom: 5px;
-}
-
-.stat-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.stat-subtext {
-  font-size: 11px;
-  color: var(--text-lighter);
-  margin-top: 2px;
-}
-
 /* Filters section */
 .filters-section {
   background-color: var(--card-bg);
   border-radius: 8px;
   box-shadow: var(--shadow);
   padding: 15px;
-  margin-bottom: 20px;
+  /* Removed margin-bottom as sidebar handles spacing */
 }
 
 .filter-group {
@@ -352,50 +375,7 @@ main {
   gap: 8px;
 }
 
-/* Visualization section */
-.visualization-section {
-  background-color: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  padding: 15px;
-}
-
-.viz-tabs {
-  display: flex;
-  margin-bottom: 15px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.viz-tab {
-  padding: 8px 12px;
-  font-size: 13px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-light);
-  position: relative;
-}
-
-.viz-tab.active {
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-.viz-tab.active:after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: var(--primary-color);
-}
-
-.viz-container {
-  height: 240px;
-}
-
-/* Content area */
+/* Content area (for conversation list in History tab) */
 .content {
   flex-grow: 1;
   background-color: var(--card-bg);
@@ -448,7 +428,10 @@ main {
 .conversation-list {
   flex-grow: 1;
   overflow-y: auto;
+  /* Max height to ensure it scrolls within its container if content overflows */
+  max-height: calc(100vh - 250px); /* Adjust as needed based on header/tabs height */
 }
+
 
 .conversation-item {
   padding: 15px 20px;
@@ -508,8 +491,186 @@ main {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 600px;
+  max-width: 100%; /* Adjusted for new layout */
 }
+
+/* Visualization Tab Layout */
+.visualization-view-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  flex-grow: 1;
+}
+
+/* Stats section (now in Visualization tab) */
+.stats-section {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 15px;
+  /* Removed margin-bottom */
+}
+.stats-section h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: var(--text-color);
+}
+
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* More responsive */
+  gap: 12px;
+}
+
+.stat-card {
+  padding: 10px;
+  background-color: var(--bg-color);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.stat-card h3 {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.stat-subtext {
+  font-size: 11px;
+  color: var(--text-lighter);
+  margin-top: 2px;
+}
+
+/* Visualization section (charts, now in Visualization tab) */
+.visualization-section {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 15px;
+  flex-grow: 1; /* Allow it to take available space */
+  display: flex;
+  flex-direction: column;
+}
+.visualization-section h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: var(--text-color);
+}
+
+.viz-tabs {
+  display: flex;
+  margin-bottom: 0; /* Remove the margin to eliminate the gap */
+  border-bottom: 1px solid var(--border-color);
+}
+
+.viz-tab {
+  padding: 8px 12px;
+  font-size: 13px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-light);
+  position: relative;
+}
+
+.viz-tab.active {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.viz-tab.active:after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+}
+
+/* Visualization Options */
+#vizOptions {
+  /* Reserve space at the bottom to prevent layout shifts when changing chart types */
+  min-height: 84px;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.viz-options-panel {
+  padding: 10px 15px;
+  background-color: var(--bg-color);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  /* Fixed height to accommodate both the display mode row and model selector row */
+  height: 84px;
+}
+
+.viz-option-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  transition: visibility 0.2s, opacity 0.2s ease-in-out;
+}
+
+.viz-option-group:last-child {
+  margin-bottom: 0;
+}
+
+.viz-option-group label {
+  font-size: 13px;
+  color: var(--text-color);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.viz-radio-buttons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.viz-radio-label {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-color);
+  gap: 5px;
+  cursor: pointer;
+}
+
+.viz-radio-label input {
+  cursor: pointer;
+}
+
+#activityModelFilter {
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 13px;
+}
+
+.viz-container {
+  height: 300px; /* Base height for chart when options are shown */
+  min-height: 300px; /* Ensure consistent min-height */
+  flex-grow: 1; /* Allow canvas container to grow */
+  transition: height 0.3s ease-in-out; /* Smooth transition if height changes */
+  margin-top: 15px; /* Add space between tabs and chart */
+}
+#vizChart {
+    max-height: 100%; /* Ensure chart canvas doesn't overflow its container */
+}
+
 
 /* Empty and Loading states */
 .empty-state, .loading-state {
@@ -520,7 +681,8 @@ main {
   padding: 60px 20px;
   text-align: center;
   color: var(--text-light);
-  height: 100%;
+  height: 100%; /* Ensure it fills the .content area if needed */
+  flex-grow: 1;
 }
 
 .empty-icon {
@@ -710,28 +872,24 @@ html[data-theme='dark'] .empty-state,
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
-  main {
-    flex-direction: column;
+  .history-view-layout {
+    flex-direction: column; /* Stack sidebar and content on smaller screens */
   }
   
   .sidebar {
-    width: 100%;
+    width: 100%; /* Sidebar takes full width */
   }
   
   .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Adjust for smaller screens */
   }
   
   .viz-container {
-    height: 200px;
+    height: 250px; /* Adjust chart height */
   }
 }
 
 @media (max-width: 600px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
   .header-content {
     flex-direction: column;
     align-items: flex-start;
@@ -753,6 +911,12 @@ html[data-theme='dark'] .empty-state,
   .controls {
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap; /* Allow buttons to wrap if not enough space */
+    gap: 8px;
+  }
+  .controls .button {
+    padding: 6px 10px; /* Slightly smaller buttons */
+    font-size: 12px;
   }
   
   .conversation-header {
@@ -772,6 +936,21 @@ html[data-theme='dark'] .empty-state,
   .conversation-meta {
     flex-direction: column;
     gap: 5px;
+  }
+
+  .page-tabs-container {
+    padding-bottom: 5px; /* Adjust for smaller screens */
+  }
+  .page-tab {
+    padding: 8px 12px; /* Smaller tabs */
+    font-size: 14px;
+  }
+  .page-tab.active::after {
+    bottom: -6px; /* Adjust underline position */
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
 }
 
