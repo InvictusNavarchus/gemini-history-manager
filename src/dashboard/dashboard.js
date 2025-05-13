@@ -349,12 +349,11 @@ function createImportGuidedExperience() {
   const arrowContainer = document.createElement('div');
   arrowContainer.className = 'guide-arrow-container';
   arrowContainer.style.position = 'absolute';
-  // Adjust positioning relative to viewport, considering scroll
-  arrowContainer.style.top = `${btnRect.bottom + window.scrollY + 10}px`; // Added scrollY and some offset
-  arrowContainer.style.left = `${btnRect.left + window.scrollX + (btnRect.width / 2) - 10}px`; // Added scrollX and centered under button
-  arrowContainer.style.width = '20px'; // Smaller arrow
-  arrowContainer.style.height = '20px'; // Smaller arrow
-  arrowContainer.style.transform = 'rotate(135deg)'; // Pointing upwards-left towards button
+  arrowContainer.style.top = `${btnRect.bottom + 20}px`;
+  arrowContainer.style.left = `${btnRect.left + (btnRect.width / 2) - 20}px`;
+  arrowContainer.style.width = '40px';
+  arrowContainer.style.height = '40px';
+  arrowContainer.style.transform = 'rotate(225deg)'; // Point upward
   arrowContainer.style.zIndex = '9999';
   
   // Add the pulsing arrow inside the container
@@ -362,8 +361,8 @@ function createImportGuidedExperience() {
   arrow.className = 'guide-arrow';
   arrow.style.width = '100%';
   arrow.style.height = '100%';
-  arrow.style.borderRight = '4px solid var(--primary-color)'; // Thinner border
-  arrow.style.borderBottom = '4px solid var(--primary-color)'; // Thinner border
+  arrow.style.borderRight = '8px solid #6e41e2';
+  arrow.style.borderBottom = '8px solid #6e41e2';
   arrow.style.animation = 'pulse 1.5s infinite';
   
   // Add arrow to container
@@ -374,16 +373,16 @@ function createImportGuidedExperience() {
   style.textContent = `
     @keyframes pulse {
       0% {
-        opacity: 0.5;
-        transform: scale(0.9);
+        opacity: 0.4;
+        transform: scale(0.8);
       }
       50% {
         opacity: 1;
-        transform: scale(1.1);
+        transform: scale(1.2);
       }
       100% {
-        opacity: 0.5;
-        transform: scale(0.9);
+        opacity: 0.4;
+        transform: scale(0.8);
       }
     }
   `;
@@ -394,32 +393,25 @@ function createImportGuidedExperience() {
   document.body.appendChild(arrowContainer);
   
   // Slightly highlight the import button
-  importBtn.style.outline = '2px solid var(--primary-color)';
-  importBtn.style.boxShadow = '0 0 8px 2px var(--primary-bg)';
+  importBtn.style.backgroundColor = '#6e41e2';
+  importBtn.style.color = 'white';
+  importBtn.style.boxShadow = '0 0 8px 2px rgba(110, 65, 226, 0.5)';
   
-  // Create a listener that removes the guided experience when import button is clicked or page is scrolled
+  // Create a listener that removes the guided experience when import button is clicked
   const cleanupGuide = () => {
     if (arrowContainer.parentNode) arrowContainer.parentNode.removeChild(arrowContainer);
-    if (style.parentNode) style.parentNode.removeChild(style); // Remove style tag
     
     // Remove the added styles from import button
-    importBtn.style.outline = '';
+    importBtn.style.backgroundColor = '';
+    importBtn.style.color = '';
     importBtn.style.boxShadow = '';
     
-    // Remove event listeners
+    // Remove this event listener
     importBtn.removeEventListener('click', cleanupGuide);
-    window.removeEventListener('scroll', cleanupGuide); // Remove scroll listener
-    // Clear URL params after interaction
-    if (window.location.search) {
-        const currentPath = window.location.pathname;
-        window.history.replaceState({}, document.title, currentPath);
-    }
   };
   
   // Add click event to clean up when import button is clicked
   importBtn.addEventListener('click', cleanupGuide);
-  // Add scroll event to clean up if user scrolls away
-  window.addEventListener('scroll', cleanupGuide, { once: true }); // Use once to auto-remove after first scroll
 }
 
 /**
@@ -1241,15 +1233,16 @@ function setupEventListeners() {
   elements.exportHistoryBtn.addEventListener('click', exportHistoryData);
   
   elements.importHistoryBtn.addEventListener('click', () => {
+    // Clear URL parameters if they exist from guided import
     if (window.location.search.includes('action=import')) {
       const currentPath = window.location.pathname;
       window.history.replaceState({}, document.title, currentPath);
       // If there was a guided experience arrow, it might need manual removal here if not already handled
+      // by its own cleanup logic.
       const guideArrow = document.querySelector('.guide-arrow-container');
       if (guideArrow) guideArrow.remove();
-      const guideStyle = document.querySelector('style[textContent*="@keyframes pulse"]');
+      const guideStyle = document.querySelector('style[textContent*="@keyframes pulse"]'); // More specific selector
       if (guideStyle) guideStyle.remove();
-
     }
     elements.importFileInput.click();
   });
