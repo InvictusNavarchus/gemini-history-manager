@@ -1,6 +1,6 @@
 # Build directories
 dist/
-web-ext-artifacts/
+dist-zip/
 
 # Node.js dependencies
 node_modules/

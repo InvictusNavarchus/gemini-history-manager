@@ -152,6 +152,7 @@ The extension icon should now appear in your browser's toolbar.
 * **JavaScript (ES6+)**: Core programming language
 * **WebExtensions API**: Standard API for browser extension development
 * **HTML5 & CSS3**: For structuring and styling the popup and dashboard
+* **Vite**: Modern frontend build tool and bundler
 * **Day.js**: Lightweight JavaScript date library
   * Plugins: `utc`, `relativeTime`, `isToday`, `localizedFormat`, `calendar`, `timezone`
 * **Chart.js**: JavaScript library for creating interactive charts and visualizations
@@ -160,7 +161,7 @@ The extension icon should now appear in your browser's toolbar.
 
 ### Prerequisites
 * [Node.js](https://nodejs.org/) (v16 or higher)
-* [pnpm](https://pnpm.io/) (v7 or higher)
+* [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/) or [pnpm](https://pnpm.io/)
 
 ### Setup
 1. Clone the repository
@@ -171,18 +172,27 @@ The extension icon should now appear in your browser's toolbar.
 
 2. Install dependencies
    ```bash
+   npm install
+   # or
+   yarn install
+   # or
    pnpm install
    ```
 
-3. Build the project (copies libraries from node_modules to src/lib)
+3. Build the project
    ```bash
+   npm run build
+   # or
+   yarn build
+   # or
    pnpm build
    ```
 
 ### Development Commands
-- `pnpm dev` - Run the extension in a Firefox development profile
-- `pnpm lint` - Lint the project using web-ext
-- `pnpm package` - Build the extension package for distribution
+- `npm run dev` (or `yarn dev` / `pnpm dev`) - Run the extension in a Firefox development profile with hot reload
+- `npm run lint` (or `yarn lint` / `pnpm lint`) - Lint the project using web-ext
+- `npm run preview` (or `yarn preview` / `pnpm preview`) - Preview the build
+- `npm run package` (or `yarn package` / `pnpm package`) - Build the extension package for distribution
 
 ## 📄 License
 
