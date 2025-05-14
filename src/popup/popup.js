@@ -2,6 +2,18 @@
  * Gemini History Manager - Popup Script
  * Handles UI interactions and displays chat history data
  */
+import { 
+  initDayjsPlugins, 
+  Logger, 
+  dayjsFormatDate, 
+  parseTimestamp, 
+  formatDateForDisplay, 
+  readFile,
+  initTheme,
+  applyTheme, 
+  toggleTheme 
+} from '../lib/utils.js';
+import dayjs from 'dayjs' // for some reason, you can omit this without any problems
 
 // Initialize Day.js plugins
 initDayjsPlugins();
@@ -84,7 +96,7 @@ function loadExtensionVersion() {
  */
 function initThemeForPopup() {
   // Use the shared initTheme function from utils.js
-  window.initTheme((theme) => {
+  initTheme((theme) => {
     currentTheme = theme;
     applyTheme(currentTheme, elements.themeToggle.querySelector('svg'));
   });
@@ -390,7 +402,7 @@ function setupEventListeners() {
   // Theme toggle button
   elements.themeToggle.addEventListener('click', () => {
     Logger.log("Theme toggle button clicked");
-    currentTheme = window.toggleTheme(currentTheme, elements.themeToggle.querySelector('svg'));
+    currentTheme = toggleTheme(currentTheme, elements.themeToggle.querySelector('svg'));
   });
 }
 

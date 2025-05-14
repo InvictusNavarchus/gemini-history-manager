@@ -4,10 +4,11 @@
   "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
   "type": "module",
   "scripts": {
-    "build": "node build.js",
-    "dev": "web-ext run --firefox-profile=development --source-dir ./src/",
-    "lint": "web-ext lint --source-dir ./src/",
-    "package": "web-ext build --source-dir ./src/ --overwrite-dest"
+    "build": "vite build",
+    "dev": "vite build --watch && web-ext run --firefox-profile=development --source-dir ./dist/",
+    "preview": "vite preview",
+    "lint": "web-ext lint --source-dir ./dist/",
+    "package": "vite build && web-ext build --source-dir ./dist/ --overwrite-dest"
   },
   "keywords": [
     "gemini",
@@ -20,6 +21,8 @@
   "private": true,
   "devDependencies": {
     "fs-extra": "^11.1.0",
+    "glob": "^11.0.2",
+    "vite": "^6.3.5",
     "web-ext": "^7.6.2"
   },
   "dependencies": {
