@@ -1,1 +1,18 @@
+# Build directories
 dist/
+web-ext-artifacts/
+
+# Node.js dependencies
+node_modules/
+npm-debug.log
+.npm/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
