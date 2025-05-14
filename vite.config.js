@@ -76,7 +76,7 @@ export default defineConfig({
             );
           });
           
-          // Copy CSS files
+          // Copy CSS files directly (without bundling)
           const cssFiles = globSync('src/**/*.css');
           cssFiles.forEach(file => {
             const relativePath = file.replace(/^src\//, '');
