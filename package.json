@@ -1,0 +1,29 @@
+{
+  "name": "gemini-history-manager",
+  "version": "0.9.0",
+  "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "web-ext run --firefox-profile=development --source-dir ./src/",
+    "lint": "web-ext lint --source-dir ./src/",
+    "package": "web-ext build --source-dir ./src/ --overwrite-dest"
+  },
+  "keywords": [
+    "gemini",
+    "history",
+    "browser-extension",
+    "firefox-addon"
+  ],
+  "author": "InvictusNavarchus",
+  "license": "GPL-3.0",
+  "private": true,
+  "devDependencies": {
+    "fs-extra": "^11.1.0",
+    "web-ext": "^7.6.2"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.0",
+    "dayjs": "^1.11.10"
+  }
+}

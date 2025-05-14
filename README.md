@@ -156,6 +156,34 @@ The extension icon should now appear in your browser's toolbar.
   * Plugins: `utc`, `relativeTime`, `isToday`, `localizedFormat`, `calendar`, `timezone`
 * **Chart.js**: JavaScript library for creating interactive charts and visualizations
 
+## 🛠️ Development
+
+### Prerequisites
+* [Node.js](https://nodejs.org/) (v16 or higher)
+* [pnpm](https://pnpm.io/) (v7 or higher)
+
+### Setup
+1. Clone the repository
+   ```bash
+   git clone https://github.com/InvictusNavarchus/gemini-history-manager.git
+   cd gemini-history-manager
+   ```
+
+2. Install dependencies
+   ```bash
+   pnpm install
+   ```
+
+3. Build the project (copies libraries from node_modules to src/lib)
+   ```bash
+   pnpm build
+   ```
+
+### Development Commands
+- `pnpm dev` - Run the extension in a Firefox development profile
+- `pnpm lint` - Lint the project using web-ext
+- `pnpm package` - Build the extension package for distribution
+
 ## 📄 License
 
 This project is licensed under the GPL v3 License - see the `LICENSE` file for details.
