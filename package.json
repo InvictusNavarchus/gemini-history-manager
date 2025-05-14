@@ -16,7 +16,7 @@
     "firefox-addon"
   ],
   "author": "InvictusNavarchus",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "private": true,
   "devDependencies": {
     "fs-extra": "^11.1.0",
