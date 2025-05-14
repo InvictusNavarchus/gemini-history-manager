@@ -2,6 +2,17 @@
  * Gemini History Manager - Full History View
  * Handles data visualization, filtering, and conversation management
  */
+import { 
+  initDayjsPlugins, 
+  Logger, 
+  dayjsFormatDate, 
+  parseTimestamp, 
+  formatDateForDisplay, 
+  readFile,
+  applyTheme, 
+  toggleTheme 
+} from '../lib/utils.js';
+import Chart from 'chart.js/auto';
 
 // Initialize Day.js plugins
 initDayjsPlugins();

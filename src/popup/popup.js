@@ -2,6 +2,16 @@
  * Gemini History Manager - Popup Script
  * Handles UI interactions and displays chat history data
  */
+import { 
+  initDayjsPlugins, 
+  Logger, 
+  dayjsFormatDate, 
+  parseTimestamp, 
+  formatDateForDisplay, 
+  readFile,
+  applyTheme, 
+  toggleTheme 
+} from '../lib/utils.js';
 
 // Initialize Day.js plugins
 initDayjsPlugins();
