@@ -81,16 +81,23 @@ export default defineConfig({
           htmlFiles.forEach(file => {
             const relativePath = file.replace(/^src\//, ''); // e.g., popup/popup.html
             const targetPath = path.resolve(__dirname, `dist/${relativePath}`);
+            const dirName = path.basename(path.dirname(file)); // 'popup' or 'dashboard'
             
             // Make sure the directory exists
             fs.ensureDirSync(path.dirname(targetPath));
             
-            // Read HTML content, could modify it here to reference the correct JS files
+            // Read HTML content and update JS file references
             let htmlContent = fs.readFileSync(path.resolve(__dirname, file), 'utf-8');
             
-            // Write the possibly modified HTML
+            // Replace references to main.js with the correct JS file name
+            htmlContent = htmlContent.replace(
+              /src="\.\/main\.js"/g, 
+              `src="./${dirName}.js"`
+            );
+            
+            // Write the modified HTML
             fs.writeFileSync(targetPath, htmlContent);
-            console.log(`Processed HTML: ${relativePath}`);
+            console.log(`Processed HTML: ${relativePath} (updated script reference to ${dirName}.js)`);
           });
           
           // Copy content scripts directly (without bundling by Vite's main process)
