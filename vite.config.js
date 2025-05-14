@@ -53,33 +53,16 @@ export default defineConfig({
             );
           });
           
-          // Copy HTML files
+          // Copy HTML files directly (without bundling)
           const htmlFiles = globSync('src/**/*.html');
           htmlFiles.forEach(file => {
             const relativePath = file.replace(/^src\//, '');
             const targetPath = path.resolve(__dirname, `dist/${relativePath}`);
             fs.ensureDirSync(path.dirname(targetPath));
-            
-            // Read the file content
-            let content = fs.readFileSync(path.resolve(__dirname, file), 'utf-8');
-            
-            // Replace script imports with module types
-            if (file.includes('popup.html') || file.includes('dashboard.html')) {
-              // Remove all dayjs and chart.js script tags
-              content = content.replace(
-                /<script[^>]*src="[^"]*\/lib\/[^"]*"><\/script>\s*/g, 
-                ''
-              );
-              
-              // Make the remaining script module type
-              content = content.replace(
-                /<script src="([^"]*)"><\/script>/g,
-                '<script type="module" src="$1"></script>'
-              );
-            }
-            
-            // Write the modified file
-            fs.writeFileSync(targetPath, content);
+            fs.copySync(
+              path.resolve(__dirname, file),
+              targetPath
+            );
           });
           
           // Copy content scripts directly (without bundling)
