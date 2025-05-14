@@ -9,6 +9,7 @@ import {
   parseTimestamp, 
   formatDateForDisplay, 
   readFile,
+  initTheme,
   applyTheme, 
   toggleTheme 
 } from '../lib/utils.js';
@@ -326,7 +327,7 @@ async function init() {
  */
 function initThemeForDashboard() {
   // Use the shared initTheme function from utils.js
-  window.initTheme((theme) => {
+  initTheme((theme) => {
     currentTheme = theme;
     applyTheme(currentTheme, elements.themeToggle.querySelector('svg'));
   });
@@ -1456,7 +1457,7 @@ function setupEventListeners() {
 
   // Theme toggle button
   elements.themeToggle.addEventListener('click', () => {
-    currentTheme = window.toggleTheme(currentTheme, elements.themeToggle.querySelector('svg'));
+    currentTheme = toggleTheme(currentTheme, elements.themeToggle.querySelector('svg'));
     // Re-render charts if theme changes, as colors might need to update
     if (elements.visualizationContent.classList.contains('active') && chart) {
         createVisualization(currentChartVisualization);
