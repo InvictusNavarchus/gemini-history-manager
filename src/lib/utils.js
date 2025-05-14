@@ -2,9 +2,16 @@
  * Gemini History Manager - Utility Functions
  * Common helper functions shared across the extension
  */
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import isToday from 'dayjs/plugin/isToday';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import calendar from 'dayjs/plugin/calendar';
+import timezone from 'dayjs/plugin/timezone';
 
 // Logger Module
-const Logger = {
+export const Logger = {
     LOG_PREFIX: "[Gemini History]",
     log: (...args) => console.log(Logger.LOG_PREFIX, ...args),
     warn: (...args) => console.warn(Logger.LOG_PREFIX, ...args),
@@ -24,7 +31,7 @@ const Logger = {
  * @param {string|number|Date|dayjs.Dayjs} timestamp - The timestamp to parse
  * @returns {dayjs.Dayjs} A dayjs object in local time
  */
-function parseTimestamp(timestamp) {
+export function parseTimestamp(timestamp) {
   if (!timestamp) return dayjs(); // Return current time if no timestamp
   
   // If already a dayjs object, return it
@@ -59,7 +66,7 @@ function parseTimestamp(timestamp) {
  * @param {boolean} [includeYear=false] - Whether to force include the year
  * @returns {string} Formatted date string
  */
-function dayjsFormatDate(dateInput, includeYear = false) {
+export function dayjsFormatDate(dateInput, includeYear = false) {
   const d = parseTimestamp(dateInput);
   
   if (!d.isValid()) {
@@ -81,7 +88,7 @@ function dayjsFormatDate(dateInput, includeYear = false) {
  * @param {Object} djsDate - A Day.js date object.
  * @returns {string} Formatted date string (e.g., "Today at 2:30 PM", "Yesterday at 10:00 AM", "01/15/2023").
  */
-function formatDateForDisplay(djsDate) {
+export function formatDateForDisplay(djsDate) {
   if (!djsDate || !djsDate.isValid()) {
     Logger.warn("Invalid date for formatDateForDisplay");
     return "Invalid Date";
@@ -102,7 +109,7 @@ function formatDateForDisplay(djsDate) {
  * @param {File} file - The file object to read
  * @returns {Promise<string>} A promise that resolves with the file contents as text
  */
-function readFile(file) {
+export function readFile(file) {
   Logger.debug(`Reading file: ${file.name}`);
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -122,51 +129,30 @@ function readFile(file) {
  * Initialize Day.js plugins
  * Makes sure all needed plugins are loaded and available
  */
-function initDayjsPlugins() {
+export function initDayjsPlugins() {
   try {
-    if (dayjs && typeof dayjs.extend === 'function') {
-      if (window.dayjs_plugin_relativeTime) {
-        dayjs.extend(window.dayjs_plugin_relativeTime);
-        Logger.debug("Day.js relativeTime plugin extended.");
-      } else {
-        Logger.warn("Day.js relativeTime plugin not found. 'Time ago' functionality might be affected.");
-      }
-      
-      if (window.dayjs_plugin_isToday) {
-        dayjs.extend(window.dayjs_plugin_isToday);
-        Logger.debug("Day.js isToday plugin extended.");
-      }
-      
-      if (window.dayjs_plugin_calendar) {
-        dayjs.extend(window.dayjs_plugin_calendar);
-        Logger.debug("Day.js calendar plugin extended.");
-      }
-      
-      if (window.dayjs_plugin_localizedFormat) {
-        dayjs.extend(window.dayjs_plugin_localizedFormat);
-        Logger.debug("Day.js localizedFormat plugin extended.");
-      }
-      
-      if (window.dayjs_plugin_utc) {
-        dayjs.extend(window.dayjs_plugin_utc);
-        Logger.debug("Day.js utc plugin extended.");
-      }
-    } else {
-      Logger.error("Day.js not found or dayjs.extend is not a function. Date functionality may not work correctly.");
-    }
+    // Use our imported plugins
+    dayjs.extend(utc);
+    dayjs.extend(relativeTime);
+    dayjs.extend(isToday);
+    dayjs.extend(localizedFormat);
+    dayjs.extend(calendar);
+    dayjs.extend(timezone);
+    
+    Logger.debug("Day.js plugins initialized.");
   } catch (e) {
     Logger.error("Error initializing Day.js plugins:", e);
   }
 }
 
 // Theme management
-const THEME_STORAGE_KEY = 'geminiHistoryTheme';
+export const THEME_STORAGE_KEY = 'geminiHistoryTheme';
 
 /**
  * Initialize theme based on storage or system preference
  * @param {function} callback - Function to call with the theme value once determined
  */
-function initTheme(callback) {
+export function initTheme(callback) {
   // Get stored theme preference
   browser.storage.local.get(THEME_STORAGE_KEY)
     .then(result => {
@@ -199,7 +185,7 @@ function initTheme(callback) {
  * @param {string} theme - 'light' or 'dark'
  * @param {HTMLElement} themeIcon - Optional SVG icon element to update
  */
-function applyTheme(theme, themeIcon = null) {
+export function applyTheme(theme, themeIcon = null) {
   const htmlElement = document.documentElement;
   
   // Set explicit theme attribute
@@ -222,7 +208,7 @@ function applyTheme(theme, themeIcon = null) {
  * @param {HTMLElement} themeIcon - Optional SVG icon element to update
  * @returns {string} The new theme after toggling
  */
-function toggleTheme(currentTheme, themeIcon = null) {
+export function toggleTheme(currentTheme, themeIcon = null) {
   const newTheme = currentTheme === 'light' ? 'dark' : 'light';
   applyTheme(newTheme, themeIcon);
   return newTheme;
@@ -233,7 +219,7 @@ function toggleTheme(currentTheme, themeIcon = null) {
  * @param {string} currentTheme - The current theme ('light' or 'dark')
  * @param {HTMLElement} themeIcon - The SVG icon element to update
  */
-function updateThemeToggleIcon(currentTheme, themeIcon) {
+export function updateThemeToggleIcon(currentTheme, themeIcon) {
   if (themeIcon) {
     if (currentTheme === 'dark') {
       themeIcon.style.fill = 'currentColor';
@@ -245,17 +231,5 @@ function updateThemeToggleIcon(currentTheme, themeIcon) {
   }
 }
 
-// Export all utility functions for use in other scripts
-// They will be available as global functions since they're included via <script> tag
-// No module system needed
-window.Logger = Logger;
-window.parseTimestamp = parseTimestamp;
-window.dayjsFormatDate = dayjsFormatDate;
-window.formatDateForDisplay = formatDateForDisplay;
-window.readFile = readFile;
-window.initDayjsPlugins = initDayjsPlugins;
-window.initTheme = initTheme;
-window.applyTheme = applyTheme;
-window.toggleTheme = toggleTheme;
-window.updateThemeToggleIcon = updateThemeToggleIcon;
-window.THEME_STORAGE_KEY = THEME_STORAGE_KEY;
+// No need to export to window anymore
+// We're using ES modules now and can import directly
