@@ -1,7 +1,7 @@
 export default {
   verbose: true,
-  sourceDir: './src', // Where your manifest.json and sources are
-  artifactsDir: './dist', // Where to save the zip file
+  sourceDir: './dist', // Where your manifest.json and sources are
+  artifactsDir: './dist-zip', // Where to save the zip file
   ignoreFiles: [
     '.git',
     'node_modules',
