@@ -4,55 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gemini History Manager</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
+  <link rel="stylesheet" href="popup.css"> </head>
 <body>
-  <header>
-    <div class="header-content">
-      <h1>Gemini History Manager</h1>
-      <div class="controls">
-        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-        </button>
-        <button id="openFullPage" class="button primary-button">Open Full View</button>
-        <button id="exportHistory" class="button">Export History</button>
-        <button id="importHistory" class="button">Import History</button>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <div class="stats-container">
-      <div class="stat-card">
-        <h3>Total Conversations</h3>
-        <div class="stat-value" id="totalConversations">0</div>
-      </div>
-      <div class="stat-card">
-        <h3>Most Used Model</h3>
-        <div class="stat-value" id="mostUsedModel">-</div>
-      </div>
-      <div class="stat-card">
-        <h3>Last Conversation</h3>
-        <div class="stat-value" id="lastConversationTime">-</div>
-      </div>
-    </div>
-
-    <div class="history-preview">
-      <h2>Recent Conversations</h2>
-      <div id="recentConversations" class="conversation-list">
-        <!-- Conversations will be inserted here via JavaScript -->
-      </div>
-    </div>
-  </main>
-
-  <footer>
-    <p>Gemini History Manager v1.0.0</p>
-  </footer>
-
-  <input type="file" id="importFileInput" accept=".json" style="display: none;">
-  
-  <script type="module" src="popup.js"></script>
+  <div id="app"></div> <script type="module" src="./main.js"></script> 
 </body>
 </html>
