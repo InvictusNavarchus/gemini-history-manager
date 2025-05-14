@@ -77,9 +77,13 @@ import {
   formatDateForDisplay,
   initTheme,
   applyTheme,
-  toggleTheme
+  toggleTheme,
+  initDayjsPlugins
 } from '../lib/utils.js'; // Assuming utils.js is in src/lib
 import dayjs from 'dayjs'; // Direct import for filename formatting
+
+// Initialize dayjs plugins before using any dayjs functionality
+initDayjsPlugins();
 
 // --- Constants ---
 const STORAGE_KEY = 'geminiChatHistory';
