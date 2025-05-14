@@ -13,6 +13,7 @@ import {
   applyTheme, 
   toggleTheme 
 } from '../lib/utils.js';
+import dayjs from 'dayjs' // for some reason, you can omit this without any problems
 
 // Initialize Day.js plugins
 initDayjsPlugins();
