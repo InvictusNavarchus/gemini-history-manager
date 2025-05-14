@@ -532,7 +532,10 @@ function resetAllFilters() {
 // --- Data Management ---
 async function saveData() {
   try {
-    await browser.storage.local.set({ [STORAGE_KEY]: allHistory.value });
+    // Create a plain JavaScript copy of the allHistory array to avoid storing Vue proxies
+    // JSON.parse(JSON.stringify()) is the simplest way to deep clone and remove proxy objects
+    const plainHistoryData = JSON.parse(JSON.stringify(allHistory.value));
+    await browser.storage.local.set({ [STORAGE_KEY]: plainHistoryData });
     browser.runtime.sendMessage({ action: 'updateHistoryCount', count: allHistory.value.length });
     updateDashboardStats(); // Recalculate stats after data change
     if (activeMainTab.value === 'visualizations' && allHistory.value.length > 0) {
@@ -660,7 +663,12 @@ async function handleFileSelectedForImport(event) {
       throw new Error('Invalid item format: Conversations must have url and timestamp.');
     }
 
-    const existingUrls = new Set(allHistory.value.map(item => item.url));
+    // Create a plain JavaScript copy of the history array for URL comparison
+    const plainHistoryArray = JSON.parse(JSON.stringify(allHistory.value));
+    const existingUrls = new Set(plainHistoryArray.map(item => item.url));
+    
+    // Make sure we're working with plain JavaScript objects in newItems
+    // (imported data should already be plain objects from JSON.parse, but this ensures it)
     const newItems = importedData.filter(item => item.url && !existingUrls.has(item.url));
 
     if (newItems.length === 0) {
@@ -668,8 +676,10 @@ async function handleFileSelectedForImport(event) {
       return;
     }
 
-    allHistory.value = [...allHistory.value, ...newItems];
-    // No need to sort here, computed `filteredHistory` will handle sorting based on `currentSortBy`
+    // Update the history with the plain objects
+    allHistory.value = [...plainHistoryArray, ...newItems];
+    
+    // saveData is now fixed to handle proxies, so this should work correctly
     await saveData();
     showToast(`Import complete: Added ${newItems.length} new conversation(s).`, 'success');
   } catch (error) {
