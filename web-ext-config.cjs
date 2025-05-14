@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   verbose: true,
   sourceDir: './dist', // Where your manifest.json and sources are
   artifactsDir: './dist-zip', // Where to save the zip file
