@@ -12,19 +12,21 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     minify: false, // Keeping minify false as per original config
+    // Remove directory structure prefix from output
+    copyPublicDir: false, // Don't copy the public directory
     rollupOptions: {
       input: {
         background: path.resolve(__dirname, 'src/background.js'),
-        // These entry points will later be updated to initialize Vue apps
-        // For now, they remain the same, but their content will change.
-        'popup/popup': path.resolve(__dirname, 'src/popup/popup.html'), // Entry point is HTML for Vue apps
-        'dashboard/dashboard': path.resolve(__dirname, 'src/dashboard/dashboard.html') // Entry point is HTML for Vue apps
+        // These are our Vue app entry points
+        // Note: we need these entry points for bundling, but we'll manually handle HTML placement
+        'popup': path.resolve(__dirname, 'src/popup/main.js'),
+        'dashboard': path.resolve(__dirname, 'src/dashboard/main.js')
       },
       output: {
-        // Output JS for HTML entry points will be named based on the HTML file
+        // Output JS for entry points
         entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'popup/popup' || chunkInfo.name === 'dashboard/dashboard') {
-            return `assets/${chunkInfo.name.replace(/\//g, '-')}.js`; // e.g., assets/popup-popup.js
+          if (chunkInfo.name === 'popup' || chunkInfo.name === 'dashboard') {
+            return `${chunkInfo.name}/${chunkInfo.name}.js`; // e.g., popup/popup.js
           }
           return '[name].js'; // For background.js
         },
@@ -74,18 +76,21 @@ export default defineConfig({
           });
           console.log('Copied icons');
 
-          // Copy HTML files (popup.html, dashboard.html)
-          // These will serve as entry points for the Vue apps
+          // Copy and update HTML files (popup.html, dashboard.html)
           const htmlFiles = globSync('src/{popup,dashboard}/*.html');
           htmlFiles.forEach(file => {
             const relativePath = file.replace(/^src\//, ''); // e.g., popup/popup.html
             const targetPath = path.resolve(__dirname, `dist/${relativePath}`);
+            
+            // Make sure the directory exists
             fs.ensureDirSync(path.dirname(targetPath));
-            fs.copySync(
-              path.resolve(__dirname, file),
-              targetPath
-            );
-            console.log(`Copied HTML: ${relativePath}`);
+            
+            // Read HTML content, could modify it here to reference the correct JS files
+            let htmlContent = fs.readFileSync(path.resolve(__dirname, file), 'utf-8');
+            
+            // Write the possibly modified HTML
+            fs.writeFileSync(targetPath, htmlContent);
+            console.log(`Processed HTML: ${relativePath}`);
           });
           
           // Copy content scripts directly (without bundling by Vite's main process)
@@ -114,6 +119,12 @@ export default defineConfig({
             );
             console.log(`Copied CSS: ${relativePath}`);
           });
+
+          // Clean up unwanted directories
+          if (fs.existsSync(path.resolve(__dirname, 'dist/src'))) {
+            fs.removeSync(path.resolve(__dirname, 'dist/src'));
+            console.log('Cleaned up dist/src directory');
+          }
 
           console.log('Extension files copied successfully!');
         }
