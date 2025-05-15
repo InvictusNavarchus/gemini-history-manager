@@ -16,3 +16,6 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Others
+digest.txt
