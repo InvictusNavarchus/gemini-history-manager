@@ -64,8 +64,6 @@ const props = defineProps({
   }
 });
 
-const conversation = props.conversation;
-
 // Define emits
 const emit = defineEmits(['close', 'open-in-gemini', 'delete']);
 
