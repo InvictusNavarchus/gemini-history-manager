@@ -628,42 +628,65 @@ function getModelDistributionChartConfig() {
     return acc;
   }, {});
   
-  const labels = Object.keys(modelCounts);
-  const data = Object.values(modelCounts);
+  // Sort by count in descending order
+  const sortedEntries = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]);
+  const labels = sortedEntries.map(entry => entry[0]);
+  const data = sortedEntries.map(entry => entry[1]);
   const { textColor, gridColor } = getChartJsThemeOptions();
 
   return {
-    type: 'doughnut',
+    type: 'bar',
     data: {
       labels,
       datasets: [{
+        label: 'Conversations',
         data,
         backgroundColor: CHART_COLORS.slice(0, data.length),
-        borderColor: 'rgba(255, 255, 255, 0.5)',
+        borderColor: CHART_COLORS.map(color => color.replace('0.8', '1')),
         borderWidth: 1,
-        hoverOffset: 15
+        maxBarThickness: 50
       }]
     },
     options: {
+      indexAxis: 'y', // This makes the bars horizontal
       responsive: true,
       maintainAspectRatio: false,
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: {
+            color: gridColor
+          },
+          ticks: {
+            color: textColor,
+            precision: 0
+          },
+          title: {
+            display: true,
+            text: 'Number of Conversations',
+            color: textColor
+          }
+        },
+        y: {
+          grid: {
+            color: gridColor
+          },
+          ticks: {
+            color: textColor
+          }
+        }
+      },
       plugins: {
         legend: {
-          position: 'right',
-          labels: {
-            color: textColor,
-            padding: 15,
-            usePointStyle: true
-          }
+          display: false // Hide legend as it's redundant for this chart
         },
         tooltip: {
           callbacks: {
             label: (context) => {
-              const label = context.label || '';
               const value = context.raw || 0;
               const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
               const percentage = Math.round((value * 100) / total);
-              return `${label}: ${value} (${percentage}%)`;
+              return `${value} conversations (${percentage}%)`;
             }
           }
         }
