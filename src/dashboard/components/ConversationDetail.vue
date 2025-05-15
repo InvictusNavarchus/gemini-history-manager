@@ -3,7 +3,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2>{{ conversation.title || 'Conversation Details' }}</h2>
-        <button class="close-button" @click="$emit('close')">&times;</button>
+        <button class="close-button" @click="emit('close')">&times;</button>
       </div>
       <div class="modal-body">
         <div class="detail-group">
@@ -40,7 +40,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="button" @click="$emit('close')">Close</button>
+        <button class="button" @click="emit('close')">Close</button>
         <button class="button primary-button" @click="openInGemini">Open in Gemini</button>
         <button class="button danger-button" @click="deleteConversation">Delete</button>
       </div>
@@ -53,7 +53,7 @@ import { defineProps, defineEmits } from 'vue';
 import { parseTimestamp } from '../../lib/utils.js';
 
 // Define props
-defineProps({
+const props = defineProps({
   show: {
     type: Boolean,
     default: false
@@ -65,7 +65,7 @@ defineProps({
 });
 
 // Define emits
-defineEmits(['close', 'open-in-gemini', 'delete']);
+const emit = defineEmits(['close', 'open-in-gemini', 'delete']);
 
 // Format datetime
 function formatDateTime(timestamp) {
