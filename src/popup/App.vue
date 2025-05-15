@@ -1,63 +1,33 @@
 <template>
   <div class="popup-container">
-    <header>
-      <div class="header-content">
-        <h1>Gemini History Manager</h1>
-        <div class="controls">
-          <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode" @click="handleThemeToggle">
-            <svg ref="themeIconSvg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-          </button>
-          <button id="openFullPage" class="button primary-button" @click="handleOpenFullPage">Open Full View</button>
-          <button id="exportHistory" class="button" @click="handleExportHistory">Export History</button>
-          <button id="importHistory" class="button" @click="handleImportHistory">Import History</button>
-        </div>
-      </div>
-    </header>
+    <Header 
+      ref="headerComponent"
+      @theme-toggle="handleThemeToggle"
+      @open-full-page="handleOpenFullPage"
+      @export-history="handleExportHistory"
+      @import-history="handleImportHistory" 
+    />
 
     <main>
-      <div v-if="isLoading" class="loading-state">
-        <p>Loading...</p>
-      </div>
-      <div v-else-if="errorState.hasError" class="error-state">
-        <p>{{ errorState.message }}</p>
-        <button @click="retryInitialization" class="button">Retry</button>
-      </div>
-      <div v-else>
-        <div class="stats-container">
-          <div class="stat-card">
-            <h3>Total Conversations</h3>
-            <div class="stat-value">{{ totalConversations }}</div>
-          </div>
-          <div class="stat-card">
-            <h3>Most Used Model</h3>
-            <div class="stat-value">{{ mostUsedModelText }}</div>
-          </div>
-          <div class="stat-card">
-            <h3>Last Conversation</h3>
-            <div class="stat-value">{{ lastConversationTimeText }}</div>
-          </div>
-        </div>
-
-        <div class="history-preview">
-          <h2>Recent Conversations</h2>
-          <div id="recentConversations" class="conversation-list">
-            <div v-if="recentConversationsList.length === 0 && !isLoading" class="empty-state">
-              <p>No conversation history found.</p>
-              <button @click="handleStartChat" class="button primary-button">Start a Gemini Chat</button>
-            </div>
-            <div v-else>
-              <div v-for="entry in recentConversationsList" :key="entry.url" class="conversation-item" @click="openConversation(entry.url)">
-                <div class="conversation-title">{{ entry.title || 'Untitled Conversation' }}</div>
-                <div class="conversation-meta">
-                  <span class="conversation-date">{{ formatDateForDisplay(parseTimestamp(entry.timestamp)) }}</span>
-                  <span class="conversation-model">{{ entry.model || 'Unknown' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <LoadingError 
+        :is-loading="isLoading"
+        :error-state="errorState"
+        @retry="retryInitialization" 
+      />
+      
+      <div v-if="!isLoading && !errorState.hasError">
+        <StatsOverview 
+          :total-conversations="totalConversations"
+          :most-used-model-text="mostUsedModelText"
+          :last-conversation-time-text="lastConversationTimeText" 
+        />
+        
+        <ConversationList 
+          :conversations="recentConversationsList"
+          :is-loading="isLoading"
+          @start-chat="handleStartChat"
+          @open-conversation="openConversation" 
+        />
       </div>
     </main>
 
@@ -71,6 +41,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import dayjs from 'dayjs'; // Direct import for filename formatting
 import {
   Logger,
   parseTimestamp,
@@ -79,8 +50,13 @@ import {
   applyTheme,
   toggleTheme,
   initDayjsPlugins
-} from '../lib/utils.js'; // Assuming utils.js is in src/lib
-import dayjs from 'dayjs'; // Direct import for filename formatting
+} from '../lib/utils.js';
+
+// Import components
+import Header from './components/Header.vue';
+import StatsOverview from './components/StatsOverview.vue';
+import ConversationList from './components/ConversationList.vue';
+import LoadingError from './components/LoadingError.vue';
 
 // Initialize dayjs plugins before using any dayjs functionality
 initDayjsPlugins();
@@ -96,7 +72,7 @@ const lastConversationTimeText = ref('-');
 const recentConversationsList = ref([]);
 const extensionVersion = ref('Gemini History Manager'); // Default, will be updated
 const currentTheme = ref('light'); // Default, will be updated
-const themeIconSvg = ref(null); // Ref for the SVG element of the theme toggle
+const headerComponent = ref(null); // Ref for the Header component to access themeIconSvg
 
 const isLoading = ref(true);
 const errorState = ref({ hasError: false, message: '' });
@@ -115,13 +91,10 @@ async function initializePopup() {
     // Initialize theme and then apply it, passing the SVG ref
     initTheme((themeValue) => {
       currentTheme.value = themeValue;
-      // Ensure themeIconSvg.value is available before calling applyTheme
-      // Vue refs are typically available after the component is mounted.
-      // If themeIconSvg.value is null here, it might be because initTheme callback
-      // is too early. We can call applyTheme directly after setting currentTheme.value
-      // and the template will reactively update the icon if needed, or update it in handleThemeToggle.
-      // For initial load, setting data-theme on <html> is the most important.
-      applyTheme(currentTheme.value, themeIconSvg.value);
+      // Access themeIconSvg through the headerComponent ref
+      if (headerComponent.value) {
+        applyTheme(currentTheme.value, headerComponent.value.themeIconSvg);
+      }
     });
 
     const historyData = await loadHistoryDataFromStorage();
@@ -206,9 +179,9 @@ function updateRecentConversationsDisplay(historyData) {
 }
 
 // --- Event Handlers ---
-function handleThemeToggle() {
+function handleThemeToggle(themeIconSvgElement) {
   Logger.log("Theme toggle button clicked");
-  currentTheme.value = toggleTheme(currentTheme.value, themeIconSvg.value);
+  currentTheme.value = toggleTheme(currentTheme.value, themeIconSvgElement);
   // applyTheme is called within toggleTheme
 }
 
@@ -224,7 +197,6 @@ async function handleExportHistory() {
     const historyData = await loadHistoryDataFromStorage(); // Get latest sorted data
     if (historyData.length === 0) {
       Logger.warn('No history data to export');
-      // Consider a small, non-blocking notification in Vue if possible
       alert('No history data to export');
       return;
     }
@@ -253,8 +225,6 @@ async function handleExportHistory() {
 
 function handleImportHistory() {
   Logger.log("Import history button clicked, redirecting to full view for import.");
-  // Show a message or simply redirect. For extensions, often better to redirect quickly.
-  // The dashboard page will handle the ?action=import parameter.
   browser.tabs.create({
     url: browser.runtime.getURL('dashboard/dashboard.html?action=import')
   });
@@ -294,9 +264,8 @@ function handleFileImported(event) {
 
 <style scoped>
 /* Global styles are primarily handled by popup.css, linked in popup.html.
-  Add any component-specific styles here if needed.
-  For example, if you want to style the .popup-container or specific elements
-  only within this App.vue component without affecting other parts of the extension.
+  Component-specific styles are mainly moved to their respective components.
+  Only keep layout-related styles here.
 */
 
 .popup-container {
@@ -304,10 +273,6 @@ function handleFileImported(event) {
   flex-direction: column;
   height: 100%; /* Ensure it tries to fill the popup window */
   max-height: 580px; /* Approximate max height for a typical popup */
-}
-
-header {
-  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 main {
@@ -325,25 +290,10 @@ footer {
   color: var(--text-light);
 }
 
-.loading-state, .error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-  color: var(--text-light);
-}
+/* Header controls moved to Header.vue component */
 
-.error-state button {
-  margin-top: 15px;
-}
-
-/* Ensure controls in header don't wrap too aggressively */
-.header-content .controls {
-  flex-wrap: nowrap; /* Try to keep them in one line */
-  overflow-x: auto; /* Allow horizontal scroll if they must overflow */
-}
+/* Since components have their own styles, we only need to keep
+   layout and positioning styles in the main App.vue */
 
 /* Minor adjustments for button sizing consistency if needed */
 .button {
