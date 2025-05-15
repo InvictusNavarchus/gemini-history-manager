@@ -9,6 +9,7 @@ import isToday from 'dayjs/plugin/isToday';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import calendar from 'dayjs/plugin/calendar';
 import timezone from 'dayjs/plugin/timezone';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 
 // Logger Module
 export const Logger = {
@@ -138,6 +139,7 @@ export function initDayjsPlugins() {
     dayjs.extend(localizedFormat);
     dayjs.extend(calendar);
     dayjs.extend(timezone);
+    dayjs.extend(isSameOrBefore);
     
     Logger.debug("Day.js plugins initialized.");
   } catch (e) {
