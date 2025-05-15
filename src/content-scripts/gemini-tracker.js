@@ -23,6 +23,7 @@
         '2.5 Pro': '2.5 Pro',
         'Deep Research': 'Deep Research',
         'Veo 2': 'Veo 2',
+        'Personalization': 'Personalization',
     };
 
     /**
