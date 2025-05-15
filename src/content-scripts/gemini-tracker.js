@@ -22,6 +22,8 @@
         '2.5 Flash': '2.5 Flash',
         '2.5 Pro': '2.5 Pro',
         'Deep Research': 'Deep Research',
+        'Veo 2': 'Veo 2',
+        'Personalization': 'Personalization',
     };
 
     /**
@@ -364,13 +366,81 @@
      */
     const ModelDetector = {
         /**
+         * Checks if any special tools are activated in the toolbox drawer.
+         * Looks for "Deep Research" and "Video" (Veo 2) tools.
+         * 
+         * @returns {string|null} - Returns the special model name if detected, or null if none detected
+         */
+        checkForSpecialTools: function() {
+            Logger.log("Checking for special tools (Deep Research, Veo 2)...");
+            
+            // Get all activated tools in the toolbox drawer
+            const activatedButtons = document.querySelectorAll('button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]');
+            Logger.log(`Found ${activatedButtons.length} activated tool buttons`);
+            
+            // Check each button to see if it's one of our special tools
+            for (const button of activatedButtons) {
+                const labelElement = button.querySelector('.toolbox-drawer-button-label');
+                if (!labelElement) continue;
+                
+                const buttonText = labelElement.textContent.trim();
+                Logger.log(`Found activated button with text: "${buttonText}"`);
+                
+                if (buttonText.includes("Deep Research")) {
+                    Logger.log("Deep Research tool is activated");
+                    return 'Deep Research';
+                }
+                
+                if (buttonText.includes("Video")) {
+                    Logger.log("Video tool (Veo 2) is activated");
+                    return 'Veo 2';
+                }
+            }
+            
+            // Alternative detection method if the above doesn't work
+            const toolboxDrawer = document.querySelector('toolbox-drawer');
+            if (toolboxDrawer) {
+                // Try to find Deep Research button
+                const deepResearchIcon = toolboxDrawer.querySelector('mat-icon[data-mat-icon-name="travel_explore"]');
+                if (deepResearchIcon) {
+                    const deepResearchButton = deepResearchIcon.closest('button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]');
+                    if (deepResearchButton) {
+                        Logger.log("Deep Research tool is activated (detected via icon)");
+                        return 'Deep Research';
+                    }
+                }
+                
+                // Try to find Video button
+                const videoIcon = toolboxDrawer.querySelector('mat-icon[data-mat-icon-name="movie"]');
+                if (videoIcon) {
+                    const videoButton = videoIcon.closest('button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]');
+                    if (videoButton) {
+                        Logger.log("Video tool (Veo 2) is activated (detected via icon)");
+                        return 'Veo 2';
+                    }
+                }
+            }
+            
+            return null;
+        },
+
+        /**
          * Attempts to detect the currently selected Gemini model from the UI.
          * Tries multiple selector strategies to find the model name.
+         * Also checks for special activated tools like Deep Research and Veo 2.
          * 
          * @returns {string} - The detected model name or 'Unknown' if not found
          */
         getCurrentModelName: function() {
             Logger.log("Attempting to get current model name...");
+            
+            // First, check for special tools that override the model name
+            const specialTool = this.checkForSpecialTools();
+            if (specialTool) {
+                Logger.log(`Special tool activated: ${specialTool}`);
+                return specialTool;
+            }
+            
             let rawText = null;
             let foundVia = null;
 
