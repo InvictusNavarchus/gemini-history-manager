@@ -3,6 +3,7 @@
  * Helper functions for modals and dialogs in the Dashboard
  */
 import { Logger } from '../../lib/utils.js';
+import { ref } from 'vue';
 
 /**
  * Create modal state manager for conversation details and confirmation dialogs
@@ -10,7 +11,7 @@ import { Logger } from '../../lib/utils.js';
  */
 export function createModalManager() {
   // Modal state
-  const modalState = {
+  const modalState = ref({
     conversationDetail: { 
       show: false, 
       data: {} 
@@ -21,14 +22,14 @@ export function createModalManager() {
       message: '', 
       onConfirm: null 
     }
-  };
+  });
   
   /**
    * Show conversation details modal
    * @param {Object} conversation - Conversation data to display
    */
   function showConversationDetailsModal(conversation) {
-    modalState.conversationDetail = { 
+    modalState.value.conversationDetail = { 
       show: true, 
       data: conversation 
     };
@@ -39,7 +40,7 @@ export function createModalManager() {
    * Close conversation details modal
    */
   function closeConversationDetailsModal() {
-    modalState.conversationDetail.show = false;
+    modalState.value.conversationDetail.show = false;
     Logger.log("Closing conversation details modal");
   }
 
@@ -50,7 +51,7 @@ export function createModalManager() {
    * @param {Function} onConfirmCallback - Callback to execute when confirmed
    */
   function showConfirmationModal(title, message, onConfirmCallback) {
-    modalState.confirmation = {
+    modalState.value.confirmation = {
       show: true,
       title,
       message,
@@ -63,8 +64,8 @@ export function createModalManager() {
    * Close confirmation dialog
    */
   function closeConfirmationModal() {
-    modalState.confirmation.show = false;
-    modalState.confirmation.onConfirm = null;
+    modalState.value.confirmation.show = false;
+    modalState.value.confirmation.onConfirm = null;
     Logger.log("Closing confirmation modal");
   }
 
@@ -73,9 +74,9 @@ export function createModalManager() {
    * @returns {Promise} A promise resolving after the confirmed action executes
    */
   async function executeConfirmedAction() {
-    if (typeof modalState.confirmation.onConfirm === 'function') {
+    if (typeof modalState.value.confirmation.onConfirm === 'function') {
       Logger.log("Executing confirmed action");
-      await modalState.confirmation.onConfirm();
+      await modalState.value.confirmation.onConfirm();
     }
     closeConfirmationModal();
   }
@@ -85,7 +86,7 @@ export function createModalManager() {
    * @returns {Object} Current modal state
    */
   function getModalState() {
-    return modalState;
+    return modalState.value;
   }
 
   return {
