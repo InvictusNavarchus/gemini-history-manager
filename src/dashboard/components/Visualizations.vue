@@ -92,6 +92,17 @@ const emit = defineEmits(['update:activeVizTab', 'update:activityChartOptions', 
 // References
 const vizChartCanvas = ref(null);
 
+// Lifecycle hooks
+onMounted(() => {
+  Logger.log('Visualizations component mounted, canvas ready');
+  // Signal to parent that the visualization component is ready to render
+  if (vizChartCanvas.value) {
+    nextTick(() => {
+      emit('render-chart');
+    });
+  }
+});
+
 // Event handlers
 function setActiveVizTab(tabName) {
   emit('update:activeVizTab', tabName);

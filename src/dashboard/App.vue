@@ -591,11 +591,25 @@ function updateDashboardStats() {
 
 // --- Visualizations (Chart.js) ---
 function renderCurrentVisualization() {
-  if (!visualizations.value || !visualizations.value.vizChartCanvas || allHistory.value.length === 0) {
+  Logger.log(`Attempting to render visualization: tab=${activeMainTab.value}, vizTab=${activeVizTab.value}`);
+  
+  if (!visualizations.value) {
+    Logger.log('Visualizations component reference is not available');
+    return;
+  }
+  
+  if (!visualizations.value.vizChartCanvas) {
+    Logger.log('Canvas element is not available in the visualizations component');
+    return;
+  }
+  
+  if (allHistory.value.length === 0) {
+    Logger.log('No history data available to render visualization');
     return;
   }
 
   if (chartInstance) {
+    Logger.log('Destroying previous chart instance');
     chartInstance.destroy();
     chartInstance = null;
   }
@@ -604,12 +618,15 @@ function renderCurrentVisualization() {
   let chartConfig;
 
   if (activeVizTab.value === 'modelDistribution') {
+    Logger.log('Generating model distribution chart config');
     chartConfig = getModelDistributionChartConfig();
   } else if (activeVizTab.value === 'activityOverTime') {
+    Logger.log('Generating activity over time chart config');
     chartConfig = getActivityOverTimeChartConfig();
   }
 
   if (chartConfig) {
+    Logger.log(`Creating new chart instance for ${activeVizTab.value}`);
     chartInstance = new Chart(chartCtx, chartConfig);
   }
 }
@@ -848,6 +865,33 @@ function updateActivityChart() {
 // Watchers for re-rendering chart
 watch(currentTheme, () => {
   if (activeMainTab.value === 'visualizations' && allHistory.value.length > 0) renderCurrentVisualization();
+});
+
+// Watch for main tab changes to immediately render visualizations when that tab is selected
+watch(activeMainTab, (newTab) => {
+  if (newTab === 'visualizations' && allHistory.value.length > 0) {
+    Logger.log('Visualization tab activated - preparing to render chart');
+    // Give the DOM time to fully update before attempting to render
+    nextTick(() => {
+      // Double nextTick to ensure visualizations component is fully mounted
+      nextTick(() => {
+        if (visualizations.value && visualizations.value.vizChartCanvas) {
+          renderCurrentVisualization();
+        } else {
+          Logger.log('Visualization component or canvas not ready yet, retrying in 100ms');
+          // Last resort: try again after a short delay if the canvas isn't ready yet
+          setTimeout(() => renderCurrentVisualization(), 100);
+        }
+      });
+    });
+  }
+});
+
+// Also watch activeVizTab to ensure charts update when switching between visualization types
+watch(activeVizTab, () => {
+  if (activeMainTab.value === 'visualizations' && allHistory.value.length > 0) {
+    renderCurrentVisualization();
+  }
 });
 
 watch(allHistory, () => {
