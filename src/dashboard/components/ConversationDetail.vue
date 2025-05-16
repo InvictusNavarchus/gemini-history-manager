@@ -74,13 +74,13 @@ function formatDateTime(timestamp) {
 
 // Actions
 function openInGemini() {
-  if (conversation.url) {
-    emit('open-in-gemini', conversation.url);
+  if (props.conversation.url) {
+    emit('open-in-gemini', props.conversation.url);
   }
 }
 
 function deleteConversation() {
-  emit('delete', conversation);
+  emit('delete', props.conversation);
 }
 </script>
 
