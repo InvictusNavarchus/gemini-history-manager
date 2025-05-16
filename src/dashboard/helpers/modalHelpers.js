@@ -100,10 +100,11 @@ export function createModalManager() {
 }
 
 /**
- * Create a delete conversation confirmation
- * @param {Object} modalManager - Modal manager from createModalManager()
- * @param {Function} deleteFunction - Function to call when confirmed
- * @returns {Function} Function that shows confirmation dialog
+ * Returns a function that displays a confirmation dialog before deleting a conversation.
+ *
+ * The returned function creates a plain JavaScript copy of the provided conversation object to avoid issues with reactive proxies, then prompts the user for confirmation. If confirmed, it calls the specified delete function with the cloned conversation.
+ *
+ * @returns {Function} A function that, when called with a conversation object, shows a confirmation dialog and deletes the conversation upon user confirmation.
  */
 export function createDeleteConversationConfirmation(modalManager, deleteFunction) {
   return function confirmDeleteConversation(conversation) {

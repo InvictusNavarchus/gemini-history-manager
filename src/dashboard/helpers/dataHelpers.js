@@ -9,9 +9,14 @@ import dayjs from 'dayjs';
 export const STORAGE_KEY = 'geminiChatHistory';
 
 /**
- * Save history data to browser storage
- * @param {Array} historyData - The history data array to save
- * @returns {Promise} A promise that resolves when the data is saved
+ * Saves an array of chat history data to browser local storage.
+ *
+ * Ensures only plain arrays are saved, defaulting to an empty array if the input is not an array.
+ *
+ * @param {Array} historyData - Chat history data to be saved.
+ * @returns {Promise<void>} Resolves when the data has been saved.
+ *
+ * @throws {Error} If saving to browser storage fails.
  */
 export async function saveHistoryData(historyData) {
   try {
