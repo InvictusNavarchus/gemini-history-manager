@@ -3,6 +3,23 @@
  * Initializes and mounts the Vue application for the browser action popup.
  */
 
+// Immediately apply theme to prevent flash
+try {
+  // For browser extensions, we need to use the synchronous localStorage
+  // as browser.storage.local is async and may not be immediately available
+  const savedTheme = localStorage.getItem('geminiHistoryTheme');
+  // Apply theme immediately to prevent flash
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  } else {
+    // Maintain light theme explicitly set in HTML tag as fallback
+    // <html data-theme="light">
+  }
+} catch (e) {
+  console.error('Error setting initial theme:', e);
+  // The fallback is already set in the HTML tag
+}
+
 import { createApp } from 'vue'; // Import createApp function from Vue
 import App from './App.vue';     // Import the root Vue component (we'll create this next)
 
