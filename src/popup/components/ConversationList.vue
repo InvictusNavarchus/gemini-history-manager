@@ -52,40 +52,42 @@ function openConversation(url) {
 
 <style scoped>
 .history-preview {
-  padding: 0 10px;
+  padding: 0;
   margin-top: 15px;
 }
 
 .history-preview h2 {
-  font-size: 16px;
-  margin: 0 0 10px 0;
-  color: var(--text-color);
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
 .conversation-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background-color: var(--card-bg);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .conversation-item {
-  background-color: var(--card-bg);
-  border-radius: 6px;
-  padding: 10px 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
   cursor: pointer;
-  box-shadow: var(--card-shadow);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color var(--animation-speed);
 }
 
 .conversation-item:hover {
   background-color: var(--hover-bg);
-  transform: translateY(-1px);
-  box-shadow: var(--card-shadow-hover);
+}
+
+.conversation-item:last-child {
+  border-bottom: none;
 }
 
 .conversation-title {
   font-weight: 500;
-  margin-bottom: 5px;
+  font-size: 14px;
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -94,17 +96,25 @@ function openConversation(url) {
 .conversation-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-light);
+}
+
+.conversation-model {
+  background-color: var(--hover-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
 }
 
 .empty-state {
   text-align: center;
-  padding: 20px;
+  padding: 24px 12px;
   color: var(--text-light);
 }
 
-.empty-state .button {
-  margin-top: 10px;
+.empty-state p {
+  margin-bottom: 16px;
+  font-size: 14px;
 }
 </style>

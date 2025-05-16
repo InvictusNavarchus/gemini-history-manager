@@ -58,13 +58,13 @@ defineExpose({ themeIconSvg });
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  border-bottom: 1px solid var(--border-color);
 }
 
 .header-content h1 {
   font-size: 18px;
   margin: 0;
   white-space: nowrap;
+  color: var(--primary-color);
 }
 
 .controls {
@@ -75,17 +75,25 @@ defineExpose({ themeIconSvg });
 }
 
 .theme-toggle {
-  background: transparent;
+  background: none;
   border: none;
+  color: var(--text-color);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
 }
 
 .theme-toggle:hover {
   background-color: var(--hover-bg);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
 }
 </style>

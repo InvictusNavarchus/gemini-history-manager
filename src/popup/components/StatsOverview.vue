@@ -38,30 +38,29 @@ defineProps({
 .stats-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin: 15px 0;
-  padding: 0 10px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .stat-card {
   background-color: var(--card-bg);
   border-radius: 6px;
+  box-shadow: var(--shadow);
   padding: 12px;
   text-align: center;
-  box-shadow: var(--card-shadow);
 }
 
 .stat-card h3 {
   font-size: 12px;
+  font-weight: 500;
   color: var(--text-light);
-  margin: 0 0 6px 0;
-  font-weight: normal;
+  margin-bottom: 6px;
 }
 
 .stat-value {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--primary-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
