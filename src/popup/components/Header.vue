@@ -52,26 +52,31 @@ defineExpose({ themeIconSvg });
 </script>
 
 <style scoped>
-/* Header specific styles */
+/* Header specific styles - Moved from global CSS */
+header {
+  background-color: var(--card-bg);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  z-index: 10;
+}
+
 .header-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .header-content h1 {
-  font-size: 18px;
-  margin: 0;
-  white-space: nowrap;
+  font-size: 16px;
   color: var(--primary-color);
+  margin-bottom: 0;
+  white-space: nowrap;
 }
 
 .controls {
   display: flex;
   gap: 8px;
-  align-items: center;
-  flex-wrap: nowrap;
 }
 
 .theme-toggle {

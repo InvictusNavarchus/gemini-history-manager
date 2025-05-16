@@ -1,6 +1,7 @@
-/* General styles */
+/* Global styles only - Component-specific styles moved to respective Vue components */
+/* Light theme variables */
 :root {
-  /* Light theme variables */
+  /* Theme colors */
   --primary-color: #6e41e2;
   --primary-dark: #5832c5;
   --text-color: #333;
@@ -9,7 +10,11 @@
   --card-bg: #fff;
   --border-color: #e0e0e5;
   --hover-bg: #f0f0f5;
+  
+  /* Effects */
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   --animation-speed: 0.3s;
 }
 
@@ -24,6 +29,8 @@ html[data-theme='dark'] {
   --border-color: #333333;
   --hover-bg: #2c2c2c;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 /* System preference dark mode */
@@ -38,9 +45,12 @@ html[data-theme='dark'] {
     --border-color: #333333;
     --hover-bg: #2c2c2c;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.35);
   }
 }
 
+/* Reset styles */
 * {
   margin: 0;
   padding: 0;
@@ -48,6 +58,7 @@ html[data-theme='dark'] {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
+/* Base layout */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   width: 380px;
@@ -59,57 +70,7 @@ body {
   flex-direction: column;
 }
 
-/* Header styling */
-header {
-  background-color: var(--card-bg);
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow);
-  z-index: 10;
-}
-
-.header-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-h1 {
-  font-size: 16px;
-  color: var(--primary-color);
-  margin-bottom: 0;
-}
-
-.controls {
-  display: flex;
-  gap: 8px;
-}
-
-/* Theme toggle button */
-.theme-toggle {
-  background: none;
-  border: none;
-  color: var(--text-color);
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.theme-toggle:hover {
-  background-color: var(--hover-bg);
-}
-
-.theme-toggle svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* Button styling */
+/* Global button styles */
 .button {
   padding: 6px 12px;
   font-size: 12px;
@@ -136,113 +97,21 @@ h1 {
   background-color: var(--primary-dark);
 }
 
-/* Main content area */
+/* Main content layout */
 main {
   padding: 16px;
   overflow-y: auto;
   flex-grow: 1;
 }
 
-/* Stats cards */
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.stat-card {
-  background-color: var(--card-bg);
-  border-radius: 6px;
-  box-shadow: var(--shadow);
-  padding: 12px;
-  text-align: center;
-}
-
-.stat-card h3 {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-light);
-  margin-bottom: 6px;
-}
-
-.stat-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-/* History section */
-.history-preview h2 {
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-.conversation-list {
-  background-color: var(--card-bg);
-  border-radius: 6px;
-  box-shadow: var(--shadow);
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.conversation-item {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: background-color var(--animation-speed);
-}
-
-.conversation-item:hover {
-  background-color: var(--hover-bg);
-}
-
-.conversation-item:last-child {
-  border-bottom: none;
-}
-
-.conversation-title {
-  font-weight: 500;
-  font-size: 14px;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.conversation-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-light);
-}
-
-.conversation-model {
-  background-color: var(--hover-bg);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 24px 12px;
-  color: var(--text-light);
-}
-
-.empty-state p {
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
-/* Footer */
+/* Footer styling */
 footer {
   font-size: 11px;
-  color: #999;
+  color: var(--text-light);
   text-align: center;
   padding: 8px;
   border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 /* Scrollbar customization */

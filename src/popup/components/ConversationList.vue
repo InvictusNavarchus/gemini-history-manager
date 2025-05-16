@@ -52,7 +52,6 @@ function openConversation(url) {
 
 <style scoped>
 .history-preview {
-  padding: 0;
   margin-top: 15px;
 }
 
