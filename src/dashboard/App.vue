@@ -315,7 +315,9 @@ function resetAllFilters() {
 // --- Data Management ---
 async function saveData() {
   try {
-    await saveHistoryData(allHistory.value);
+    // Create a clean copy of the data without Vue reactive proxies to avoid DataCloneError
+    const cleanHistoryData = JSON.parse(JSON.stringify(allHistory.value));
+    await saveHistoryData(cleanHistoryData);
   } catch (error) {
     showToast(`Error saving data: ${error.message}`, 'error');
     throw error; // Re-throw for caller to handle
@@ -339,13 +341,21 @@ function startGeminiChat() {
 const confirmDeleteConversation = createDeleteConversationConfirmation(modalManager, async (conversation) => {
   try {
     // Remove the conversation
-    const index = allHistory.value.findIndex(item => item.url === conversation.url);
+    const conversationUrl = conversation.url;
+    if (!conversationUrl) {
+      showToast('Error: Unable to identify conversation to delete.', 'error');
+      return;
+    }
+    
+    const index = allHistory.value.findIndex(item => item.url === conversationUrl);
     if (index !== -1) {
       allHistory.value.splice(index, 1);
       await saveData();
       updateDashboardStats();
       showToast('Conversation deleted successfully.', 'success');
       closeConversationDetailsModal();
+    } else {
+      showToast('Conversation not found in history.', 'warning');
     }
   } catch (error) {
     showToast(`Error deleting conversation: ${error.message}`, 'error');
