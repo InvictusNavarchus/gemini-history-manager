@@ -49,7 +49,8 @@ import {
   initTheme,
   applyTheme,
   toggleTheme,
-  initDayjsPlugins
+  initDayjsPlugins,
+  updateThemeToggleIcon
 } from '../lib/utils.js';
 
 // Import components
