@@ -194,9 +194,16 @@ export function applyTheme(theme, themeIcon = null) {
   htmlElement.setAttribute('data-theme', theme);
   Logger.log(`Applied ${theme} theme`);
   
-  // Store the theme preference
+  // Store the theme preference in extension storage
   browser.storage.local.set({ [THEME_STORAGE_KEY]: theme })
-    .catch(error => Logger.error('Error storing theme preference:', error));
+    .catch(error => Logger.error('Error storing theme preference in browser.storage:', error));
+  
+  // Also store in localStorage for immediate access when popup opens
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (error) {
+    Logger.error('Error storing theme preference in localStorage:', error);
+  }
   
   // Update the toggle button icon if provided
   if (themeIcon) {
