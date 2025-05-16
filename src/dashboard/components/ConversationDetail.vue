@@ -41,7 +41,18 @@
       </div>
       <div class="modal-footer">
         <button class="button" @click="emit('close')">Close</button>
-        <button class="button primary-button" @click="openInGemini">Open in Gemini</button>
+        <a 
+          v-if="conversation.url" 
+          :href="conversation.url" 
+          target="_blank" 
+          class="button primary-button"
+        >Open in Gemini</a>
+        <button 
+          v-else 
+          class="button primary-button disabled" 
+          disabled
+          title="No URL available for this conversation"
+        >Open in Gemini</button>
         <button class="button danger-button" @click="deleteConversation">Delete</button>
       </div>
     </div>
@@ -65,7 +76,7 @@ const props = defineProps({
 });
 
 // Define emits
-const emit = defineEmits(['close', 'open-in-gemini', 'delete']);
+const emit = defineEmits(['close', 'delete']);
 
 // Format datetime
 function formatDateTime(timestamp) {
@@ -73,14 +84,8 @@ function formatDateTime(timestamp) {
 }
 
 // Actions
-function openInGemini() {
-  if (conversation.url) {
-    emit('open-in-gemini', conversation.url);
-  }
-}
-
 function deleteConversation() {
-  emit('delete', conversation);
+  emit('delete', props.conversation);
 }
 </script>
 
@@ -184,5 +189,10 @@ function deleteConversation() {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

@@ -107,11 +107,14 @@ export function createModalManager() {
  */
 export function createDeleteConversationConfirmation(modalManager, deleteFunction) {
   return function confirmDeleteConversation(conversation) {
+    // Create a plain JavaScript object copy of the conversation to avoid Proxy cloning issues
+    const plainConversation = structuredClone(conversation);
+    
     modalManager.showConfirmationModal(
       'Delete Conversation',
       'Are you sure you want to delete this conversation? This action cannot be undone.',
       async () => {
-        await deleteFunction(conversation);
+        await deleteFunction(plainConversation);
       }
     );
   };

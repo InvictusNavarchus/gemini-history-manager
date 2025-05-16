@@ -15,8 +15,11 @@ export const STORAGE_KEY = 'geminiChatHistory';
  */
 export async function saveHistoryData(historyData) {
   try {
-    await browser.storage.local.set({ [STORAGE_KEY]: historyData });
-    Logger.log(`Saved ${historyData.length} conversations to storage`);
+    // Ensure we're working with clean data without Vue reactive proxies
+    const dataToSave = Array.isArray(historyData) ? historyData : [];
+    
+    await browser.storage.local.set({ [STORAGE_KEY]: dataToSave });
+    Logger.log(`Saved ${dataToSave.length} conversations to storage`);
   } catch (error) {
     Logger.error('Error saving data:', error);
     throw error; // Re-throw for caller to handle
