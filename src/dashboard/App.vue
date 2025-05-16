@@ -237,22 +237,13 @@ onMounted(async () => {
 async function initializeDashboard() {
   isLoading.value = true;
   try {
-    // Get the theme that was already set in the HTML (don't reset it)
-    // This ensures we work with the same theme value that was applied before rendering
-    try {
-      const currentAppliedTheme = document.documentElement.getAttribute('data-theme') || 'light';
-      currentTheme.value = currentAppliedTheme;
-    } catch (e) {
-      Logger.error('Error getting current theme:', e);
-    }
+    // Get the theme that was already set in main.js
+    currentTheme.value = document.documentElement.getAttribute('data-theme') || 'light';
     
-    // Initialize theme system and ensure our reactive state matches what's stored
-    initTheme((themeValue) => {
-      currentTheme.value = themeValue;
-      if (headerComponent.value) {
-        applyTheme(currentTheme.value, headerComponent.value.themeIconSvg);
-      }
-    });
+    // Initialize theme toggle icon if needed
+    if (headerComponent.value) {
+      applyTheme(currentTheme.value, headerComponent.value.themeIconSvg);
+    }
 
     // Load history data using the helper function
     allHistory.value = await loadHistoryData();

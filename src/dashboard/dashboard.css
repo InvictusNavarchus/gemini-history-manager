@@ -81,15 +81,6 @@ html[data-theme='dark'] {
   }
 }
 
-/* Set background color directly on HTML element to prevent flash */
-html {
-  background-color: #f9f9fb; /* Light theme default */
-}
-
-html[data-theme='dark'] {
-  background-color: #121212; /* Dark theme default */
-}
-
 /* System preference dark mode - ensure no flash on initial load */
 @media (prefers-color-scheme: dark) {
   html:not([data-theme]) {
