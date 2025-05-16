@@ -1,0 +1,38 @@
+/* 
+ * Theme initialization CSS
+ * Critical CSS loaded before the main stylesheet to prevent flash of wrong theme
+ */
+
+/* Default light theme background - will be overridden by system preferences or explicit theme setting */
+html {
+  background-color: #f9f9fb; 
+  color: #333;
+}
+
+/* Explicit dark theme */
+html[data-theme='dark'] {
+  background-color: #121212; 
+  color: #e0e0e0;
+}
+
+/* Explicit light theme - must override system preference */
+html[data-theme='light'] {
+  background-color: #f9f9fb !important;
+  color: #333 !important;
+}
+
+/* System preference dark mode */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) {
+    background-color: #121212;
+    color: #e0e0e0;
+  }
+}
+
+/* Disable all transitions during initial page load to prevent flickering */
+.initial-load * {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  transition: none !important;
+}
