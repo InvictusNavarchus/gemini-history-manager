@@ -41,11 +41,16 @@ html[data-theme='dark'] {
   }
 }
 
+/* Add a class that will be applied once the Vue app is mounted */
+html.ready-for-transitions * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  /* No transitions by default - they'll be enabled after initial render */
 }
 
 body {
