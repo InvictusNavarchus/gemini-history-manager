@@ -42,7 +42,7 @@ defineProps({
 });
 
 // Define emits
-defineEmits(['update:searchQuery', 'theme-toggle', 'export', 'import', 'clear-history']);
+const emit = defineEmits(['update:searchQuery', 'theme-toggle', 'export', 'import', 'clear-history']);
 
 // References
 const themeIconSvg = ref(null);
