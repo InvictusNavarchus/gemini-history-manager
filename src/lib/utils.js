@@ -163,10 +163,10 @@ export function initTheme(callback) {
         theme = result[THEME_STORAGE_KEY];
         Logger.log(`Retrieved stored theme preference: ${theme}`);
       } else {
-        // Default to system preference via CSS media query, but track as 'light'
-        // The CSS will handle the system preference via @media (prefers-color-scheme: dark)
-        theme = 'light';
-        Logger.log('No stored theme preference, defaulting to light with system detection via CSS');
+        // Default to system preference by checking prefers-color-scheme
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = prefersDark ? 'dark' : 'light';
+        Logger.log(`No stored theme preference, defaulting to system preference: ${theme}`);
       }
       
       if (callback && typeof callback === 'function') {
