@@ -7,9 +7,6 @@
     "storage",
     "unlimitedStorage"
   ],
-  "host_permissions": [
-    "https://gemini.google.com/*"
-  ],
   "background": {
     "service_worker": "background.js",
     "scripts": ["background.js"]
