@@ -126,7 +126,8 @@ import {
   readFile,
   initTheme,
   applyTheme,
-  toggleTheme
+  toggleTheme,
+  updateThemeToggleIcon
 } from '../lib/utils.js';
 
 // Import helper modules
@@ -229,6 +230,9 @@ const filteredHistory = computed(() => {
 // --- Lifecycle Hooks ---
 onMounted(async () => {
   Logger.log("Dashboard App.vue: Component mounted");
+  // Enable transitions only after component is mounted
+  // This prevents theme transition flash on initial load
+  document.documentElement.classList.add('ready-for-transitions');
   await initializeDashboard();
   checkUrlParameters(); // For guided import
 });
@@ -237,11 +241,12 @@ onMounted(async () => {
 async function initializeDashboard() {
   isLoading.value = true;
   try {
-    // Initialize theme
+    // Initialize theme - note: initial theme was already applied by inline script in HTML
     initTheme((themeValue) => {
       currentTheme.value = themeValue;
       if (headerComponent.value) {
-        applyTheme(currentTheme.value, headerComponent.value.themeIconSvg);
+        // Only update the icon, not the theme (to prevent flash)
+        updateThemeToggleIcon(themeValue, headerComponent.value.themeIconSvg);
       }
     });
 
