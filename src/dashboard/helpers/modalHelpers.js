@@ -108,7 +108,7 @@ export function createModalManager() {
 export function createDeleteConversationConfirmation(modalManager, deleteFunction) {
   return function confirmDeleteConversation(conversation) {
     // Create a plain JavaScript object copy of the conversation to avoid Proxy cloning issues
-    const plainConversation = JSON.parse(JSON.stringify(conversation));
+    const plainConversation = structuredClone(conversation);
     
     modalManager.showConfirmationModal(
       'Delete Conversation',
