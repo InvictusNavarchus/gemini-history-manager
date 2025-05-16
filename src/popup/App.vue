@@ -81,10 +81,14 @@ const errorState = ref({ hasError: false, message: '' });
 // --- Initialization and Data Loading ---
 onMounted(async () => {
   Logger.log("Popup App.vue: Component mounted");
-  // Enable transitions only after component is mounted
-  // This prevents theme transition flash on initial load
-  document.documentElement.classList.add('ready-for-transitions');
   await initializePopup();
+  
+  // Enable transitions only after the app is fully initialized and rendered
+  // This prevents theme transition flash on initial load
+  setTimeout(() => {
+    document.documentElement.classList.add('ready-for-transitions');
+    Logger.log("Transitions enabled");
+  }, 100); // Short delay to ensure rendering is complete
 });
 
 async function initializePopup() {
@@ -93,7 +97,7 @@ async function initializePopup() {
   try {
     await loadExtensionVersion();
     // Initialize theme and then apply it, passing the SVG ref
-    // Note: Initial theme was already applied by inline script in HTML
+    // Note: Initial theme was already applied by script in main.js before Vue mounts
     initTheme((themeValue) => {
       currentTheme.value = themeValue;
       // Apply theme to icon after component is mounted
