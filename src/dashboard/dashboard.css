@@ -60,9 +60,10 @@ html[data-theme='dark'] {
   --toast-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-/* System preference dark mode */
+/* System preference dark mode - only applies when no explicit theme is set */
 @media (prefers-color-scheme: dark) {
-  html:not([data-theme='light']) {
+  html:not([data-theme]), 
+  html[data-theme='dark'] {
     --primary-color: #8b68f0;
     --primary-dark: #6e41e2;
     --primary-light: #a88ff8;
@@ -77,6 +78,13 @@ html[data-theme='dark'] {
     --danger-color: #f44336;
     --danger-hover: #d32f2f;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* System preference dark mode - ensure no flash on initial load */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) {
+    background-color: #121212; /* Dark theme default based on system preference */
   }
 }
 

@@ -237,13 +237,13 @@ onMounted(async () => {
 async function initializeDashboard() {
   isLoading.value = true;
   try {
-    // Initialize theme
-    initTheme((themeValue) => {
-      currentTheme.value = themeValue;
-      if (headerComponent.value) {
-        applyTheme(currentTheme.value, headerComponent.value.themeIconSvg);
-      }
-    });
+    // Get the theme that was already set in main.js
+    currentTheme.value = document.documentElement.getAttribute('data-theme') || 'light';
+    
+    // Initialize theme toggle icon if needed
+    if (headerComponent.value) {
+      applyTheme(currentTheme.value, headerComponent.value.themeIconSvg);
+    }
 
     // Load history data using the helper function
     allHistory.value = await loadHistoryData();

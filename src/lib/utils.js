@@ -155,7 +155,21 @@ export const THEME_STORAGE_KEY = 'geminiHistoryTheme';
  * @param {function} callback - Function to call with the theme value once determined
  */
 export function initTheme(callback) {
-  // Get stored theme preference
+  // Check localStorage first for immediate access
+  try {
+    const localTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (localTheme) {
+      Logger.log(`Retrieved theme from localStorage: ${localTheme}`);
+      if (callback && typeof callback === 'function') {
+        callback(localTheme);
+      }
+      return;
+    }
+  } catch (error) {
+    Logger.error('Error accessing localStorage for theme:', error);
+  }
+  
+  // Get stored theme preference from browser.storage if localStorage doesn't have it
   browser.storage.local.get(THEME_STORAGE_KEY)
     .then(result => {
       let theme;
