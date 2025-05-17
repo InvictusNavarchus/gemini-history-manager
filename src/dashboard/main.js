@@ -22,18 +22,24 @@
       document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
     }
     
-    // After a small delay, remove the transition-disabling class
-    setTimeout(() => {
-      document.documentElement.classList.remove('initial-load');
-    }, 300); // Wait for the page to stabilize
+    // Enable transitions only after the rendering is complete
+    // Using requestAnimationFrame is more reliable than a timeout
+    requestAnimationFrame(() => {
+      // Using a second requestAnimationFrame ensures we wait for the painting to complete
+      requestAnimationFrame(() => {
+        document.documentElement.classList.remove('initial-load');
+      });
+    });
     
   } catch (e) {
     console.error('[Gemini History] Error setting initial theme:', e);
     // Default to light theme if there's an error
     document.documentElement.setAttribute('data-theme', 'light');
-    setTimeout(() => {
-      document.documentElement.classList.remove('initial-load');
-    }, 300);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.documentElement.classList.remove('initial-load');
+      });
+    });
   }
 })();
 

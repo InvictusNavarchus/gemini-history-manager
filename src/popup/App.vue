@@ -85,10 +85,15 @@ onMounted(async () => {
   
   // Enable transitions only after the app is fully initialized and rendered
   // This prevents theme transition flash on initial load
-  setTimeout(() => {
-    document.documentElement.classList.add('ready-for-transitions');
-    Logger.log("Transitions enabled");
-  }, 100); // Short delay to ensure rendering is complete
+  // Using requestAnimationFrame is more reliable than a timeout as it
+  // ensures we wait for the next rendering cycle to complete
+  requestAnimationFrame(() => {
+    // Using a second requestAnimationFrame ensures we wait for the painting to complete
+    requestAnimationFrame(() => {
+      document.documentElement.classList.add('ready-for-transitions');
+      Logger.log("Transitions enabled");
+    });
+  });
 });
 
 async function initializePopup() {
