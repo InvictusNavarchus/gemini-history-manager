@@ -15,10 +15,12 @@
     
     if (savedTheme) {
       // Set the data-theme attribute immediately from localStorage
+      console.log('[Gemini History] Applying saved theme from localStorage:', savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     } else {
       // If no saved theme, check system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      console.log('[Gemini History] No saved theme found. Using system preference:', prefersDark ? 'dark' : 'light');
       document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
     }
     
