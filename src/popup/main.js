@@ -40,4 +40,4 @@ const app = createApp(App);
 // This ID is present in src/popup/popup.html
 app.mount('#app');
 
-console.log('[Gemini History Manager] Popup Vue app initialized and mounted.');
+Logger.log('Popup Vue app initialized and mounted.');

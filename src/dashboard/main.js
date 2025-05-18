@@ -37,4 +37,4 @@ const app = createApp(App);
 // This ID is present in src/dashboard/dashboard.html
 app.mount('#app');
 
-console.log('[Gemini History Manager] Dashboard Vue app initialized and mounted.');
+Logger.log('Dashboard Vue app initialized and mounted.');

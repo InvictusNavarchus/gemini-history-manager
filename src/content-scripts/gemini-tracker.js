@@ -308,9 +308,20 @@
      * ==========================================
      */
     const Logger = {
-        log: (...args) => console.log(CONFIG.LOG_PREFIX, ...args),
-        warn: (...args) => console.warn(CONFIG.LOG_PREFIX, ...args),
-        error: (...args) => console.error(CONFIG.LOG_PREFIX, ...args)
+        log: function(...args) {
+            console.log(CONFIG.LOG_PREFIX, ...args);
+        },
+        warn: function(...args) {
+            console.warn(CONFIG.LOG_PREFIX, ...args);
+        },
+        error: function(...args) {
+            console.error(CONFIG.LOG_PREFIX, ...args);
+        },
+        debug: function(...args) {
+            if (localStorage.getItem('gemini_debug') === 'true') {
+                console.debug(CONFIG.LOG_PREFIX, ...args);
+            }
+        }
     };
 
     /**

@@ -4,14 +4,21 @@
  */
 
 // Internal Logger implementation to avoid circular dependencies
+// Note: This duplicates the Logger in utils.js to prevent circular dependencies
 const Logger = {
   LOG_PREFIX: "[Gemini History]",
-  log: (...args) => console.log("[Gemini History]", ...args),
-  warn: (...args) => console.warn("[Gemini History]", ...args),
-  error: (...args) => console.error("[Gemini History]", ...args),
-  debug: (...args) => {
+  log: function(...args) {
+    console.log(this.LOG_PREFIX, ...args);
+  },
+  warn: function(...args) {
+    console.warn(this.LOG_PREFIX, ...args);
+  },
+  error: function(...args) {
+    console.error(this.LOG_PREFIX, ...args);
+  },
+  debug: function(...args) {
     if (localStorage.getItem('gemini_debug') === 'true') {
-      console.debug("[Gemini History]", ...args);
+      console.debug(this.LOG_PREFIX, ...args);
     }
   }
 };

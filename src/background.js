@@ -2,6 +2,7 @@
  * Gemini History Manager - Background Script
  * Manages background events and browser action functionality
  */
+import { Logger } from './lib/utils.js';
 
 // Store global state
 const STATE = {
@@ -30,7 +31,7 @@ function updateBadge(count) {
  * Initialize the extension on install or update
  */
 function initializeExtension() {
-  console.log('[Gemini History] Background script initialized');
+  Logger.log('Background script initialized');
   
   // Get history count from storage and update badge
   browser.storage.local.get('geminiChatHistory')
@@ -39,7 +40,7 @@ function initializeExtension() {
       updateBadge(history.length);
     })
     .catch(error => {
-      console.error('[Gemini History] Error loading history for badge:', error);
+      Logger.error('Error loading history for badge:', error);
     });
 }
 
@@ -49,14 +50,14 @@ function initializeExtension() {
  */
 browser.action.onClicked.addListener(() => {
   // The popup will be shown automatically if defined in manifest
-  console.log('[Gemini History] Browser action clicked');
+  Logger.log('Browser action clicked');
 });
 
 /**
  * Listen for messages from content scripts and popup
  */
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('[Gemini History] Received message:', message);
+  Logger.log('Received message:', message);
   
   switch (message.action) {
     case 'updateHistoryCount':
@@ -80,12 +81,12 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
  * Handle extension installation and updates
  */
 browser.runtime.onInstalled.addListener((details) => {
-  console.log(`[Gemini History] Extension ${details.reason}:`, details);
+  Logger.log(`Extension ${details.reason}:`, details);
   
   // Additional setup that should only happen on install could go here
   if (details.reason === 'install') {
     // First-time installation specific setup
-    console.log('[Gemini History] Extension installed for the first time');
+    Logger.log('Extension installed for the first time');
   }
 });
 
@@ -93,7 +94,7 @@ browser.runtime.onInstalled.addListener((details) => {
  * Handle browser startup event
  */
 browser.runtime.onStartup.addListener(() => {
-  console.log('[Gemini History] Browser started');
+  Logger.log('Browser started');
 });
 
 // Initialize the extension - this only needs to happen once
