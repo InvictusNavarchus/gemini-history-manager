@@ -50,7 +50,8 @@ import {
   applyTheme,
   toggleTheme,
   initDayjsPlugins,
-  updateThemeToggleIcon
+  updateThemeToggleIcon,
+  THEME_STORAGE_KEY
 } from '../lib/utils.js';
 
 // Import components
@@ -83,6 +84,9 @@ onMounted(async () => {
   Logger.log("Popup App.vue: Component mounted");
   await initializePopup();
   
+  // Clean up the temporary theme storage after it's been used
+  localStorage.removeItem('popup_initialized_theme');
+  
   // Enable transitions only after the app is fully initialized and rendered
   // This prevents theme transition flash on initial load
   // Using requestAnimationFrame is more reliable than a timeout as it
@@ -101,12 +105,14 @@ async function initializePopup() {
   errorState.value = { hasError: false, message: '' };
   try {
     await loadExtensionVersion();
-    // Initialize theme and then apply it, passing the SVG ref
-    // Note: Initial theme was already applied by script in main.js before Vue mounts
+    // Use the theme that was already applied by script in main.js before Vue mounts
     
-    // Get the current theme that was applied during initialization
-    const themeValue = initializeTheme({ context: 'popup', checkBrowserStorage: true });
+    // Get the theme that was already applied during initialization in main.js
+    const themeValue = localStorage.getItem('popup_initialized_theme') || 
+                       localStorage.getItem(THEME_STORAGE_KEY) || 
+                       'light';
     currentTheme.value = themeValue;
+    Logger.log(`Using pre-initialized theme: ${themeValue}`);
     
     // Apply theme to icon after component is mounted
     if (headerComponent.value) {

@@ -4,7 +4,7 @@
  */
 
 // Import theme initialization utility
-import { initializeTheme, Logger } from '../lib/utils.js';
+import { initializeTheme, Logger, THEME_STORAGE_KEY } from '../lib/utils.js';
 
 // This code will run before the DOM content is fully loaded
 // Apply theme immediately as early as possible to prevent flash
@@ -16,6 +16,10 @@ import { initializeTheme, Logger } from '../lib/utils.js';
     context: 'popup',
     checkBrowserStorage: true
   });
+  
+  // Store the applied theme in localStorage with a special key to indicate it was pre-initialized
+  localStorage.setItem('popup_initialized_theme', appliedTheme);
+  
   Logger.debug(`Popup initialized with theme: ${appliedTheme}`);
 })();
 
