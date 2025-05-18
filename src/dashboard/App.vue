@@ -124,9 +124,11 @@ import {
   parseTimestamp,
   dayjsFormatDate,
   readFile,
-  initTheme,
+  initializeTheme,
   applyTheme,
-  toggleTheme
+  toggleTheme,
+  updateThemeToggleIcon,
+  THEME_STORAGE_KEY
 } from '../lib/utils.js';
 
 // Import helper modules
@@ -230,6 +232,10 @@ const filteredHistory = computed(() => {
 onMounted(async () => {
   Logger.log("Dashboard App.vue: Component mounted");
   await initializeDashboard();
+  
+  // Clean up the temporary theme storage after it's been used
+  localStorage.removeItem('dashboard_initialized_theme');
+  
   checkUrlParameters(); // For guided import
 });
 
@@ -237,12 +243,15 @@ onMounted(async () => {
 async function initializeDashboard() {
   isLoading.value = true;
   try {
-    // Get the theme that was already set in main.js
-    currentTheme.value = document.documentElement.getAttribute('data-theme') || 'light';
+    // Get the theme that was pre-initialized in main.js
+    // Check our special key first, then fallback to data-theme attribute
+    currentTheme.value = localStorage.getItem('dashboard_initialized_theme') || 
+                          document.documentElement.getAttribute('data-theme') || 
+                          'light';
     
-    // Initialize theme toggle icon if needed
+    // Only update the icon state - don't re-apply the theme which causes a redundant DOM update
     if (headerComponent.value) {
-      applyTheme(currentTheme.value, headerComponent.value.themeIconSvg);
+      updateThemeToggleIcon(currentTheme.value, headerComponent.value.themeIconSvg);
     }
 
     // Load history data using the helper function

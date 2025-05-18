@@ -3,44 +3,24 @@
  * Initializes and mounts the Vue application for the main dashboard page.
  */
 
+// Import theme initialization utility
+import { initializeTheme, Logger, THEME_STORAGE_KEY } from '../lib/utils.js';
+
 // Apply theme immediately before any rendering or Vue initialization
 // This prevents any flash of unthemed content
 (function applyInitialTheme() {
-  // Start with the initial load class that disables all transitions
-  document.documentElement.classList.add('initial-load');
+  // Initialize theme with dashboard context and transitions enabled
+  // Note: We check browser.storage too for compatibility with existing stored preferences
+  const appliedTheme = initializeTheme({ 
+    context: 'dashboard',
+    enableTransitions: true,
+    checkBrowserStorage: true
+  });
   
-  try {
-    // CRITICAL: This needs to happen as fast as possible to avoid any flash
-    const savedTheme = localStorage.getItem('geminiHistoryTheme');
-    
-    if (savedTheme) {
-      // Set the data-theme attribute immediately from localStorage
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      // If no saved theme, check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-    }
-    
-    // Enable transitions only after the rendering is complete
-    // Using requestAnimationFrame is more reliable than a timeout
-    requestAnimationFrame(() => {
-      // Using a second requestAnimationFrame ensures we wait for the painting to complete
-      requestAnimationFrame(() => {
-        document.documentElement.classList.remove('initial-load');
-      });
-    });
-    
-  } catch (e) {
-    console.error('[Gemini History] Error setting initial theme:', e);
-    // Default to light theme if there's an error
-    document.documentElement.setAttribute('data-theme', 'light');
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        document.documentElement.classList.remove('initial-load');
-      });
-    });
-  }
+  // Store the applied theme in localStorage with a special key to indicate it was pre-initialized
+  localStorage.setItem('dashboard_initialized_theme', appliedTheme);
+  
+  Logger.debug(`Dashboard initialized with theme: ${appliedTheme}`);
 })();
 
 import { createApp } from 'vue'; // Import createApp function from Vue
