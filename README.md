@@ -205,9 +205,6 @@ The extension icon should now appear in your browser's toolbar.
 
 ### Prerequisites
 
-> [!NOTE]
-> While `package.json` specifies Node.js v16+, Vite 6.x (used in this project) generally works best with Node.js v18 or higher. `pnpm` is the package manager for this project, as indicated by `pnpm-lock.yaml`.
-
 * Node.js (v18+ recommended)
 * pnpm
 
