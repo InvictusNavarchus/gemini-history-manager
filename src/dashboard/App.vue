@@ -109,20 +109,6 @@
       @remove-toast="removeToast"
     />
     
-    <!-- Debug Tools (only shown in development) -->
-    <div class="debug-tools">
-      <h3>Debug Tools</h3>
-      <button @click="debugShowTestToast('info')">Test Info Toast</button>
-      <button @click="debugShowTestToast('success')">Test Success Toast</button>
-      <button @click="debugShowTestToast('warning')">Test Warning Toast</button>
-      <button @click="debugShowTestToast('error')">Test Error Toast</button>
-      <div>
-        <span>Active Toasts: {{ activeToasts.length }}</span>
-        <button @click="debugLogActiveToasts">Log Active Toasts</button>
-        <button @click="debugCheckDOM">Check Toast DOM</button>
-      </div>
-    </div>
-    
     <!-- Hidden File Input for Import -->
     <input type="file" ref="importFileInputRef" accept=".json" style="display: none;" @change="handleFileSelectedForImport">
   </div>
@@ -246,22 +232,12 @@ const filteredHistory = computed(() => {
 onMounted(async () => {
   Logger.log("Dashboard App.vue: Component mounted");
   
-  // Enable debug mode for toast troubleshooting
-  localStorage.setItem('gemini_debug', 'true');
-  Logger.log("Debug mode enabled for toast troubleshooting");
-  
   await initializeDashboard();
   
   // Clean up the temporary theme storage after it's been used
   localStorage.removeItem('dashboard_initialized_theme');
   
   checkUrlParameters(); // For guided import
-  
-  // Log initial toast state
-  Logger.log(`Initial toast state: Container has ${activeToasts.value.length} toasts`);
-  setTimeout(() => {
-    debugCheckDOM();
-  }, 1000);
 });
 
 // --- Initialization ---
@@ -626,46 +602,6 @@ function checkUrlParameters() {
     }, 500);
   }
 }
-
-// --- Debug Functions ---
-function debugShowTestToast(type) {
-  Logger.log(`🧪 Debug: Triggering test toast of type ${type}`);
-  const timestamp = new Date().toLocaleTimeString();
-  showToast(`This is a test ${type} toast (${timestamp})`, type, 10000);
-}
-
-function debugLogActiveToasts() {
-  Logger.log(`🧪 Debug: Current active toasts:`, JSON.parse(JSON.stringify(activeToasts.value)));
-  Logger.log(`🧪 Debug: Toast manager state:`, JSON.parse(JSON.stringify(toastManager.getActiveToasts())));
-}
-
-function debugCheckDOM() {
-  const toastElements = document.querySelectorAll('.toast-container .toast');
-  Logger.log(`🧪 Debug: DOM toast elements count: ${toastElements.length}`);
-  
-  if (toastElements.length > 0) {
-    Logger.log(`🧪 Debug: Toast element classes:`, 
-      Array.from(toastElements).map(el => Array.from(el.classList))
-    );
-  }
-  
-  // Check if container is visible
-  const container = document.querySelector('.toast-container');
-  if (container) {
-    const styles = window.getComputedStyle(container);
-    Logger.log(`🧪 Debug: Toast container computed styles:`, {
-      position: styles.position,
-      top: styles.top,
-      right: styles.right,
-      zIndex: styles.zIndex,
-      display: styles.display,
-      visibility: styles.visibility,
-      opacity: styles.opacity
-    });
-  } else {
-    Logger.warn(`🧪 Debug: Toast container not found in DOM`);
-  }
-}
 </script>
 
 <style scoped>
@@ -746,40 +682,5 @@ main {
 @keyframes button-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(110, 65, 226, 0.4); }
   50% { box-shadow: 0 0 0 4px rgba(110, 65, 226, 0.2); }
-}
-
-/* Debug Tools */
-.debug-tools {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 10000;
-  max-width: 300px;
-  font-size: 12px;
-}
-
-.debug-tools h3 {
-  margin-top: 0;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.debug-tools button {
-  margin: 3px;
-  padding: 4px 8px;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.debug-tools > div {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
 }
 </style>
