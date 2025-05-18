@@ -10,6 +10,7 @@ import { Logger } from '../../lib/utils.js';
  * @returns {Object} Toast notification functions
  */
 export function createToastManager() {
+  Logger.log('🔧 Toast Manager: Initializing toast manager');
   const activeToasts = [];
   let toastIdCounter = 0;
   
@@ -21,6 +22,8 @@ export function createToastManager() {
    * @returns {number} The ID of the created toast
    */
   function showToast(message, type = 'info', duration = 5000) {
+    Logger.log(`🍞 Toast #${toastIdCounter}: Creating new toast with message: "${message}", type: ${type}, duration: ${duration}ms`);
+    
     const id = toastIdCounter++;
     const newToast = {
       id,
@@ -28,10 +31,19 @@ export function createToastManager() {
       type,
       duration
     };
+    
+    Logger.log(`🍞 Toast #${id}: Toast object created`);
+    Logger.log(`🍞 Toast #${id}: Current active toasts count before adding: ${activeToasts.length}`);
+    
     activeToasts.push(newToast);
+    
+    Logger.log(`🍞 Toast #${id}: Toast added to activeToasts array. New length: ${activeToasts.length}`);
+    Logger.log(`🍞 Toast #${id}: Active toasts IDs: ${activeToasts.map(t => t.id).join(', ')}`);
 
     if (duration > 0) {
+      Logger.log(`🍞 Toast #${id}: Setting auto-removal timeout for ${duration + 300}ms`);
       setTimeout(() => {
+        Logger.log(`🍞 Toast #${id}: Auto-removal timeout triggered after ${duration + 300}ms`);
         removeToast(id);
       }, duration + 300); // Add extra time for animation
     }
@@ -44,9 +56,17 @@ export function createToastManager() {
    * @param {number} id - Toast ID to remove
    */
   function removeToast(id) {
+    Logger.log(`🍞 Toast #${id}: Attempting to remove toast`);
+    Logger.log(`🍞 Toast #${id}: Current active toasts before removal: ${activeToasts.length}`);
+    
     const index = activeToasts.findIndex(toast => toast.id === id);
+    Logger.log(`🍞 Toast #${id}: Found at index: ${index}`);
+    
     if (index !== -1) {
       activeToasts.splice(index, 1);
+      Logger.log(`🍞 Toast #${id}: Toast removed successfully. New active toasts count: ${activeToasts.length}`);
+    } else {
+      Logger.warn(`🍞 Toast #${id}: Could not find toast to remove`);
     }
   }
   
@@ -55,6 +75,10 @@ export function createToastManager() {
    * @returns {Array} Array of active toast objects
    */
   function getActiveToasts() {
+    Logger.log(`🍞 Toast Manager: Getting active toasts. Count: ${activeToasts.length}`);
+    if (activeToasts.length > 0) {
+      Logger.log(`🍞 Toast Manager: Active toast IDs: ${activeToasts.map(t => t.id).join(', ')}`);
+    }
     return [...activeToasts];
   }
   

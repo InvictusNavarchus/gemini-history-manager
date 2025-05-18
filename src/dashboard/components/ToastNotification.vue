@@ -15,6 +15,7 @@
 
 <script setup>
 import { ref, defineProps, defineEmits, onMounted, onBeforeUnmount, computed } from 'vue';
+import { Logger } from '../../lib/utils.js';
 
 // Define props
 const props = defineProps({
@@ -37,6 +38,8 @@ const props = defineProps({
   }
 });
 
+Logger.log(`🍞 ToastNotification #${props.id}: Component initialized with message: "${props.message}", type: ${props.type}`);
+
 // Define emits
 const emit = defineEmits(['close']);
 
@@ -58,34 +61,53 @@ const getIconForType = computed(() => {
 
 // Methods
 function closeToast() {
+  Logger.log(`🍞 ToastNotification #${props.id}: closeToast method called`);
   isHiding.value = true;
+  
+  Logger.log(`🍞 ToastNotification #${props.id}: Set isHiding=true, waiting 300ms before emitting close event`);
   setTimeout(() => {
+    Logger.log(`🍞 ToastNotification #${props.id}: Emitting close event after timeout`);
     emit('close', props.id);
   }, 300);
 }
 
 function startTimer() {
+  Logger.log(`🍞 ToastNotification #${props.id}: startTimer called with duration: ${props.duration}ms`);
+  
   if (props.duration > 0) {
+    // Check if progress bar ref is available
+    Logger.log(`🍞 ToastNotification #${props.id}: Progress bar ref exists: ${!!progressBar.value}`);
+    
     // Animate progress bar
     if (progressBar.value) {
+      Logger.log(`🍞 ToastNotification #${props.id}: Setting up progress bar animation for ${props.duration}ms`);
       progressBar.value.style.width = '100%';
       progressBar.value.style.transition = `width ${props.duration / 1000}s linear`;
+    } else {
+      Logger.warn(`🍞 ToastNotification #${props.id}: Progress bar reference is not available`);
     }
     
     // Set timeout to close toast
+    Logger.log(`🍞 ToastNotification #${props.id}: Setting auto-close timeout for ${props.duration}ms`);
     timeout = setTimeout(() => {
+      Logger.log(`🍞 ToastNotification #${props.id}: Auto-close timeout triggered after ${props.duration}ms`);
       closeToast();
     }, props.duration);
+  } else {
+    Logger.log(`🍞 ToastNotification #${props.id}: No auto-close timer set (duration is ${props.duration})`);
   }
 }
 
 // Lifecycle hooks
 onMounted(() => {
+  Logger.log(`🍞 ToastNotification #${props.id}: Component mounted`);
   startTimer();
 });
 
 onBeforeUnmount(() => {
+  Logger.log(`🍞 ToastNotification #${props.id}: Component will unmount`);
   if (timeout) {
+    Logger.log(`🍞 ToastNotification #${props.id}: Clearing auto-close timeout`);
     clearTimeout(timeout);
   }
 });
