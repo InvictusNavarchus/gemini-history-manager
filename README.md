@@ -205,36 +205,69 @@ The extension icon should now appear in your browser's toolbar.
 
 ### Prerequisites
 
-> [!NOTE]
-> While `package.json` specifies Node.js v16+, Vite 6.x (used in this project) generally works best with Node.js v18 or higher. `pnpm` is the package manager for this project, as indicated by `pnpm-lock.yaml`.
-
 * Node.js (v18+ recommended)
-* pnpm
+* Package manager: pnpm, npm, or Yarn
 
 ### Setup
 
 1.  **Clone the repository**:
     ```bash
-    git clone [https://github.com/InvictusNavarchus/gemini-history-manager.git](https://github.com/InvictusNavarchus/gemini-history-manager.git)
+    git clone https://github.com/InvictusNavarchus/gemini-history-manager.git
     cd gemini-history-manager
     ```
 2.  **Install dependencies**:
     ```bash
+    # Using pnpm
     pnpm install
+    
+    # Using npm
+    npm install
+    
+    # Using Yarn
+    yarn install
     ```
 3.  **Build the project**:
     ```bash
+    # Using pnpm
     pnpm run build
+    
+    # Using npm
+    npm run build
+    
+    # Using Yarn
+    yarn build
     ```
     This generates the installable extension in the `dist` directory.
 
 ### Development Commands
 
-* `pnpm run dev`: Build in watch mode & run in a Firefox development profile with hot reload.
-* `pnpm run build`: Build for production.
-* `pnpm run preview`: Preview the build (primarily for Vite-based web apps).
-* `pnpm run lint`: Lint the project using `web-ext`.
-* `pnpm run package`: Build and package the extension for distribution (creates a ZIP file).
+* **Development mode**:
+  ```bash
+  # Using pnpm
+  pnpm run dev
+  
+  # Using npm
+  npm run dev
+  
+  # Using Yarn
+  yarn dev
+  ```
+  Build in watch mode & run in a Firefox development profile with hot reload.
+
+* **Other commands**:
+  ```bash
+  # Build for production
+  pnpm run build | npm run build | yarn build
+  
+  # Preview build
+  pnpm run preview | npm run preview | yarn preview
+  
+  # Lint project
+  pnpm run lint | npm run lint | yarn lint
+  
+  # Package extension
+  pnpm run package | npm run package | yarn package
+  ```
 
 > [!TIP]
 > The `vite.config.js` file manages the copying of static assets (`manifest.json`, icons, HTML, content scripts) to the `dist` directory during the build.
