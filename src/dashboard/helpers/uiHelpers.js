@@ -3,6 +3,7 @@
  * Helper functions for UI interactions in the Dashboard
  */
 import dayjs from 'dayjs';
+import { reactive } from 'vue';
 import { Logger } from '../../lib/utils.js';
 
 /**
@@ -10,8 +11,13 @@ import { Logger } from '../../lib/utils.js';
  * @returns {Object} Toast notification functions
  */
 export function createToastManager() {
-  const activeToasts = [];
-  let toastIdCounter = 0;
+  Logger.log('🔧 Toast Manager: Initializing toast manager');
+  // Use Vue's reactive system for the toasts array
+  
+  const state = reactive({
+    activeToasts: [],
+    toastIdCounter: 0
+  });
   
   /**
    * Show a toast notification
@@ -21,17 +27,28 @@ export function createToastManager() {
    * @returns {number} The ID of the created toast
    */
   function showToast(message, type = 'info', duration = 5000) {
-    const id = toastIdCounter++;
+    Logger.log(`🍞 Toast #${state.toastIdCounter}: Creating new toast with message: "${message}", type: ${type}, duration: ${duration}ms`);
+    
+    const id = state.toastIdCounter++;
     const newToast = {
       id,
       message,
       type,
       duration
     };
-    activeToasts.push(newToast);
+    
+    Logger.log(`🍞 Toast #${id}: Toast object created`);
+    Logger.log(`🍞 Toast #${id}: Current active toasts count before adding: ${state.activeToasts.length}`);
+    
+    state.activeToasts.push(newToast);
+    
+    Logger.log(`🍞 Toast #${id}: Toast added to activeToasts array. New length: ${state.activeToasts.length}`);
+    Logger.log(`🍞 Toast #${id}: Active toasts IDs: ${state.activeToasts.map(t => t.id).join(', ')}`);
 
     if (duration > 0) {
+      Logger.log(`🍞 Toast #${id}: Setting auto-removal timeout for ${duration + 300}ms`);
       setTimeout(() => {
+        Logger.log(`🍞 Toast #${id}: Auto-removal timeout triggered after ${duration + 300}ms`);
         removeToast(id);
       }, duration + 300); // Add extra time for animation
     }
@@ -44,9 +61,17 @@ export function createToastManager() {
    * @param {number} id - Toast ID to remove
    */
   function removeToast(id) {
-    const index = activeToasts.findIndex(toast => toast.id === id);
+    Logger.log(`🍞 Toast #${id}: Attempting to remove toast`);
+    Logger.log(`🍞 Toast #${id}: Current active toasts before removal: ${state.activeToasts.length}`);
+    
+    const index = state.activeToasts.findIndex(toast => toast.id === id);
+    Logger.log(`🍞 Toast #${id}: Found at index: ${index}`);
+    
     if (index !== -1) {
-      activeToasts.splice(index, 1);
+      state.activeToasts.splice(index, 1);
+      Logger.log(`🍞 Toast #${id}: Toast removed successfully. New active toasts count: ${state.activeToasts.length}`);
+    } else {
+      Logger.warn(`🍞 Toast #${id}: Could not find toast to remove`);
     }
   }
   
@@ -55,7 +80,11 @@ export function createToastManager() {
    * @returns {Array} Array of active toast objects
    */
   function getActiveToasts() {
-    return [...activeToasts];
+    Logger.log(`🍞 Toast Manager: Getting active toasts. Count: ${state.activeToasts.length}`);
+    if (state.activeToasts.length > 0) {
+      Logger.log(`🍞 Toast Manager: Active toast IDs: ${state.activeToasts.map(t => t.id).join(', ')}`);
+    }
+    return state.activeToasts; // Return the reactive array directly
   }
   
   return {

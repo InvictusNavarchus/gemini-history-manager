@@ -231,6 +231,7 @@ const filteredHistory = computed(() => {
 // --- Lifecycle Hooks ---
 onMounted(async () => {
   Logger.log("Dashboard App.vue: Component mounted");
+  
   await initializeDashboard();
   
   // Clean up the temporary theme storage after it's been used
@@ -553,13 +554,64 @@ watch(allHistory, () => {
   }
 }, { deep: true });
 
+// Watch for changes to activeToasts to detect issues with toast lifecycle
+watch(activeToasts, (newToasts, oldToasts) => {
+  Logger.log(`🍞 App.vue watcher: activeToasts changed - now has ${newToasts.length} toasts`);
+  
+  // Show details about the toasts for debugging
+  if (newToasts.length > 0) {
+    newToasts.forEach(toast => {
+      Logger.log(`🍞 App.vue watcher: Toast #${toast.id}, type: ${toast.type}, message: "${toast.message}"`);
+    });
+  }
+  
+  // Let's verify that the DOM is actually updating when toasts change
+  nextTick(() => {
+    const toastContainerElements = document.querySelectorAll('.toast-container .toast');
+    Logger.log(`🍞 App.vue watcher: Toast DOM elements count: ${toastContainerElements.length} (should match ${newToasts.length})`);
+    
+    if (toastContainerElements.length !== newToasts.length) {
+      Logger.warn(`🍞 App.vue watcher: MISMATCH! DOM has ${toastContainerElements.length} toasts but activeToasts has ${newToasts.length}`);
+    }
+  });
+}, { deep: true });
+
 // --- Toast Notifications ---
 function showToast(message, type = 'info', duration = 5000) {
-  return toastManager.showToast(message, type, duration);
+  Logger.log(`🍞 App.vue: showToast called with message: "${message}", type: ${type}, duration: ${duration}ms`);
+  const toastId = toastManager.showToast(message, type, duration);
+  Logger.log(`🍞 App.vue: Toast created with ID: ${toastId}`);
+  
+  // Debug check: Log the active toasts after creation
+  const currentToasts = toastManager.getActiveToasts();
+  Logger.log(`🍞 App.vue: Current active toasts after adding: ${currentToasts.length}`);
+  
+  // Check if the activeToasts computed property is updating
+  Logger.log(`🍞 App.vue: activeToasts computed property value count: ${activeToasts.value.length}`);
+  
+  // Force a refresh of the UI by triggering nextTick
+  nextTick(() => {
+    Logger.log(`🍞 App.vue: nextTick after toast creation - activeToasts count: ${activeToasts.value.length}`);
+    const toastElements = document.querySelectorAll('.toast-container .toast');
+    Logger.log(`🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
+  });
+  
+  return toastId;
 }
 
 function removeToast(id) {
+  Logger.log(`🍞 App.vue: removeToast called with ID: ${id}`);
   toastManager.removeToast(id);
+  
+  // Debug check after removal
+  Logger.log(`🍞 App.vue: activeToasts computed property count after removal: ${activeToasts.value.length}`);
+  
+  // Force a refresh of the UI by triggering nextTick
+  nextTick(() => {
+    Logger.log(`🍞 App.vue: nextTick after toast removal - activeToasts count: ${activeToasts.value.length}`);
+    const toastElements = document.querySelectorAll('.toast-container .toast');
+    Logger.log(`🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
+  });
 }
 
 // --- Guided Import ---
