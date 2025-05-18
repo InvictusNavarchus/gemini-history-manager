@@ -1,6 +1,6 @@
 {
   "name": "gemini-history-manager",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
   "type": "module",
   "scripts": {
