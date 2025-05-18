@@ -4,7 +4,7 @@
  */
 
 // Import theme initialization utility
-import { initializeTheme, Logger } from '../lib/utils.js';
+import { initializeTheme, Logger, THEME_STORAGE_KEY } from '../lib/utils.js';
 
 // Apply theme immediately before any rendering or Vue initialization
 // This prevents any flash of unthemed content
@@ -16,6 +16,9 @@ import { initializeTheme, Logger } from '../lib/utils.js';
     enableTransitions: true,
     checkBrowserStorage: true
   });
+  
+  // Store the applied theme in localStorage with a special key to indicate it was pre-initialized
+  localStorage.setItem('dashboard_initialized_theme', appliedTheme);
   
   Logger.debug(`Dashboard initialized with theme: ${appliedTheme}`);
 })();
