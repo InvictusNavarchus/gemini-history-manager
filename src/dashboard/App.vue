@@ -110,7 +110,7 @@
     />
     
     <!-- Debug Tools (only shown in development) -->
-    <div class="debug-tools" v-if="localStorage.getItem('gemini_debug') === 'true'">
+    <div class="debug-tools">
       <h3>Debug Tools</h3>
       <button @click="debugShowTestToast('info')">Test Info Toast</button>
       <button @click="debugShowTestToast('success')">Test Success Toast</button>
