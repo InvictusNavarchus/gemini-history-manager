@@ -275,61 +275,6 @@ export function initDayjsPlugins() {
 export const THEME_STORAGE_KEY = 'geminiHistoryTheme';
 
 /**
- * Initialize theme based on storage or system preference
- * @deprecated Use initializeTheme() instead for synchronous theme initialization with more options
- * @param {function} callback - Function to call with the theme value once determined
- */
-export function initTheme(callback) {
-  Logger.warn('initTheme is deprecated. Consider using initializeTheme() instead.');
-  
-  // Check if it's just a query for the current theme
-  if (!callback) {
-    // If no callback, initialize theme synchronously and return the result
-    return initializeTheme({ checkBrowserStorage: true });
-  }
-  
-  // Check localStorage first for immediate access
-  try {
-    const localTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (localTheme) {
-      Logger.log(`Retrieved theme from localStorage: ${localTheme}`);
-      if (callback && typeof callback === 'function') {
-        callback(localTheme);
-      }
-      return;
-    }
-  } catch (error) {
-    Logger.error('Error accessing localStorage for theme:', error);
-  }
-  
-  // Get stored theme preference from browser.storage if localStorage doesn't have it
-  browser.storage.local.get(THEME_STORAGE_KEY)
-    .then(result => {
-      let theme;
-      if (result[THEME_STORAGE_KEY]) {
-        theme = result[THEME_STORAGE_KEY];
-        Logger.log(`Retrieved stored theme preference: ${theme}`);
-      } else {
-        // Default to system preference by checking prefers-color-scheme
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        theme = prefersDark ? 'dark' : 'light';
-        Logger.log(`No stored theme preference, defaulting to system preference: ${theme}`);
-      }
-      
-      if (callback && typeof callback === 'function') {
-        callback(theme);
-      }
-    })
-    .catch(error => {
-      Logger.error('Error retrieving theme preference:', error);
-      // Fall back to light
-      if (callback && typeof callback === 'function') {
-        callback('light');
-      }
-    });
-}
-
-/**
  * Apply the specified theme
  * @param {string} theme - 'light' or 'dark'
  * @param {HTMLElement} themeIcon - Optional SVG icon element to update

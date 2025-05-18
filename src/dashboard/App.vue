@@ -124,7 +124,7 @@ import {
   parseTimestamp,
   dayjsFormatDate,
   readFile,
-  initTheme,
+  initializeTheme,
   applyTheme,
   toggleTheme
 } from '../lib/utils.js';

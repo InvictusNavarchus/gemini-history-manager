@@ -46,7 +46,7 @@ import {
   Logger,
   parseTimestamp,
   formatDateForDisplay,
-  initTheme,
+  initializeTheme,
   applyTheme,
   toggleTheme,
   initDayjsPlugins,
@@ -103,13 +103,15 @@ async function initializePopup() {
     await loadExtensionVersion();
     // Initialize theme and then apply it, passing the SVG ref
     // Note: Initial theme was already applied by script in main.js before Vue mounts
-    initTheme((themeValue) => {
-      currentTheme.value = themeValue;
-      // Apply theme to icon after component is mounted
-      if (headerComponent.value) {
-        updateThemeToggleIcon(themeValue, headerComponent.value.themeIconSvg);
-      }
-    });
+    
+    // Get the current theme that was applied during initialization
+    const themeValue = initializeTheme({ context: 'popup', checkBrowserStorage: true });
+    currentTheme.value = themeValue;
+    
+    // Apply theme to icon after component is mounted
+    if (headerComponent.value) {
+      updateThemeToggleIcon(themeValue, headerComponent.value.themeIconSvg);
+    }
 
     const historyData = await loadHistoryDataFromStorage();
     if (historyData && historyData.length > 0) {
@@ -272,7 +274,7 @@ function handleFileImported(event) {
 // For <script setup>, all top-level bindings are automatically exposed.
 
 // --- Utility Functions (already imported but good to remember their usage) ---
-// parseTimestamp, formatDateForDisplay, initTheme, applyTheme, toggleTheme are used directly.
+// parseTimestamp, formatDateForDisplay, initializeTheme, applyTheme, toggleTheme are used directly.
 
 </script>
 
