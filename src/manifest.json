@@ -25,6 +25,7 @@
     {
       "matches": ["https://gemini.google.com/*"],
       "js": [
+        "content-scripts/browser-polyfill.js",
         "content-scripts/gemini-tracker.js"
       ]
     }

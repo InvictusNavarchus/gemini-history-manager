@@ -1,3 +1,5 @@
+import browser from 'webextension-polyfill'; // Polyfill for browser APIs
+
 /**
  * Gemini History Manager - Background Script
  * Manages background events and browser action functionality
