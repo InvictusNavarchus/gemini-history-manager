@@ -81,8 +81,19 @@ function startTimer() {
     // Animate progress bar
     if (progressBar.value) {
       Logger.log(`🍞 ToastNotification #${props.id}: Setting up progress bar animation for ${props.duration}ms`);
+      // Set initial width to 100%
       progressBar.value.style.width = '100%';
+      
+      // Force a reflow to ensure the initial width is applied
+      progressBar.value.offsetHeight;
+      
+      // Set up the transition
       progressBar.value.style.transition = `width ${props.duration / 1000}s linear`;
+      
+      // Trigger animation by setting width to 0%
+      requestAnimationFrame(() => {
+        progressBar.value.style.width = '0%';
+      });
     } else {
       Logger.warn(`🍞 ToastNotification #${props.id}: Progress bar reference is not available`);
     }
@@ -175,7 +186,7 @@ onBeforeUnmount(() => {
 
 .toast-progress-bar {
   height: 100%;
-  width: 0;
+  width: 100%; /* Start at 100% and animate to 0% */
   background-color: rgba(255, 255, 255, 0.5);
 }
 
