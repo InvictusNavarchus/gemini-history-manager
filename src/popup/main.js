@@ -3,24 +3,20 @@
  * Initializes and mounts the Vue application for the browser action popup.
  */
 
+// Import theme initialization utility
+import { initializeTheme, Logger } from '../lib/utils.js';
+
 // This code will run before the DOM content is fully loaded
 // Apply theme immediately as early as possible to prevent flash
 // We use this approach instead of inline script due to extension CSP restrictions
 (function applyInitialTheme() {
-  try {
-    const savedTheme = localStorage.getItem('geminiHistoryTheme');
-    if (savedTheme) {
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      // If no saved theme, check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-    }
-  } catch (e) {
-    console.error('[Gemini History] Error setting initial theme:', e);
-    // Default to light theme if there's an error
-    document.documentElement.setAttribute('data-theme', 'light');
-  }
+  // Initialize theme with popup context for detailed logging
+  // Note: We check browser.storage too for compatibility with existing stored preferences
+  const appliedTheme = initializeTheme({ 
+    context: 'popup',
+    checkBrowserStorage: true
+  });
+  Logger.debug(`Popup initialized with theme: ${appliedTheme}`);
 })();
 
 import { createApp } from 'vue'; // Import createApp function from Vue
