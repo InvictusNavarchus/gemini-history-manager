@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, watch } from 'vue';
+import { defineProps, defineEmits, watch, ref, onMounted } from 'vue';
 import ToastNotification from './ToastNotification.vue';
 import { Logger } from '../../lib/utils.js';
 
@@ -27,6 +27,10 @@ const props = defineProps({
 
 // Define emits
 const emit = defineEmits(['remove-toast']);
+
+onMounted(() => {
+  Logger.log(`🍞 ToastContainer: Component mounted, initial toasts: ${props.toasts.length}`);
+});
 
 // Log when toasts are rendered
 Logger.log(`🍞 ToastContainer: Component setup initialized`);
@@ -77,16 +81,23 @@ function removeToast(id) {
   flex-direction: column;
   align-items: flex-end;
   pointer-events: none;
-  /* Add border for debugging visibility */
-  border: 2px solid transparent;
+  /* Always show a border for visibility during debugging */
+  border: 2px solid rgba(255, 0, 0, 0.3);
+  padding: 5px;
 }
 
 .toast-container > * {
   pointer-events: auto;
 }
 
-/* Add this for debugging to highlight the container when toasts are present */
-.toast-container:not(:empty) {
-  border-color: rgba(255, 0, 0, 0.3);
+.debug-info {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 100%;
+  text-align: center;
 }
 </style>

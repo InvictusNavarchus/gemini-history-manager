@@ -558,6 +558,13 @@ watch(allHistory, () => {
 watch(activeToasts, (newToasts, oldToasts) => {
   Logger.log(`🍞 App.vue watcher: activeToasts changed - now has ${newToasts.length} toasts`);
   
+  // Show details about the toasts for debugging
+  if (newToasts.length > 0) {
+    newToasts.forEach(toast => {
+      Logger.log(`🍞 App.vue watcher: Toast #${toast.id}, type: ${toast.type}, message: "${toast.message}"`);
+    });
+  }
+  
   // Let's verify that the DOM is actually updating when toasts change
   nextTick(() => {
     const toastContainerElements = document.querySelectorAll('.toast-container .toast');
@@ -582,6 +589,13 @@ function showToast(message, type = 'info', duration = 5000) {
   // Check if the activeToasts computed property is updating
   Logger.log(`🍞 App.vue: activeToasts computed property value count: ${activeToasts.value.length}`);
   
+  // Force a refresh of the UI by triggering nextTick
+  nextTick(() => {
+    Logger.log(`🍞 App.vue: nextTick after toast creation - activeToasts count: ${activeToasts.value.length}`);
+    const toastElements = document.querySelectorAll('.toast-container .toast');
+    Logger.log(`🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
+  });
+  
   return toastId;
 }
 
@@ -591,6 +605,13 @@ function removeToast(id) {
   
   // Debug check after removal
   Logger.log(`🍞 App.vue: activeToasts computed property count after removal: ${activeToasts.value.length}`);
+  
+  // Force a refresh of the UI by triggering nextTick
+  nextTick(() => {
+    Logger.log(`🍞 App.vue: nextTick after toast removal - activeToasts count: ${activeToasts.value.length}`);
+    const toastElements = document.querySelectorAll('.toast-container .toast');
+    Logger.log(`🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
+  });
 }
 
 // --- Guided Import ---
