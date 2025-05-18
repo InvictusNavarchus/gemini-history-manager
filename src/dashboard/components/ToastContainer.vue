@@ -81,23 +81,9 @@ function removeToast(id) {
   flex-direction: column;
   align-items: flex-end;
   pointer-events: none;
-  /* Always show a border for visibility during debugging */
-  border: 2px solid rgba(255, 0, 0, 0.3);
-  padding: 5px;
 }
 
 .toast-container > * {
   pointer-events: auto;
-}
-
-.debug-info {
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 4px 8px;
-  margin-bottom: 5px;
-  border-radius: 4px;
-  font-size: 12px;
-  width: 100%;
-  text-align: center;
 }
 </style>
