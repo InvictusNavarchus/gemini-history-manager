@@ -180,7 +180,6 @@ The extension icon should now appear in your browser's toolbar.
 
 * **`storage`**: To save and retrieve your Gemini chat history locally using `browser.storage.local`.
 * **`unlimitedStorage`**: To allow for a potentially large amount of chat history to be stored.
-* **`https://gemini.google.com/*`**: To enable the content script (`gemini-tracker.js`) to run on Google Gemini pages for tracking interactions.
 
 ---
 
