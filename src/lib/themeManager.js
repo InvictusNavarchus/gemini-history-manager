@@ -3,7 +3,18 @@
  * Functions for handling light/dark theme preferences and transitions
  */
 
-import { Logger } from './utils';
+// Internal Logger implementation to avoid circular dependencies
+const Logger = {
+  LOG_PREFIX: "[Gemini History]",
+  log: (...args) => console.log("[Gemini History]", ...args),
+  warn: (...args) => console.warn("[Gemini History]", ...args),
+  error: (...args) => console.error("[Gemini History]", ...args),
+  debug: (...args) => {
+    if (localStorage.getItem('gemini_debug') === 'true') {
+      console.debug("[Gemini History]", ...args);
+    }
+  }
+};
 
 // Theme management
 export const THEME_STORAGE_KEY = 'geminiHistoryTheme';

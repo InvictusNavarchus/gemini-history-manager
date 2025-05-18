@@ -11,9 +11,6 @@ import calendar from 'dayjs/plugin/calendar';
 import timezone from 'dayjs/plugin/timezone';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 
-// Re-export theme management functions
-export * from './themeManager';
-
 // Logger Module
 export const Logger = {
     LOG_PREFIX: "[Gemini History]",
@@ -149,6 +146,9 @@ export function initDayjsPlugins() {
     Logger.error("Error initializing Day.js plugins:", e);
   }
 }
+
+// Re-export theme management functions after Logger has been defined
+export * from './themeManager';
 
 // No need to export to window anymore
 // We're using ES modules now and can import directly
