@@ -6,23 +6,10 @@
 // This code will run before the DOM content is fully loaded
 // Apply theme immediately as early as possible to prevent flash
 // We use this approach instead of inline script due to extension CSP restrictions
-(function applyInitialTheme() {
-  try {
-    const savedTheme = localStorage.getItem('geminiHistoryTheme');
-    if (savedTheme) {
-      console.log('[Gemini History] Applying saved theme from localStorage:', savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      // If no saved theme, check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      console.log('[Gemini History] No saved theme found. Using system preference:', prefersDark ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-    }
-  } catch (e) {
-    console.error('[Gemini History] Error setting initial theme:', e);
-    // Default to light theme if there's an error
-    document.documentElement.setAttribute('data-theme', 'light');
-  }
+// Use shared theme helper for consistent experience across contexts
+import { applyInitialTheme } from '../lib/themeHelper.js';
+(function() {
+  applyInitialTheme(true); // Use transition delay for smoother experience
 })();
 
 import { createApp } from 'vue'; // Import createApp function from Vue

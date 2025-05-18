@@ -5,44 +5,11 @@
 
 // Apply theme immediately before any rendering or Vue initialization
 // This prevents any flash of unthemed content
-(function applyInitialTheme() {
-  // Start with the initial load class that disables all transitions
-  document.documentElement.classList.add('initial-load');
-  
-  try {
-    // CRITICAL: This needs to happen as fast as possible to avoid any flash
-    const savedTheme = localStorage.getItem('geminiHistoryTheme');
-    
-    if (savedTheme) {
-      // Set the data-theme attribute immediately from localStorage
-      console.log('[Gemini History] Applying saved theme from localStorage:', savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      // If no saved theme, check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      console.log('[Gemini History] No saved theme found. Using system preference:', prefersDark ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-    }
-    
-    // Enable transitions only after the rendering is complete
-    // Using requestAnimationFrame is more reliable than a timeout
-    requestAnimationFrame(() => {
-      // Using a second requestAnimationFrame ensures we wait for the painting to complete
-      requestAnimationFrame(() => {
-        document.documentElement.classList.remove('initial-load');
-      });
-    });
-    
-  } catch (e) {
-    console.error('[Gemini History] Error setting initial theme:', e);
-    // Default to light theme if there's an error
-    document.documentElement.setAttribute('data-theme', 'light');
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        document.documentElement.classList.remove('initial-load');
-      });
-    });
-  }
+// Use shared theme helper for consistent experience across contexts
+import { applyInitialTheme } from '../lib/themeHelper.js';
+(function() {
+  // CRITICAL: This needs to happen as fast as possible to avoid any flash
+  applyInitialTheme(true); // Use transition delay for smoother experience
 })();
 
 import { createApp } from 'vue'; // Import createApp function from Vue
