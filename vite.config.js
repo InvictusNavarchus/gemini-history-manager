@@ -112,6 +112,16 @@ export default defineConfig({
           });
           console.log('Copied content scripts');
 
+          // Copy webextension-polyfill.js
+          const polyfillPath = path.resolve(__dirname, 'node_modules/webextension-polyfill/dist/browser-polyfill.js');
+          const polyfillDestPath = path.resolve(__dirname, 'dist/content-scripts/browser-polyfill.js'); // or 'dist/lib/'
+          if (fs.existsSync(polyfillPath)) {
+            fs.copySync(polyfillPath, polyfillDestPath);
+            console.log('Copied webextension-polyfill.js to dist/content-scripts/');
+          } else {
+            console.error('webextension-polyfill.js not found. Please ensure it is installed.');
+          }
+
           // Copy CSS files directly (e.g., dashboard.css, popup.css)
           // These will be linked from their respective HTML files.
           // Vue component styles will be handled by Vite and the Vue plugin.
