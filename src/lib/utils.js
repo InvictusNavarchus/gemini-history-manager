@@ -10,6 +10,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import calendar from 'dayjs/plugin/calendar';
 import timezone from 'dayjs/plugin/timezone';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import { isLoggingEnabled } from './logConfig.js';
 
 // Logger Module
 export const Logger = {
@@ -39,6 +40,10 @@ export const Logger = {
      * @param {...any} args - Additional arguments to log
      */
     log: function(context, message, ...args) {
+      if (!isLoggingEnabled(context, 'log')) {
+        return;
+      }
+      
       if (typeof message === 'string' && args.length === 0) {
         // Support legacy format with just message
         console.log(this.LOG_PREFIX, context);
@@ -54,6 +59,10 @@ export const Logger = {
      * @param {...any} args - Additional arguments to log
      */
     warn: function(context, message, ...args) {
+      if (!isLoggingEnabled(context, 'warn')) {
+        return;
+      }
+      
       if (typeof message === 'string' && args.length === 0) {
         // Support legacy format with just message
         console.warn(this.LOG_PREFIX, context);
@@ -70,6 +79,10 @@ export const Logger = {
      * @param {...any} args - Additional arguments to log
      */
     error: function(context, message, error, ...args) {
+      if (!isLoggingEnabled(context, 'error')) {
+        return;
+      }
+      
       if (typeof message === 'string' && error instanceof Error) {
         console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
       } else if (typeof message === 'string' && args.length === 0) {
@@ -81,19 +94,21 @@ export const Logger = {
     },
     
     /**
-     * Logs a debug message (only shown when gemini_debug is true)
+     * Logs a debug message (only shown when debug logging is enabled)
      * @param {string} context - Where the debug message is coming from (component/file name)
      * @param {string} message - The debug message
      * @param {...any} args - Additional arguments to log
      */
     debug: function(context, message, ...args) {
-      if (localStorage.getItem('gemini_debug') === 'true') {
-        if (typeof message === 'string' && args.length === 0) {
-          // Support legacy format with just message
-          console.debug(this.LOG_PREFIX, context);
-        } else {
-          console.debug(this.LOG_PREFIX, `[${context}]`, message, ...args);
-        }
+      if (!isLoggingEnabled(context, 'debug')) {
+        return;
+      }
+      
+      if (typeof message === 'string' && args.length === 0) {
+        // Support legacy format with just message
+        console.debug(this.LOG_PREFIX, context);
+      } else {
+        console.debug(this.LOG_PREFIX, `[${context}]`, message, ...args);
       }
     }
   };
@@ -185,15 +200,15 @@ export function formatDateForDisplay(djsDate) {
  * @returns {Promise<string>} A promise that resolves with the file contents as text
  */
 export function readFile(file) {
-  Logger.debug(`Reading file: ${file.name}`);
+  Logger.debug("FileUtils", "Reading file", { fileName: file.name, fileSize: file.size });
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = event => {
-      Logger.debug(`File ${file.name} read successfully.`);
+      Logger.debug("FileUtils", "File read successfully", { fileName: file.name, contentLength: event.target.result.length });
       resolve(event.target.result);
     };
     reader.onerror = error => {
-      Logger.error(`Error reading file ${file.name}:`, error);
+      Logger.error("FileUtils", "Error reading file", error, { fileName: file.name });
       reject(error);
     };
     reader.readAsText(file);
