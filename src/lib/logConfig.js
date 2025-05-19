@@ -51,18 +51,28 @@ const DEFAULT_CONFIG = {
 // Storage key for persisted config
 const CONFIG_STORAGE_KEY = 'gemini_log_config';
 
+// Cache for the loaded configuration to avoid frequent localStorage reads
+let configCache = null;
+
 /**
  * Load logging configuration from storage, falling back to defaults if not found
+ * Uses in-memory cache to reduce localStorage reads
+ * @param {boolean} [forceRefresh=false] - Force refresh from localStorage
  * @returns {Object} The current logging configuration
  */
-export function loadLogConfig() {
+export function loadLogConfig(forceRefresh = false) {
+  // Return cached config if available and no refresh is requested
+  if (configCache !== null && !forceRefresh) {
+    return configCache;
+  }
+  
   try {
     const storedConfig = localStorage.getItem(CONFIG_STORAGE_KEY);
     
     if (storedConfig) {
       // Merge with default config to ensure all properties exist
       const parsedConfig = JSON.parse(storedConfig);
-      return {
+      configCache = {
         ...DEFAULT_CONFIG,
         ...parsedConfig,
         levels: {
@@ -74,12 +84,24 @@ export function loadLogConfig() {
           ...(parsedConfig.components || {})
         }
       };
+      return configCache;
     }
   } catch (error) {
     console.error("Error loading logging config:", error);
+    // On error, invalidate the cache
+    configCache = null;
   }
   
+  // Cache the default config if nothing was loaded
+  configCache = DEFAULT_CONFIG;
   return DEFAULT_CONFIG;
+}
+
+/**
+ * Invalidate the configuration cache
+ */
+export function invalidateConfigCache() {
+  configCache = null;
 }
 
 /**
@@ -89,6 +111,8 @@ export function loadLogConfig() {
 export function saveLogConfig(config) {
   try {
     localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+    // Update the cache with the new config
+    configCache = config;
     return true;
   } catch (error) {
     console.error("Error saving logging config:", error);
@@ -176,5 +200,6 @@ export default {
   resetLogConfig,
   setComponentLogging,
   setGlobalLogging,
-  setLogLevel
+  setLogLevel,
+  invalidateConfigCache
 };

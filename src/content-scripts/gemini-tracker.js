@@ -330,18 +330,28 @@
             }
         },
         
+        // Cache for the loaded configuration to avoid frequent localStorage reads
+        configCache: null,
+        
         /**
          * Load logging configuration from storage, falling back to defaults if not found
+         * Uses in-memory cache to reduce localStorage reads
+         * @param {boolean} [forceRefresh=false] - Force refresh from localStorage
          * @returns {Object} The current logging configuration
          */
-        loadLogConfig: function() {
+        loadLogConfig: function(forceRefresh = false) {
+            // Return cached config if available and no refresh is requested
+            if (this.configCache !== null && !forceRefresh) {
+                return this.configCache;
+            }
+            
             try {
                 const storedConfig = localStorage.getItem(this.CONFIG_STORAGE_KEY);
                 
                 if (storedConfig) {
                     // Merge with default config to ensure all properties exist
                     const parsedConfig = JSON.parse(storedConfig);
-                    return {
+                    this.configCache = {
                         ...this.DEFAULT_CONFIG,
                         ...parsedConfig,
                         levels: {
@@ -353,12 +363,24 @@
                             ...(parsedConfig.components || {})
                         }
                     };
+                    return this.configCache;
                 }
             } catch (error) {
                 console.error("Error loading logging config:", error);
+                // On error, invalidate the cache
+                this.configCache = null;
             }
             
+            // Cache the default config if nothing was loaded
+            this.configCache = this.DEFAULT_CONFIG;
             return this.DEFAULT_CONFIG;
+        },
+        
+        /**
+         * Invalidate the configuration cache
+         */
+        invalidateConfigCache: function() {
+            this.configCache = null;
         },
         
         /**
