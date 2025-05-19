@@ -304,6 +304,94 @@
 
     /**
      * ==========================================
+     * LOGGING CONFIGURATION
+     * ==========================================
+     */
+    const LogConfig = {
+        // Storage key for persisted config
+        CONFIG_STORAGE_KEY: 'gemini_log_config',
+        
+        // Default configuration - all logging enabled
+        DEFAULT_CONFIG: {
+            // Global enable/disable for all logging
+            enabled: true,
+            
+            // Enable/disable specific log levels
+            levels: {
+                debug: true,
+                log: true,
+                warn: true,
+                error: true
+            },
+            
+            // Component specific settings
+            components: {
+                ContentScript: true
+            }
+        },
+        
+        /**
+         * Load logging configuration from storage, falling back to defaults if not found
+         * @returns {Object} The current logging configuration
+         */
+        loadLogConfig: function() {
+            try {
+                const storedConfig = localStorage.getItem(this.CONFIG_STORAGE_KEY);
+                
+                if (storedConfig) {
+                    // Merge with default config to ensure all properties exist
+                    const parsedConfig = JSON.parse(storedConfig);
+                    return {
+                        ...this.DEFAULT_CONFIG,
+                        ...parsedConfig,
+                        levels: {
+                            ...this.DEFAULT_CONFIG.levels,
+                            ...(parsedConfig.levels || {})
+                        },
+                        components: {
+                            ...this.DEFAULT_CONFIG.components,
+                            ...(parsedConfig.components || {})
+                        }
+                    };
+                }
+            } catch (error) {
+                console.error("Error loading logging config:", error);
+            }
+            
+            return this.DEFAULT_CONFIG;
+        },
+        
+        /**
+         * Check if logging is enabled for a specific component and level
+         * @param {string} component - The component/module name
+         * @param {string} level - The log level (debug, log, warn, error)
+         * @returns {boolean} Whether logging is enabled
+         */
+        isLoggingEnabled: function(component, level) {
+            const config = this.loadLogConfig();
+            
+            // If logging is globally disabled, return false
+            if (!config.enabled) {
+                return false;
+            }
+            
+            // If the log level is disabled, return false
+            if (level && !config.levels[level]) {
+                return false;
+            }
+            
+            // If the component is explicitly configured, use that setting
+            if (component && config.components.hasOwnProperty(component)) {
+                return config.components[component];
+            }
+            
+            // Default to true if not explicitly configured
+            return true;
+        }
+    };
+
+    /**
+     * ==========================================
      * LOGGING MODULE
      * ==========================================
      */
@@ -332,6 +420,10 @@
          * @param {...any} args - Additional arguments
          */
         log: function(context, message, ...args) {
+            if (!LogConfig.isLoggingEnabled(context, 'log')) {
+                return;
+            }
+            
             if (typeof message === 'undefined') {
                 // Legacy support - only one argument provided
                 console.log(CONFIG.LOG_PREFIX, context);
@@ -347,6 +439,10 @@
          * @param {...any} args - Additional arguments
          */
         warn: function(context, message, ...args) {
+            if (!LogConfig.isLoggingEnabled(context, 'warn')) {
+                return;
+            }
+            
             if (typeof message === 'undefined') {
                 // Legacy support - only one argument provided
                 console.warn(CONFIG.LOG_PREFIX, context);
@@ -363,6 +459,10 @@
          * @param {...any} args - Additional arguments
          */
         error: function(context, message, error, ...args) {
+            if (!LogConfig.isLoggingEnabled(context, 'error')) {
+                return;
+            }
+            
             if (typeof message === 'undefined') {
                 // Legacy support - only one argument provided
                 console.error(CONFIG.LOG_PREFIX, context);
@@ -382,13 +482,15 @@
          * @param {...any} args - Additional arguments
          */
         debug: function(context, message, ...args) {
-            if (localStorage.getItem('gemini_debug') === 'true') {
-                if (typeof message === 'undefined') {
-                    // Legacy support - only one argument provided
-                    console.debug(CONFIG.LOG_PREFIX, context);
-                } else {
-                    console.debug(CONFIG.LOG_PREFIX, `[${context}]`, message, ...args);
-                }
+            if (!LogConfig.isLoggingEnabled(context, 'debug')) {
+                return;
+            }
+            
+            if (typeof message === 'undefined') {
+                // Legacy support - only one argument provided
+                console.debug(CONFIG.LOG_PREFIX, context);
+            } else {
+                console.debug(CONFIG.LOG_PREFIX, `[${context}]`, message, ...args);
             }
         }
     };
