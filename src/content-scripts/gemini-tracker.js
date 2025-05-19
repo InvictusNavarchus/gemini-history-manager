@@ -13,7 +13,8 @@
     const CONFIG = {
         STORAGE_KEY: 'geminiChatHistory',
         BASE_URL: 'https://gemini.google.com/app',
-        LOG_PREFIX: "[Gemini History]"
+        LOG_PREFIX: "[Gemini History]",
+        CONTEXT_PREFIX: "[CONTENT]" // Add context prefix for content script
     };
 
     // Known model names that might appear in the UI
@@ -448,9 +449,9 @@
             
             if (typeof message === 'undefined') {
                 // Legacy support - only one argument provided
-                console.log(CONFIG.LOG_PREFIX, context);
+                console.log(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, context);
             } else {
-                console.log(CONFIG.LOG_PREFIX, `[${context}]`, message, ...args);
+                console.log(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
             }
         },
         
@@ -467,9 +468,9 @@
             
             if (typeof message === 'undefined') {
                 // Legacy support - only one argument provided
-                console.warn(CONFIG.LOG_PREFIX, context);
+                console.warn(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, context);
             } else {
-                console.warn(CONFIG.LOG_PREFIX, `[${context}]`, message, ...args);
+                console.warn(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
             }
         },
         
@@ -487,13 +488,13 @@
             
             if (typeof message === 'undefined') {
                 // Legacy support - only one argument provided
-                console.error(CONFIG.LOG_PREFIX, context);
+                console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, context);
             } else if (error instanceof Error) {
-                console.error(CONFIG.LOG_PREFIX, `[${context}]`, message, error, ...args);
+                console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
             } else if (typeof error === 'undefined') {
-                console.error(CONFIG.LOG_PREFIX, `[${context}]`, message);
+                console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message);
             } else {
-                console.error(CONFIG.LOG_PREFIX, `[${context}]`, message, error, ...args);
+                console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
             }
         },
         
@@ -510,9 +511,9 @@
             
             if (typeof message === 'undefined') {
                 // Legacy support - only one argument provided
-                console.debug(CONFIG.LOG_PREFIX, context);
+                console.debug(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, context);
             } else {
-                console.debug(CONFIG.LOG_PREFIX, `[${context}]`, message, ...args);
+                console.debug(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
             }
         }
     };

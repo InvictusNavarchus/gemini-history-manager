@@ -4,6 +4,9 @@
  */
 import { Logger } from './lib/utils.js';
 
+// Initialize logger with background context
+Logger.initLogger('BACKGROUND');
+
 // Store global state
 const STATE = {
   historyCount: 0

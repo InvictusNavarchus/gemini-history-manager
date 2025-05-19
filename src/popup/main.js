@@ -20,6 +20,9 @@ import { initializeTheme, Logger, THEME_STORAGE_KEY } from '../lib/utils.js';
   // Store the applied theme in localStorage with a special key to indicate it was pre-initialized
   localStorage.setItem('popup_initialized_theme', appliedTheme);
   
+  // Initialize logger with popup context
+  Logger.initLogger('POPUP');
+  
   Logger.debug(`Popup initialized with theme: ${appliedTheme}`);
 })();
 

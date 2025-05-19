@@ -15,6 +15,7 @@ import { isLoggingEnabled } from './logConfig.js';
 // Logger Module
 export const Logger = {
     LOG_PREFIX: "[Gemini History]",
+    CONTEXT_PREFIX: "",  // Will be set by initLogger function
     
     /**
      * Format object for logging by converting to JSON string with 2 space indentation
@@ -34,6 +35,14 @@ export const Logger = {
     },
     
     /**
+     * Initialize logger with a specific context
+     * @param {string} context - The context name ('popup', 'dashboard', 'background', etc.)
+     */
+    initLogger: function(context) {
+      this.CONTEXT_PREFIX = `[${context}]`;
+    },
+    
+    /**
      * Internal helper method to handle all logging operations
      * @private
      * @param {string} method - The console method to use ('log', 'warn', 'error', 'debug')
@@ -50,11 +59,11 @@ export const Logger = {
       
       if (typeof message === 'string' && args.length === 0) {
         // Legacy format support
-        console[method](this.LOG_PREFIX, context);
+        console[method](this.LOG_PREFIX, this.CONTEXT_PREFIX, context);
       } else if (error instanceof Error) {
-        console[method](this.LOG_PREFIX, `[${context}]`, message, error, ...args);
+        console[method](this.LOG_PREFIX, this.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
       } else {
-        console[method](this.LOG_PREFIX, `[${context}]`, message, ...(error !== undefined ? [error] : []), ...args);
+        console[method](this.LOG_PREFIX, this.CONTEXT_PREFIX, `[${context}]`, message, ...(error !== undefined ? [error] : []), ...args);
       }
     },
     
