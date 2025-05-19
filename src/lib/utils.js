@@ -14,12 +14,86 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 // Logger Module
 export const Logger = {
     LOG_PREFIX: "[Gemini History]",
-    log: (...args) => console.log(Logger.LOG_PREFIX, ...args),
-    warn: (...args) => console.warn(Logger.LOG_PREFIX, ...args),
-    error: (...args) => console.error(Logger.LOG_PREFIX, ...args),
-    debug: (...args) => {
+    
+    /**
+     * Format object for logging by converting to JSON string with 2 space indentation
+     * @param {Object} obj - Object to stringify
+     * @returns {string} JSON string representation
+     */
+    formatObject: (obj) => {
+      try {
+        if (typeof obj === 'object' && obj !== null) {
+          return JSON.stringify(obj, null, 2);
+        }
+        return obj;
+      } catch (e) {
+        console.error("Error formatting object for logging:", e);
+        return "[Object conversion error]";
+      }
+    },
+    
+    /**
+     * Logs an informational message
+     * @param {string} context - Where the log is coming from (component/file name)
+     * @param {string} message - The log message
+     * @param {...any} args - Additional arguments to log
+     */
+    log: function(context, message, ...args) {
+      if (typeof message === 'string' && args.length === 0) {
+        // Support legacy format with just message
+        console.log(this.LOG_PREFIX, context);
+      } else {
+        console.log(this.LOG_PREFIX, `[${context}]`, message, ...args);
+      }
+    },
+    
+    /**
+     * Logs a warning message
+     * @param {string} context - Where the warning is coming from (component/file name)
+     * @param {string} message - The warning message
+     * @param {...any} args - Additional arguments to log
+     */
+    warn: function(context, message, ...args) {
+      if (typeof message === 'string' && args.length === 0) {
+        // Support legacy format with just message
+        console.warn(this.LOG_PREFIX, context);
+      } else {
+        console.warn(this.LOG_PREFIX, `[${context}]`, message, ...args);
+      }
+    },
+    
+    /**
+     * Logs an error message
+     * @param {string} context - Where the error is coming from (component/file name)
+     * @param {string} message - The error message
+     * @param {Error|any} [error] - Optional error object
+     * @param {...any} args - Additional arguments to log
+     */
+    error: function(context, message, error, ...args) {
+      if (typeof message === 'string' && error instanceof Error) {
+        console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
+      } else if (typeof message === 'string' && args.length === 0) {
+        // Support legacy format with just message
+        console.error(this.LOG_PREFIX, context);
+      } else {
+        console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
+      }
+    },
+    
+    /**
+     * Logs a debug message (only shown when gemini_debug is true)
+     * @param {string} context - Where the debug message is coming from (component/file name)
+     * @param {string} message - The debug message
+     * @param {...any} args - Additional arguments to log
+     */
+    debug: function(context, message, ...args) {
       if (localStorage.getItem('gemini_debug') === 'true') {
-        console.debug(Logger.LOG_PREFIX, ...args);
+        if (typeof message === 'string' && args.length === 0) {
+          // Support legacy format with just message
+          console.debug(this.LOG_PREFIX, context);
+        } else {
+          console.debug(this.LOG_PREFIX, `[${context}]`, message, ...args);
+        }
       }
     }
   };

@@ -94,34 +94,63 @@ const vizChartCanvas = ref(null);
 
 // Lifecycle hooks
 onMounted(() => {
-  Logger.log('Visualizations component mounted, canvas ready');
-  // Signal to parent that the visualization component is ready to render
+  Logger.log('Visualizations component mounted');
+  
+  // Check if canvas is available
   if (vizChartCanvas.value) {
+    Logger.debug('Canvas reference obtained successfully');
+    Logger.debug(`Canvas dimensions: ${vizChartCanvas.value.width}x${vizChartCanvas.value.height}`);
+    
+    // Signal to parent that the visualization component is ready to render
     nextTick(() => {
+      Logger.log('Canvas ready in DOM, requesting initial chart render');
       emit('render-chart');
     });
+  } else {
+    Logger.warn('Canvas reference not available on mount - charts may not render properly');
   }
+  
+  Logger.debug('Visualization component mount complete');
 });
 
 // Event handlers
 function setActiveVizTab(tabName) {
+  Logger.log(`Visualization tab changed to: ${tabName}`);
+  Logger.debug(`Previous tab: ${props.activeVizTab}, new tab: ${tabName}`);
+  
   emit('update:activeVizTab', tabName);
+  
+  Logger.debug(`Requesting chart render for new tab: ${tabName}`);
   emit('render-chart');
 }
 
 function updateDisplayMode(mode) {
-  emit('update:activityChartOptions', { 
+  Logger.log(`Chart display mode changed to: ${mode}`);
+  Logger.debug(`Previous mode: ${props.activityChartOptions.displayMode}, new mode: ${mode}`);
+  
+  const newOptions = { 
     ...props.activityChartOptions, 
     displayMode: mode 
-  });
+  };
+  
+  emit('update:activityChartOptions', newOptions);
+  
+  Logger.debug(`Requesting chart render with new display mode: ${mode}`);
   emit('render-chart');
 }
 
 function updateSelectedModel(model) {
-  emit('update:activityChartOptions', { 
+  Logger.log(`Selected model for chart changed to: ${model}`);
+  Logger.debug(`Previous model: ${props.activityChartOptions.selectedModel}, new model: ${model}`);
+  
+  const newOptions = { 
     ...props.activityChartOptions, 
     selectedModel: model 
-  });
+  };
+  
+  emit('update:activityChartOptions', newOptions);
+  
+  Logger.debug(`Requesting chart render with new selected model: ${model}`);
   emit('render-chart');
 }
 

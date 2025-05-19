@@ -308,18 +308,87 @@
      * ==========================================
      */
     const Logger = {
-        log: function(...args) {
-            console.log(CONFIG.LOG_PREFIX, ...args);
+        /**
+         * Format object for logging by converting to JSON string
+         * @param {Object} obj - Object to stringify
+         * @returns {string} JSON string representation
+         */
+        formatObject: function(obj) {
+            try {
+                if (typeof obj === 'object' && obj !== null) {
+                    return JSON.stringify(obj, null, 2);
+                }
+                return obj;
+            } catch (e) {
+                console.error("Error formatting object for logging:", e);
+                return "[Object conversion error]";
+            }
         },
-        warn: function(...args) {
-            console.warn(CONFIG.LOG_PREFIX, ...args);
+        
+        /**
+         * Logs an informational message
+         * @param {string} context - Component or module name
+         * @param {string} [message] - Message to log (optional in legacy mode)
+         * @param {...any} args - Additional arguments
+         */
+        log: function(context, message, ...args) {
+            if (typeof message === 'undefined') {
+                // Legacy support - only one argument provided
+                console.log(CONFIG.LOG_PREFIX, context);
+            } else {
+                console.log(CONFIG.LOG_PREFIX, `[${context}]`, message, ...args);
+            }
         },
-        error: function(...args) {
-            console.error(CONFIG.LOG_PREFIX, ...args);
+        
+        /**
+         * Logs a warning message
+         * @param {string} context - Component or module name
+         * @param {string} [message] - Message to log (optional in legacy mode)
+         * @param {...any} args - Additional arguments
+         */
+        warn: function(context, message, ...args) {
+            if (typeof message === 'undefined') {
+                // Legacy support - only one argument provided
+                console.warn(CONFIG.LOG_PREFIX, context);
+            } else {
+                console.warn(CONFIG.LOG_PREFIX, `[${context}]`, message, ...args);
+            }
         },
-        debug: function(...args) {
+        
+        /**
+         * Logs an error message
+         * @param {string} context - Component or module name
+         * @param {string} [message] - Message to log (optional in legacy mode)
+         * @param {Error} [error] - Error object (optional)
+         * @param {...any} args - Additional arguments
+         */
+        error: function(context, message, error, ...args) {
+            if (typeof message === 'undefined') {
+                // Legacy support - only one argument provided
+                console.error(CONFIG.LOG_PREFIX, context);
+            } else if (error instanceof Error) {
+                console.error(CONFIG.LOG_PREFIX, `[${context}]`, message, error, ...args);
+            } else if (typeof error === 'undefined') {
+                console.error(CONFIG.LOG_PREFIX, `[${context}]`, message);
+            } else {
+                console.error(CONFIG.LOG_PREFIX, `[${context}]`, message, error, ...args);
+            }
+        },
+        
+        /**
+         * Logs a debug message (only when debug mode is enabled)
+         * @param {string} context - Component or module name
+         * @param {string} [message] - Message to log (optional in legacy mode)
+         * @param {...any} args - Additional arguments
+         */
+        debug: function(context, message, ...args) {
             if (localStorage.getItem('gemini_debug') === 'true') {
-                console.debug(CONFIG.LOG_PREFIX, ...args);
+                if (typeof message === 'undefined') {
+                    // Legacy support - only one argument provided
+                    console.debug(CONFIG.LOG_PREFIX, context);
+                } else {
+                    console.debug(CONFIG.LOG_PREFIX, `[${context}]`, message, ...args);
+                }
             }
         }
     };

@@ -101,21 +101,37 @@ export function createToastManager() {
  * @param {string} type - MIME type (default: 'application/json')
  */
 export function downloadFile(data, filename, type = 'application/json') {
+  Logger.log(`Creating download for file: ${filename}, type: ${type}`);
+  
   try {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type });
+    let stringifiedData;
+    try {
+      stringifiedData = JSON.stringify(data, null, 2);
+      Logger.debug(`Successfully stringified ${Array.isArray(data) ? data.length + ' items' : 'object'} for download`);
+    } catch (jsonError) {
+      Logger.error(`JSON stringification error: ${jsonError.message}`, jsonError);
+      throw new Error(`Failed to stringify data: ${jsonError.message}`);
+    }
+    
+    const blob = new Blob([stringifiedData], { type });
+    Logger.debug(`Created Blob of size: ${blob.size} bytes`);
+    
     const objectURL = URL.createObjectURL(blob);
+    Logger.debug(`Created object URL: ${objectURL}`);
     
     const downloadLink = document.createElement('a');
     downloadLink.href = objectURL;
     downloadLink.download = filename;
     document.body.appendChild(downloadLink);
+    Logger.debug('Download link created and appended to document');
+    
     downloadLink.click();
     document.body.removeChild(downloadLink);
     URL.revokeObjectURL(objectURL);
     
-    Logger.log(`File download initiated: ${filename}`);
+    Logger.log(`File download initiated: ${filename} (${blob.size} bytes)`);
   } catch (error) {
-    Logger.error(`Error creating file download: ${error.message}`, error);
+    Logger.error(`Error creating file download for ${filename}: ${error.message}`, error);
     throw error;
   }
 }
@@ -127,21 +143,34 @@ export function downloadFile(data, filename, type = 'application/json') {
  * @returns {Object} Result of the export operation
  */
 export function exportHistoryData(dataToExport, isFiltered = false) {
+  Logger.log(`Exporting ${isFiltered ? 'filtered' : 'all'} conversation history data`);
+  Logger.debug(`Export data contains ${dataToExport ? dataToExport.length : 0} conversations`);
+  
   try {
-    if (dataToExport.length === 0) {
+    if (!dataToExport || dataToExport.length === 0) {
+      Logger.warn('Attempted to export empty dataset');
       return { success: false, message: 'No conversations to export.' };
     }
     
     const exportTypeMessage = isFiltered ? 'filtered conversations' : 'all conversations';
     const filename = `gemini-history-export-${dayjs().format('YYYY-MM-DD')}.json`;
+    Logger.log(`Creating export file: ${filename}`);
+    
+    // Sample the first item to verify structure
+    if (dataToExport.length > 0) {
+      const firstItem = dataToExport[0];
+      Logger.debug(`Export sample item - ID: ${firstItem.id}, Title: ${firstItem.title}, Date: ${firstItem.timestamp}`);
+    }
     
     downloadFile(dataToExport, filename);
+    Logger.log(`Successfully initiated export of ${dataToExport.length} conversations`);
     
     return { 
       success: true, 
       message: `Successfully exported ${exportTypeMessage} (${dataToExport.length} items).`
     };
   } catch (error) {
+    Logger.error(`Export operation failed: ${error.message}`, error);
     return { success: false, message: `Export error: ${error.message}` };
   }
 }

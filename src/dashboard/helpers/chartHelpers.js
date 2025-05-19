@@ -2,7 +2,7 @@
  * Gemini History Manager - Dashboard Chart Helpers
  * Functions for chart visualization in the Dashboard
  */
-import { parseTimestamp } from '../../lib/utils.js';
+import { parseTimestamp, Logger } from '../../lib/utils.js';
 import dayjs from 'dayjs';
 
 // Chart colors
@@ -21,9 +21,13 @@ export const CHART_COLORS = [
  * @returns {Object} Theme options for Chart.js
  */
 export function getChartJsThemeOptions(theme) {
+  Logger.debug(`Generating chart theme options for theme: ${theme}`);
+  
   const isDark = theme === 'dark';
   const textColor = isDark ? '#e0e0e0' : '#333';
   const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+  
+  Logger.debug(`Chart theme settings: textColor=${textColor}, gridColor=${gridColor}`);
   return { textColor, gridColor };
 }
 
@@ -34,16 +38,22 @@ export function getChartJsThemeOptions(theme) {
  * @returns {Object} Chart.js configuration
  */
 export function getModelDistributionChartConfig(historyData, theme) {
+  Logger.log(`Generating model distribution chart with ${historyData.length} entries and theme: ${theme}`);
+  
   const modelCounts = historyData.reduce((acc, entry) => {
     const model = entry.model || 'Unknown';
     acc[model] = (acc[model] || 0) + 1;
     return acc;
   }, {});
   
+  Logger.debug(`Model distribution data: ${JSON.stringify(modelCounts)}`);
+  
   // Sort by count in descending order
   const sortedEntries = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]);
   const labels = sortedEntries.map(entry => entry[0]);
   const data = sortedEntries.map(entry => entry[1]);
+  Logger.debug(`Chart labels: ${labels.join(', ')}`);
+  
   const { textColor, gridColor } = getChartJsThemeOptions(theme);
 
   return {
@@ -118,6 +128,14 @@ export function getModelDistributionChartConfig(historyData, theme) {
  * @returns {Object} Chart.js configuration
  */
 export function getActivityOverTimeChartConfig(historyData, availableModels, chartOptions, theme) {
+  Logger.log(`Generating activity over time chart with ${historyData.length} entries`);
+  Logger.debug(`Chart options: ${JSON.stringify({
+    displayMode: chartOptions.displayMode,
+    selectedModel: chartOptions.selectedModel,
+    availableModels: availableModels.join(', '),
+    theme
+  })}`);
+  
   const { textColor, gridColor } = getChartJsThemeOptions(theme);
   const displayMode = chartOptions.displayMode;
   const selectedModelForChart = chartOptions.selectedModel;
@@ -144,12 +162,17 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
 
   // Sort dates and fill in missing dates
   const sortedDates = Object.keys(dateGroups).sort((a,b) => dayjs(a).valueOf() - dayjs(b).valueOf());
+  Logger.debug(`Raw date range: ${sortedDates.length > 0 ? 
+    `${sortedDates[0]} to ${sortedDates[sortedDates.length - 1]}` : 
+    'No dates found'}`);
+  
   const filledDateGroups = {};
   
   if (sortedDates.length > 0) {
     // Fill in any missing dates in the range
     const startDate = dayjs(sortedDates[0]);
     const endDate = dayjs(sortedDates[sortedDates.length - 1]);
+    Logger.debug(`Filling date range from ${startDate.format('YYYY-MM-DD')} to ${endDate.format('YYYY-MM-DD')}`);
     
     let currentDate = startDate;
     while (currentDate.isSameOrBefore(endDate)) {
@@ -166,53 +189,86 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
       
       currentDate = currentDate.add(1, 'day');
     }
+    
+    Logger.debug(`Successfully filled date range with ${Object.keys(filledDateGroups).length} days`);
+  } else {
+    Logger.warn("No dates found in history data for chart");
   }
   
   const finalSortedDates = Object.keys(filledDateGroups).sort((a,b) => dayjs(a).valueOf() - dayjs(b).valueOf());
   const displayDates = finalSortedDates.map(date => dayjs(date).format('MMM D, YY'));
+  Logger.debug(`Final date range has ${finalSortedDates.length} days`);
+  
   
   let datasets = [];
+  Logger.debug(`Creating datasets with display mode: ${displayMode}, selected model: ${selectedModelForChart}`);
 
   if (displayMode === 'combined' || !finalSortedDates.length) {
     // Combined mode shows all models together
+    Logger.log("Creating combined dataset for all models");
+    const combinedData = finalSortedDates.map(date => filledDateGroups[date]);
+    
     datasets = [{
       label: 'All Conversations',
-      data: finalSortedDates.map(date => filledDateGroups[date]),
+      data: combinedData,
       borderColor: CHART_COLORS[0],
       backgroundColor: CHART_COLORS[0].replace('0.8', '0.2'),
       fill: true,
       tension: 0.2,
       pointRadius: 3
     }];
+    
+    const totalConversations = combinedData.reduce((sum, count) => sum + count, 0);
+    Logger.debug(`Combined dataset created with total of ${totalConversations} conversations`);
   } else { // 'separate'
     // Filter by selected model if needed
     if (selectedModelForChart === 'all') {
       // Show all models separately
-      datasets = availableModels.map((model, index) => ({
-        label: model,
-        data: finalSortedDates.map(date => modelDateGroups[model][date] || 0),
-        borderColor: CHART_COLORS[index % CHART_COLORS.length],
-        backgroundColor: CHART_COLORS[index % CHART_COLORS.length].replace('0.8', '0.2'),
-        fill: false, // multiple datasets look better without fill
-        tension: 0.2,
-        pointRadius: 3
-      }));
+      Logger.log(`Creating separate datasets for all ${availableModels.length} models`);
+      
+      datasets = availableModels.map((model, index) => {
+        const modelData = finalSortedDates.map(date => modelDateGroups[model][date] || 0);
+        const totalForModel = modelData.reduce((sum, count) => sum + count, 0);
+        Logger.debug(`Dataset for model "${model}" has ${totalForModel} total conversations`);
+        
+        return {
+          label: model,
+          data: modelData,
+          borderColor: CHART_COLORS[index % CHART_COLORS.length],
+          backgroundColor: CHART_COLORS[index % CHART_COLORS.length].replace('0.8', '0.2'),
+          fill: false, // multiple datasets look better without fill
+          tension: 0.2,
+          pointRadius: 3
+        };
+      });
+      
+      Logger.log(`Created ${datasets.length} separate model datasets`);
     } else {
       // Show only selected model
+      Logger.log(`Creating dataset for selected model: ${selectedModelForChart}`);
+      const modelData = finalSortedDates.map(date => 
+        (modelDateGroups[selectedModelForChart] && modelDateGroups[selectedModelForChart][date]) || 0
+      );
+      const totalForModel = modelData.reduce((sum, count) => sum + count, 0);
+      
       datasets = [{
         label: selectedModelForChart,
-        data: finalSortedDates.map(date => (modelDateGroups[selectedModelForChart] && modelDateGroups[selectedModelForChart][date]) || 0),
+        data: modelData,
         borderColor: CHART_COLORS[0],
         backgroundColor: CHART_COLORS[0].replace('0.8', '0.2'),
         fill: true,
         tension: 0.2,
         pointRadius: 3
       }];
+      
+      Logger.debug(`Dataset for "${selectedModelForChart}" has ${totalForModel} total conversations`);
     }
   }
 
   // Chart configuration
-  return {
+  Logger.log("Finalizing chart configuration");
+  
+  const chartConfig = {
     type: 'line',
     data: {
       labels: displayDates,
@@ -259,4 +315,7 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
       }
     }
   };
+  
+  Logger.debug("Chart configuration created successfully");
+  return chartConfig;
 }

@@ -59,73 +59,110 @@ export async function loadHistoryData() {
  * @returns {Array} Filtered and sorted history items
  */
 export function filterAndSortHistory(history, filters) {
-  Logger.log("Applying filters to history data...");
+  Logger.log(`Applying filters to history data (${history.length} total items)`);
+  Logger.debug(`Filter criteria: ${JSON.stringify({
+    query: filters.searchQuery || 'none',
+    model: filters.modelFilter || 'all',
+    dateRange: filters.dateFilter,
+    sortBy: filters.sortBy
+  })}`);
+  
   let items = [...history];
 
   // Apply search filter
   if (filters.searchQuery) {
     const searchLower = filters.searchQuery.toLowerCase();
+    Logger.log(`Applying search filter: "${filters.searchQuery}"`);
+    
+    const originalCount = items.length;
     items = items.filter(item => 
       (item.title && item.title.toLowerCase().includes(searchLower)) || 
       (item.prompt && item.prompt.toLowerCase().includes(searchLower))
     );
+    
+    Logger.debug(`Search filter reduced items from ${originalCount} to ${items.length} (removed ${originalCount - items.length})`);
   }
 
   // Apply model filter
   if (filters.modelFilter) {
+    Logger.log(`Applying model filter: "${filters.modelFilter}"`);
+    
+    const originalCount = items.length;
     items = items.filter(item => item.model === filters.modelFilter);
+    
+    Logger.debug(`Model filter reduced items from ${originalCount} to ${items.length} (removed ${originalCount - items.length})`);
   }
 
   // Apply date filter
   const now = dayjs();
   if (filters.dateFilter !== 'all') {
+    Logger.log(`Applying date filter: "${filters.dateFilter}"`);
     let startDate, endDate;
     
     if (filters.dateFilter === 'today') {
       startDate = now.startOf('day');
       endDate = now.endOf('day');
+      Logger.debug(`Date filter "today": from ${startDate.format()} to ${endDate.format()}`);
     } else if (filters.dateFilter === 'yesterday') {
       startDate = now.subtract(1, 'day').startOf('day');
       endDate = now.subtract(1, 'day').endOf('day');
+      Logger.debug(`Date filter "yesterday": from ${startDate.format()} to ${endDate.format()}`);
     } else if (filters.dateFilter === 'thisWeek') {
       startDate = now.startOf('week');
       endDate = now;
+      Logger.debug(`Date filter "thisWeek": from ${startDate.format()} to ${endDate.format()}`);
     } else if (filters.dateFilter === 'thisMonth') {
       startDate = now.startOf('month');
       endDate = now;
+      Logger.debug(`Date filter "thisMonth": from ${startDate.format()} to ${endDate.format()}`);
     } else if (filters.dateFilter === 'custom') {
       startDate = dayjs(filters.customStartDate).startOf('day');
       endDate = dayjs(filters.customEndDate).endOf('day');
+      Logger.debug(`Custom date filter: from ${startDate.format()} to ${endDate.format()}`);
     }
     
     if (startDate && endDate) {
+      const originalCount = items.length;
+      
       items = items.filter(item => {
         const timestamp = parseTimestamp(item.timestamp);
         return timestamp.isValid() && timestamp.isBetween(startDate, endDate, null, '[]');
       });
+      
+      Logger.debug(`Date filter reduced items from ${originalCount} to ${items.length} (removed ${originalCount - items.length})`);
     }
   }
 
   // Apply sorting
+  Logger.log(`Applying sort order: ${filters.sortBy || 'default'}`);
+  
   switch (filters.sortBy) {
     case 'date-desc':
+      Logger.debug('Sorting by date descending (newest first)');
       items.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
       break;
     case 'date-asc':
+      Logger.debug('Sorting by date ascending (oldest first)');
       items.sort((a, b) => parseTimestamp(a.timestamp).valueOf() - parseTimestamp(b.timestamp).valueOf());
       break;
     case 'title-asc':
+      Logger.debug('Sorting by title ascending (A to Z)');
       items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
       break;
     case 'title-desc':
+      Logger.debug('Sorting by title descending (Z to A)');
       items.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
       break;
     case 'model':
+      Logger.debug('Sorting by model name');
       items.sort((a, b) => (a.model || '').localeCompare(b.model || ''));
       break;
+    default:
+      Logger.debug('Using default sort order (date descending)');
+      items.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
   }
   
-  Logger.log(`Filtered history now contains ${items.length} items.`);
+  Logger.log(`Filtering and sorting complete. Result contains ${items.length} items out of ${history.length} total (${Math.round(items.length/history.length*100)}%)`);
   return items;
 }
 
@@ -135,6 +172,8 @@ export function filterAndSortHistory(history, filters) {
  * @returns {Object} Statistics object
  */
 export function generateDashboardStats(historyData) {
+  Logger.log(`Generating dashboard statistics from ${historyData.length} history items`);
+  
   const stats = {
     totalConversations: historyData.length,
     mostUsedModel: '-',
@@ -146,37 +185,59 @@ export function generateDashboardStats(historyData) {
   };
 
   if (historyData.length === 0) {
+    Logger.log('No history data available for statistics');
     return stats;
   }
+  
+  Logger.debug(`Starting statistics calculation for ${historyData.length} conversations`)
 
   // Calculate most used model
+  Logger.debug("Calculating model usage statistics");
   const modelCounts = historyData.reduce((acc, entry) => {
     const model = entry.model || 'Unknown';
     acc[model] = (acc[model] || 0) + 1;
     return acc;
   }, {});
   
+  Logger.debug(`Model distribution: ${JSON.stringify(modelCounts)}`);
+  
   const mostUsed = Object.entries(modelCounts).sort((a, b) => b[1] - a[1])[0];
   stats.mostUsedModel = mostUsed ? mostUsed[0] : '-';
   stats.mostUsedModelCount = mostUsed ? `(${mostUsed[1]} chats)` : '';
+  
+  Logger.debug(`Most used model: ${stats.mostUsedModel} ${stats.mostUsedModelCount}`);
 
   // Calculate average title length
+  Logger.debug("Calculating average title length");
   const totalTitleLength = historyData.reduce((acc, entry) => acc + (entry.title ? entry.title.length : 0), 0);
   stats.avgTitleLength = Math.round(historyData.length > 0 ? totalTitleLength / historyData.length : 0);
+  Logger.debug(`Average title length: ${stats.avgTitleLength} characters from ${totalTitleLength} total characters`);
 
   // Get first and last conversation times
+  Logger.debug("Calculating first and last conversation times");
   const sortedByDate = [...historyData].sort((a, b) => {
     return parseTimestamp(a.timestamp).valueOf() - parseTimestamp(b.timestamp).valueOf();
   });
   
   if (sortedByDate.length > 0) {
-    stats.firstConversationTime = parseTimestamp(sortedByDate[0].timestamp).fromNow();
-    stats.lastConversationTime = parseTimestamp(sortedByDate[sortedByDate.length - 1].timestamp).fromNow();
+    const firstTimestamp = parseTimestamp(sortedByDate[0].timestamp);
+    const lastTimestamp = parseTimestamp(sortedByDate[sortedByDate.length - 1].timestamp);
+    
+    stats.firstConversationTime = firstTimestamp.fromNow();
+    stats.lastConversationTime = lastTimestamp.fromNow();
+    
+    Logger.debug(`First conversation: ${firstTimestamp.format()} (${stats.firstConversationTime})`);
+    Logger.debug(`Last conversation: ${lastTimestamp.format()} (${stats.lastConversationTime})`);
+  } else {
+    Logger.warn("Failed to determine conversation time range");
   }
   
   // Count attached files
+  Logger.debug("Calculating total files uploaded");
   stats.totalFilesUploaded = historyData.reduce((acc, entry) => acc + (entry.attachedFiles ? entry.attachedFiles.length : 0), 0);
+  Logger.debug(`Total files uploaded: ${stats.totalFilesUploaded}`);
 
+  Logger.log(`Statistics generation complete: ${stats.totalConversations} conversations, ${Object.keys(modelCounts).length} unique models`);
   return stats;
 }
 
@@ -186,8 +247,13 @@ export function generateDashboardStats(historyData) {
  * @returns {Array} List of unique models
  */
 export function getAvailableModels(historyData) {
+  Logger.log(`Extracting available models from ${historyData.length} history items`);
+  
   const models = new Set(historyData.map(item => item.model || 'Unknown'));
-  return Array.from(models).sort();
+  const sortedModels = Array.from(models).sort();
+  
+  Logger.debug(`Found ${sortedModels.length} unique models: ${sortedModels.join(', ')}`);
+  return sortedModels;
 }
 
 /**
@@ -197,28 +263,48 @@ export function getAvailableModels(historyData) {
  * @returns {Object} Results with imported items and new history
  */
 export function importHistoryData(fileContent, currentHistory) {
+  Logger.log("Starting import of history data from JSON");
+  Logger.debug(`Current history contains ${currentHistory.length} items`);
+  Logger.debug(`Import file content length: ${fileContent.length} characters`);
+  
   let importedData;
   
   try {
+    Logger.debug("Attempting to parse JSON import content");
     importedData = JSON.parse(fileContent);
+    Logger.log("JSON import data successfully parsed");
   } catch (e) {
+    Logger.error("Failed to parse import JSON data:", e);
     throw new Error('Invalid JSON format in the imported file');
   }
   
   if (!Array.isArray(importedData)) {
+    Logger.error(`Import data is not an array but a ${typeof importedData}`);
     throw new Error('Imported data is not in the correct format (expected an array)');
   }
   
+  Logger.log(`Import file contains ${importedData.length} conversation entries`);
+  
   // Filter out entries that already exist in history (by URL)
   const existingUrls = new Set(currentHistory.map(item => item.url));
+  Logger.debug(`Found ${existingUrls.size} existing URLs to check for duplicates`);
+  
   const newItems = importedData.filter(item => item.url && !existingUrls.has(item.url));
+  Logger.log(`Found ${newItems.length} new items to import (${importedData.length - newItems.length} duplicates skipped)`);
   
   // Create updated history
   let updatedHistory = currentHistory;
   if (newItems.length > 0) {
+    Logger.debug("Merging new items with existing history");
     updatedHistory = [...currentHistory, ...newItems];
+    
     // Sort the history
+    Logger.debug("Sorting merged history by timestamp");
     updatedHistory.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
+    
+    Logger.log(`Import complete. History now contains ${updatedHistory.length} items`);
+  } else {
+    Logger.log("No new items to import - history remains unchanged");
   }
   
   return {
