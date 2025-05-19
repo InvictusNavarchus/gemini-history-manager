@@ -34,22 +34,38 @@ export const Logger = {
     },
     
     /**
+     * Internal helper method to handle all logging operations
+     * @private
+     * @param {string} method - The console method to use ('log', 'warn', 'error', 'debug')
+     * @param {string} context - Where the log is coming from (component/file name)
+     * @param {string} message - The log message
+     * @param {Error|any} [error] - Optional error object (for error method)
+     * @param {...any} args - Additional arguments to log
+     */
+    _log: function(method, context, message, error, ...args) {
+      const logLevel = method.toLowerCase();
+      if (!isLoggingEnabled(context, logLevel)) {
+        return;
+      }
+      
+      if (typeof message === 'string' && args.length === 0) {
+        // Legacy format support
+        console[method](this.LOG_PREFIX, context);
+      } else if (error instanceof Error) {
+        console[method](this.LOG_PREFIX, `[${context}]`, message, error, ...args);
+      } else {
+        console[method](this.LOG_PREFIX, `[${context}]`, message, ...(error !== undefined ? [error] : []), ...args);
+      }
+    },
+    
+    /**
      * Logs an informational message
      * @param {string} context - Where the log is coming from (component/file name)
      * @param {string} message - The log message
      * @param {...any} args - Additional arguments to log
      */
     log: function(context, message, ...args) {
-      if (!isLoggingEnabled(context, 'log')) {
-        return;
-      }
-      
-      if (typeof message === 'string' && args.length === 0) {
-        // Support legacy format with just message
-        console.log(this.LOG_PREFIX, context);
-      } else {
-        console.log(this.LOG_PREFIX, `[${context}]`, message, ...args);
-      }
+      this._log('log', context, message, undefined, ...args);
     },
     
     /**
@@ -59,16 +75,7 @@ export const Logger = {
      * @param {...any} args - Additional arguments to log
      */
     warn: function(context, message, ...args) {
-      if (!isLoggingEnabled(context, 'warn')) {
-        return;
-      }
-      
-      if (typeof message === 'string' && args.length === 0) {
-        // Support legacy format with just message
-        console.warn(this.LOG_PREFIX, context);
-      } else {
-        console.warn(this.LOG_PREFIX, `[${context}]`, message, ...args);
-      }
+      this._log('warn', context, message, undefined, ...args);
     },
     
     /**
@@ -79,18 +86,7 @@ export const Logger = {
      * @param {...any} args - Additional arguments to log
      */
     error: function(context, message, error, ...args) {
-      if (!isLoggingEnabled(context, 'error')) {
-        return;
-      }
-      
-      if (typeof message === 'string' && error instanceof Error) {
-        console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
-      } else if (typeof message === 'string' && args.length === 0) {
-        // Support legacy format with just message
-        console.error(this.LOG_PREFIX, context);
-      } else {
-        console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
-      }
+      this._log('error', context, message, error, ...args);
     },
     
     /**
@@ -100,16 +96,7 @@ export const Logger = {
      * @param {...any} args - Additional arguments to log
      */
     debug: function(context, message, ...args) {
-      if (!isLoggingEnabled(context, 'debug')) {
-        return;
-      }
-      
-      if (typeof message === 'string' && args.length === 0) {
-        // Support legacy format with just message
-        console.debug(this.LOG_PREFIX, context);
-      } else {
-        console.debug(this.LOG_PREFIX, `[${context}]`, message, ...args);
-      }
+      this._log('debug', context, message, undefined, ...args);
     }
   };
 

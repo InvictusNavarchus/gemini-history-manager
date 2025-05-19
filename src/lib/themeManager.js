@@ -9,58 +9,36 @@ import { isLoggingEnabled } from './logConfig.js';
 const Logger = {
   LOG_PREFIX: "[Gemini History]",
   
-  log: function(context, message, ...args) {
-    if (!isLoggingEnabled(context || 'ThemeManager', 'log')) {
+  _log: function(method, context, message, error, ...args) {
+    const logLevel = method.toLowerCase();
+    if (!isLoggingEnabled(context || 'ThemeManager', logLevel)) {
       return;
     }
     
     if (typeof message === 'string' && args.length === 0) {
       // Legacy format support
-      console.log(this.LOG_PREFIX, context);
+      console[method](this.LOG_PREFIX, context);
+    } else if (error instanceof Error) {
+      console[method](this.LOG_PREFIX, `[${context}]`, message, error, ...args);
     } else {
-      console.log(this.LOG_PREFIX, `[${context}]`, message, ...args);
+      console[method](this.LOG_PREFIX, `[${context}]`, message, ...(error !== undefined ? [error] : []), ...args);
     }
+  },
+  
+  log: function(context, message, ...args) {
+    this._log('log', context, message, undefined, ...args);
   },
   
   warn: function(context, message, ...args) {
-    if (!isLoggingEnabled(context || 'ThemeManager', 'warn')) {
-      return;
-    }
-    
-    if (typeof message === 'string' && args.length === 0) {
-      // Legacy format support
-      console.warn(this.LOG_PREFIX, context);
-    } else {
-      console.warn(this.LOG_PREFIX, `[${context}]`, message, ...args);
-    }
+    this._log('warn', context, message, undefined, ...args);
   },
   
   error: function(context, message, error, ...args) {
-    if (!isLoggingEnabled(context || 'ThemeManager', 'error')) {
-      return;
-    }
-    
-    if (typeof message === 'string' && args.length === 0) {
-      // Legacy format support
-      console.error(this.LOG_PREFIX, context);
-    } else if (error instanceof Error) {
-      console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
-    } else {
-      console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
-    }
+    this._log('error', context, message, error, ...args);
   },
   
   debug: function(context, message, ...args) {
-    if (!isLoggingEnabled(context || 'ThemeManager', 'debug')) {
-      return;
-    }
-    
-    if (typeof message === 'string' && args.length === 0) {
-      // Legacy format support
-      console.debug(this.LOG_PREFIX, context);
-    } else {
-      console.debug(this.LOG_PREFIX, `[${context}]`, message, ...args);
-    }
+    this._log('debug', context, message, undefined, ...args);
   }
 };
 
