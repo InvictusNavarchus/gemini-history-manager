@@ -2,23 +2,64 @@
  * Gemini History Manager - Theme Management
  * Functions for handling light/dark theme preferences and transitions
  */
+import { isLoggingEnabled } from './logConfig.js';
 
 // Internal Logger implementation to avoid circular dependencies
-// Note: This duplicates the Logger in utils.js to prevent circular dependencies
+// Note: This adapts the Logger in utils.js to work with the centralized logging config
 const Logger = {
   LOG_PREFIX: "[Gemini History]",
-  log: function(...args) {
-    console.log(this.LOG_PREFIX, ...args);
+  
+  log: function(context, message, ...args) {
+    if (!isLoggingEnabled(context || 'ThemeManager', 'log')) {
+      return;
+    }
+    
+    if (typeof message === 'string' && args.length === 0) {
+      // Legacy format support
+      console.log(this.LOG_PREFIX, context);
+    } else {
+      console.log(this.LOG_PREFIX, `[${context}]`, message, ...args);
+    }
   },
-  warn: function(...args) {
-    console.warn(this.LOG_PREFIX, ...args);
+  
+  warn: function(context, message, ...args) {
+    if (!isLoggingEnabled(context || 'ThemeManager', 'warn')) {
+      return;
+    }
+    
+    if (typeof message === 'string' && args.length === 0) {
+      // Legacy format support
+      console.warn(this.LOG_PREFIX, context);
+    } else {
+      console.warn(this.LOG_PREFIX, `[${context}]`, message, ...args);
+    }
   },
-  error: function(...args) {
-    console.error(this.LOG_PREFIX, ...args);
+  
+  error: function(context, message, error, ...args) {
+    if (!isLoggingEnabled(context || 'ThemeManager', 'error')) {
+      return;
+    }
+    
+    if (typeof message === 'string' && args.length === 0) {
+      // Legacy format support
+      console.error(this.LOG_PREFIX, context);
+    } else if (error instanceof Error) {
+      console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
+    } else {
+      console.error(this.LOG_PREFIX, `[${context}]`, message, error, ...args);
+    }
   },
-  debug: function(...args) {
-    if (localStorage.getItem('gemini_debug') === 'true') {
-      console.debug(this.LOG_PREFIX, ...args);
+  
+  debug: function(context, message, ...args) {
+    if (!isLoggingEnabled(context || 'ThemeManager', 'debug')) {
+      return;
+    }
+    
+    if (typeof message === 'string' && args.length === 0) {
+      // Legacy format support
+      console.debug(this.LOG_PREFIX, context);
+    } else {
+      console.debug(this.LOG_PREFIX, `[${context}]`, message, ...args);
     }
   }
 };
@@ -42,32 +83,32 @@ export function initializeTheme(options = {}) {
   const { enableTransitions = false, context = 'general', checkBrowserStorage = false } = options;
   let appliedTheme = 'light';
   
-  Logger.log(`Initializing theme for context: ${context}`);
-  Logger.debug(`Theme initialization parameters: ${JSON.stringify({
+  Logger.log("ThemeManager", "Initializing theme", { context });
+  Logger.debug("ThemeManager", "Theme initialization parameters", {
     enableTransitions,
     context,
     checkBrowserStorage
-  })}`);
+  });
   
   // If transitions should be disabled initially
   if (enableTransitions) {
     document.documentElement.classList.add('initial-load');
-    Logger.debug('Transitions temporarily disabled for theme initialization to prevent flash');
+    Logger.debug("ThemeManager", "Transitions temporarily disabled for theme initialization to prevent flash");
     
     // Log the current document element state
-    Logger.debug(`Document element classes: ${document.documentElement.className}`);
+    Logger.debug("ThemeManager", "Document element classes", { classes: document.documentElement.className });
   }
   
   try {
     // Always check localStorage first for immediate access
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    Logger.debug(`Retrieved saved theme from localStorage: ${savedTheme || 'none'}`);
+    Logger.debug("ThemeManager", "Retrieved saved theme from localStorage", { theme: savedTheme || 'none' });
     
     if (savedTheme) {
       // Apply saved theme from localStorage
       document.documentElement.setAttribute('data-theme', savedTheme);
       appliedTheme = savedTheme;
-      Logger.log(`Applied saved theme from localStorage: ${savedTheme}`);
+      Logger.log("ThemeManager", "Applied saved theme from localStorage", { theme: savedTheme });
       
       // Re-enable transitions early if we already have theme from localStorage
       _handleTransitions(enableTransitions);
@@ -77,69 +118,75 @@ export function initializeTheme(options = {}) {
     
     // No theme in localStorage, check browser.storage if requested
     if (checkBrowserStorage && typeof browser !== 'undefined' && browser.storage) {
-      Logger.debug('No theme in localStorage. Checking browser.storage for theme preference');
+      Logger.debug("ThemeManager", "No theme in localStorage, checking browser.storage for preference");
       
       // We need to return the theme synchronously for immediate UI rendering,
       // but also check browser.storage asynchronously for the stored preference
       // 1. First, apply system preference as a fallback for immediate display
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const prefersDark = mediaQuery.matches;
-      Logger.debug(`System preference detection - prefers-dark: ${prefersDark}`);
-      Logger.debug(`Media query status: ${JSON.stringify({
+      Logger.debug("ThemeManager", "System preference detection", { prefersDark });
+      Logger.debug("ThemeManager", "Media query status", {
         matches: mediaQuery.matches,
         media: mediaQuery.media
-      })}`);
+      });
       
       const systemTheme = prefersDark ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', systemTheme);
       appliedTheme = systemTheme;
-      Logger.log(`Applied interim system preference theme: ${systemTheme} (from media query)`);
+      Logger.log("ThemeManager", "Applied interim system preference theme", {
+        theme: systemTheme,
+        source: "media query"
+      });
       
       // 2. Then check browser.storage asynchronously and update if needed
-      Logger.debug(`Checking browser.storage.local for key: ${THEME_STORAGE_KEY}`);
+      Logger.debug("ThemeManager", "Checking browser.storage.local for theme", { key: THEME_STORAGE_KEY });
       browser.storage.local.get(THEME_STORAGE_KEY)
         .then(result => {
-          Logger.debug(`Browser storage lookup result: ${JSON.stringify(result)}`);
+          Logger.debug("ThemeManager", "Browser storage lookup result", { result });
           
           if (result[THEME_STORAGE_KEY]) {
             const storageTheme = result[THEME_STORAGE_KEY];
-            Logger.log(`Retrieved theme from browser.storage: ${storageTheme}`);
+            Logger.log("ThemeManager", "Retrieved theme from browser.storage", { theme: storageTheme });
             
             if (storageTheme !== systemTheme) {
               // Only update if different from what we already applied
-              Logger.debug(`Storage theme (${storageTheme}) differs from system theme (${systemTheme}), updating...`);
+              Logger.debug("ThemeManager", "Storage theme differs from system theme", {
+                storageTheme,
+                systemTheme
+              });
               document.documentElement.setAttribute('data-theme', storageTheme);
-              Logger.log(`Updated theme from browser.storage: ${storageTheme}`);
+              Logger.log("ThemeManager", "Updated theme from browser.storage", { theme: storageTheme });
               
               // Cache in localStorage for future use
               localStorage.setItem(THEME_STORAGE_KEY, storageTheme);
-              Logger.debug(`Cached browser storage theme in localStorage: ${storageTheme}`);
+              Logger.debug("ThemeManager", "Cached browser storage theme in localStorage", { theme: storageTheme });
             } else {
-              Logger.debug(`Storage theme matches system theme (${systemTheme}), no update needed`);
+              Logger.debug("ThemeManager", "Storage theme matches system theme, no update needed", { theme: systemTheme });
             }
           } else {
             // No theme in browser.storage either, save system preference
-            Logger.log(`No theme found in browser.storage, saving system preference (${systemTheme})`);
+            Logger.log("ThemeManager", "No theme found in browser.storage, saving system preference", { theme: systemTheme });
             
             browser.storage.local.set({ [THEME_STORAGE_KEY]: systemTheme })
               .then(() => {
-                Logger.debug(`Successfully saved system theme (${systemTheme}) to browser.storage`);
+                Logger.debug("ThemeManager", "Successfully saved system theme to browser.storage", { theme: systemTheme });
               })
-              .catch(e => Logger.error(`Failed to save system preference to browser.storage: ${e.message}`, e));
+              .catch(e => Logger.error("ThemeManager", "Failed to save system preference to browser.storage", e));
             
             // Cache in localStorage for future use
             localStorage.setItem(THEME_STORAGE_KEY, systemTheme);
-            Logger.debug(`Cached system theme in localStorage: ${systemTheme}`);
+            Logger.debug("ThemeManager", "Cached system theme in localStorage", { theme: systemTheme });
           }
         })
-        .catch(e => Logger.error(`Error getting theme from browser.storage: ${e.message}`, e));
+        .catch(e => Logger.error("ThemeManager", "Error getting theme from browser.storage", e));
     } else {
       // No theme in localStorage and not checking browser.storage, use system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const systemTheme = prefersDark ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', systemTheme);
       appliedTheme = systemTheme;
-      Logger.log(`Applied system preference theme: ${systemTheme}`);
+      Logger.log("ThemeManager", "Applied system preference theme", { theme: systemTheme });
       
       // Save to localStorage for future use
       localStorage.setItem(THEME_STORAGE_KEY, systemTheme);
@@ -149,7 +196,7 @@ export function initializeTheme(options = {}) {
     _handleTransitions(enableTransitions);
     
   } catch (e) {
-    Logger.error(`Error initializing theme:`, e);
+    Logger.error("ThemeManager", "Error initializing theme", e);
     // Default to light theme if there's an error
     document.documentElement.setAttribute('data-theme', 'light');
     appliedTheme = 'light';
@@ -168,19 +215,21 @@ export function initializeTheme(options = {}) {
  */
 function _handleTransitions(enableTransitions) {
   if (enableTransitions) {
-    Logger.debug('Setting up transition re-enablement via requestAnimationFrame');
+    Logger.debug("ThemeManager", "Setting up transition re-enablement via requestAnimationFrame");
     
     requestAnimationFrame(() => {
-      Logger.debug('First animation frame - preparing to re-enable transitions');
+      Logger.debug("ThemeManager", "First animation frame - preparing to re-enable transitions");
       
       requestAnimationFrame(() => {
         document.documentElement.classList.remove('initial-load');
-        Logger.debug('Second animation frame - transitions re-enabled after theme initialization');
-        Logger.debug(`Document element classes (after re-enabling): ${document.documentElement.className}`);
+        Logger.debug("ThemeManager", "Second animation frame - transitions re-enabled after theme initialization");
+        Logger.debug("ThemeManager", "Document element classes after re-enabling transitions", {
+          classes: document.documentElement.className
+        });
       });
     });
   } else {
-    Logger.debug('Transition handling not required for this context');
+    Logger.debug("ThemeManager", "Transition handling not required for this context");
   }
 }
 
@@ -190,45 +239,45 @@ function _handleTransitions(enableTransitions) {
  * @param {HTMLElement} themeIcon - Optional SVG icon element to update
  */
 export function applyTheme(theme, themeIcon = null) {
-  Logger.log(`Applying theme: ${theme}`);
+  Logger.log("ThemeManager", "Applying theme", { theme });
   
   if (theme !== 'light' && theme !== 'dark') {
-    Logger.warn(`Invalid theme value: "${theme}". Must be 'light' or 'dark'. Defaulting to light.`);
+    Logger.warn("ThemeManager", "Invalid theme value, defaulting to light", { providedTheme: theme });
     theme = 'light';
   }
   
   const htmlElement = document.documentElement;
   const previousTheme = htmlElement.getAttribute('data-theme') || 'light';
   
-  Logger.debug(`Changing theme from "${previousTheme}" to "${theme}"`);
+  Logger.debug("ThemeManager", "Changing theme", { from: previousTheme, to: theme });
   
   // Set explicit theme attribute
   htmlElement.setAttribute('data-theme', theme);
-  Logger.log(`Applied ${theme} theme to document element`);
+  Logger.log("ThemeManager", "Applied theme to document element", { theme });
   
   // Store the theme preference in extension storage
-  Logger.debug(`Storing theme (${theme}) in browser.storage.local`);
+  Logger.debug("ThemeManager", "Storing theme in browser.storage.local", { theme });
   browser.storage.local.set({ [THEME_STORAGE_KEY]: theme })
     .then(() => {
-      Logger.debug(`Successfully saved theme (${theme}) to browser.storage`);
+      Logger.debug("ThemeManager", "Successfully saved theme to browser.storage", { theme });
     })
-    .catch(error => Logger.error(`Error storing theme preference in browser.storage: ${error.message}`, error));
+    .catch(error => Logger.error("ThemeManager", "Error storing theme preference in browser.storage", error));
   
   // Also store in localStorage for immediate access when popup opens
   try {
-    Logger.debug(`Storing theme (${theme}) in localStorage`);
+    Logger.debug("ThemeManager", "Storing theme in localStorage", { theme });
     localStorage.setItem(THEME_STORAGE_KEY, theme);
-    Logger.debug(`Successfully saved theme to localStorage`);
+    Logger.debug("ThemeManager", "Successfully saved theme to localStorage");
   } catch (error) {
-    Logger.error(`Error storing theme preference in localStorage: ${error.message}`, error);
+    Logger.error("ThemeManager", "Error storing theme preference in localStorage", error);
   }
   
   // Update the toggle button icon if provided
   if (themeIcon) {
-    Logger.debug('Updating theme toggle icon');
+    Logger.debug("ThemeManager", "Updating theme toggle icon");
     updateThemeToggleIcon(theme, themeIcon);
   } else {
-    Logger.debug('No theme icon provided to update');
+    Logger.debug("ThemeManager", "No theme icon provided to update");
   }
 }
 
@@ -239,20 +288,20 @@ export function applyTheme(theme, themeIcon = null) {
  * @returns {string} The new theme after toggling
  */
 export function toggleTheme(currentTheme, themeIcon = null) {
-  Logger.log(`Toggling theme from current: ${currentTheme}`);
+  Logger.log("ThemeManager", "Toggling theme", { currentTheme });
   
   // Ensure we have a valid starting theme
   if (currentTheme !== 'light' && currentTheme !== 'dark') {
-    Logger.warn(`Invalid current theme: "${currentTheme}". Defaulting to light before toggle.`);
+    Logger.warn("ThemeManager", "Invalid current theme, defaulting to light before toggle", { providedTheme: currentTheme });
     currentTheme = 'light';
   }
   
   const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  Logger.log(`Theme will be toggled to: ${newTheme}`);
+  Logger.log("ThemeManager", "Theme will be toggled", { from: currentTheme, to: newTheme });
   
   applyTheme(newTheme, themeIcon);
   
-  Logger.log(`Theme successfully toggled from ${currentTheme} to ${newTheme}`);
+  Logger.log("ThemeManager", "Theme successfully toggled", { from: currentTheme, to: newTheme });
   return newTheme;
 }
 
@@ -263,24 +312,24 @@ export function toggleTheme(currentTheme, themeIcon = null) {
  */
 export function updateThemeToggleIcon(currentTheme, themeIcon) {
   if (!themeIcon) {
-    Logger.warn('updateThemeToggleIcon called without a valid icon element');
+    Logger.warn("ThemeManager", "updateThemeToggleIcon called without a valid icon element");
     return;
   }
   
-  Logger.debug(`Updating theme icon for ${currentTheme} theme`);
+  Logger.debug("ThemeManager", "Updating theme icon", { theme: currentTheme });
   
   try {
     if (currentTheme === 'dark') {
-      Logger.debug('Setting icon styles for dark theme (filled)');
+      Logger.debug("ThemeManager", "Setting icon styles for dark theme (filled)");
       themeIcon.style.fill = 'currentColor';
       themeIcon.style.stroke = 'none';
     } else {
-      Logger.debug('Setting icon styles for light theme (outline)');
+      Logger.debug("ThemeManager", "Setting icon styles for light theme (outline)");
       themeIcon.style.fill = 'none';
       themeIcon.style.stroke = 'currentColor';
     }
-    Logger.debug('Theme icon updated successfully');
+    Logger.debug("ThemeManager", "Theme icon updated successfully");
   } catch (error) {
-    Logger.error(`Error updating theme icon: ${error.message}`, error);
+    Logger.error("ThemeManager", "Error updating theme icon", error);
   }
 }
