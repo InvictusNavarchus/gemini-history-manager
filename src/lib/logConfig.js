@@ -116,7 +116,7 @@ export function isLoggingEnabled(component, level) {
   }
   
   // If the component is explicitly configured, use that setting
-  if (component && config.components.hasOwnProperty(component)) {
+  if (component && Object.hasOwn(config.components, component)) {
     return config.components[component];
   }
   
@@ -140,7 +140,7 @@ export function resetLogConfig() {
  */
 export function setComponentLogging(component, enabled) {
   const config = loadLogConfig();
-  if (config.components.hasOwnProperty(component)) {
+  if (Object.hasOwn(config.components, component)) {
     config.components[component] = enabled;
     saveLogConfig(config);
   }
@@ -163,7 +163,7 @@ export function setGlobalLogging(enabled) {
  */
 export function setLogLevel(level, enabled) {
   const config = loadLogConfig();
-  if (config.levels.hasOwnProperty(level)) {
+  if (Object.hasOwn(config.levels, level)) {
     config.levels[level] = enabled;
     saveLogConfig(config);
   }
