@@ -21,13 +21,13 @@ export const CHART_COLORS = [
  * @returns {Object} Theme options for Chart.js
  */
 export function getChartJsThemeOptions(theme) {
-  Logger.debug(`Generating chart theme options for theme: ${theme}`);
+  Logger.debug("chartHelpers", `Generating chart theme options for theme: ${theme}`);
   
   const isDark = theme === 'dark';
   const textColor = isDark ? '#e0e0e0' : '#333';
   const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
   
-  Logger.debug(`Chart theme settings: textColor=${textColor}, gridColor=${gridColor}`);
+  Logger.debug("chartHelpers", `Chart theme settings: textColor=${textColor}, gridColor=${gridColor}`);
   return { textColor, gridColor };
 }
 
@@ -38,7 +38,7 @@ export function getChartJsThemeOptions(theme) {
  * @returns {Object} Chart.js configuration
  */
 export function getModelDistributionChartConfig(historyData, theme) {
-  Logger.log(`Generating model distribution chart with ${historyData.length} entries and theme: ${theme}`);
+  Logger.log("chartHelpers", `Generating model distribution chart with ${historyData.length} entries and theme: ${theme}`);
   
   const modelCounts = historyData.reduce((acc, entry) => {
     const model = entry.model || 'Unknown';
@@ -46,13 +46,13 @@ export function getModelDistributionChartConfig(historyData, theme) {
     return acc;
   }, {});
   
-  Logger.debug(`Model distribution data: ${JSON.stringify(modelCounts)}`);
+  Logger.debug("chartHelpers", `Model distribution data: ${JSON.stringify(modelCounts)}`);
   
   // Sort by count in descending order
   const sortedEntries = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]);
   const labels = sortedEntries.map(entry => entry[0]);
   const data = sortedEntries.map(entry => entry[1]);
-  Logger.debug(`Chart labels: ${labels.join(', ')}`);
+  Logger.debug("chartHelpers", `Chart labels: ${labels.join(', ')}`);
   
   const { textColor, gridColor } = getChartJsThemeOptions(theme);
 
@@ -128,8 +128,8 @@ export function getModelDistributionChartConfig(historyData, theme) {
  * @returns {Object} Chart.js configuration
  */
 export function getActivityOverTimeChartConfig(historyData, availableModels, chartOptions, theme) {
-  Logger.log(`Generating activity over time chart with ${historyData.length} entries`);
-  Logger.debug(`Chart options: ${JSON.stringify({
+  Logger.log("chartHelpers", `Generating activity over time chart with ${historyData.length} entries`);
+  Logger.debug("chartHelpers", `Chart options: ${JSON.stringify({
     displayMode: chartOptions.displayMode,
     selectedModel: chartOptions.selectedModel,
     availableModels: availableModels.join(', '),
@@ -162,7 +162,7 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
 
   // Sort dates and fill in missing dates
   const sortedDates = Object.keys(dateGroups).sort((a,b) => dayjs(a).valueOf() - dayjs(b).valueOf());
-  Logger.debug(`Raw date range: ${sortedDates.length > 0 ? 
+  Logger.debug("chartHelpers", `Raw date range: ${sortedDates.length > 0 ? 
     `${sortedDates[0]} to ${sortedDates[sortedDates.length - 1]}` : 
     'No dates found'}`);
   
@@ -172,7 +172,7 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
     // Fill in any missing dates in the range
     const startDate = dayjs(sortedDates[0]);
     const endDate = dayjs(sortedDates[sortedDates.length - 1]);
-    Logger.debug(`Filling date range from ${startDate.format('YYYY-MM-DD')} to ${endDate.format('YYYY-MM-DD')}`);
+    Logger.debug("chartHelpers", `Filling date range from ${startDate.format('YYYY-MM-DD')} to ${endDate.format('YYYY-MM-DD')}`);
     
     let currentDate = startDate;
     while (currentDate.isSameOrBefore(endDate)) {
@@ -190,22 +190,22 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
       currentDate = currentDate.add(1, 'day');
     }
     
-    Logger.debug(`Successfully filled date range with ${Object.keys(filledDateGroups).length} days`);
+    Logger.debug("chartHelpers", `Successfully filled date range with ${Object.keys(filledDateGroups).length} days`);
   } else {
-    Logger.warn("No dates found in history data for chart");
+    Logger.warn("chartHelpers", "No dates found in history data for chart");
   }
   
   const finalSortedDates = Object.keys(filledDateGroups).sort((a,b) => dayjs(a).valueOf() - dayjs(b).valueOf());
   const displayDates = finalSortedDates.map(date => dayjs(date).format('MMM D, YY'));
-  Logger.debug(`Final date range has ${finalSortedDates.length} days`);
+  Logger.debug("chartHelpers", `Final date range has ${finalSortedDates.length} days`);
   
   
   let datasets = [];
-  Logger.debug(`Creating datasets with display mode: ${displayMode}, selected model: ${selectedModelForChart}`);
+  Logger.debug("chartHelpers", `Creating datasets with display mode: ${displayMode}, selected model: ${selectedModelForChart}`);
 
   if (displayMode === 'combined' || !finalSortedDates.length) {
     // Combined mode shows all models together
-    Logger.log("Creating combined dataset for all models");
+    Logger.log("chartHelpers", "Creating combined dataset for all models");
     const combinedData = finalSortedDates.map(date => filledDateGroups[date]);
     
     datasets = [{
@@ -219,17 +219,17 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
     }];
     
     const totalConversations = combinedData.reduce((sum, count) => sum + count, 0);
-    Logger.debug(`Combined dataset created with total of ${totalConversations} conversations`);
+    Logger.debug("chartHelpers", `Combined dataset created with total of ${totalConversations} conversations`);
   } else { // 'separate'
     // Filter by selected model if needed
     if (selectedModelForChart === 'all') {
       // Show all models separately
-      Logger.log(`Creating separate datasets for all ${availableModels.length} models`);
+      Logger.log("chartHelpers", `Creating separate datasets for all ${availableModels.length} models`);
       
       datasets = availableModels.map((model, index) => {
         const modelData = finalSortedDates.map(date => modelDateGroups[model][date] || 0);
         const totalForModel = modelData.reduce((sum, count) => sum + count, 0);
-        Logger.debug(`Dataset for model "${model}" has ${totalForModel} total conversations`);
+        Logger.debug("chartHelpers", `Dataset for model "${model}" has ${totalForModel} total conversations`);
         
         return {
           label: model,
@@ -242,10 +242,10 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
         };
       });
       
-      Logger.log(`Created ${datasets.length} separate model datasets`);
+      Logger.log("chartHelpers", `Created ${datasets.length} separate model datasets`);
     } else {
       // Show only selected model
-      Logger.log(`Creating dataset for selected model: ${selectedModelForChart}`);
+      Logger.log("chartHelpers", `Creating dataset for selected model: ${selectedModelForChart}`);
       const modelData = finalSortedDates.map(date => 
         (modelDateGroups[selectedModelForChart] && modelDateGroups[selectedModelForChart][date]) || 0
       );
@@ -261,12 +261,12 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
         pointRadius: 3
       }];
       
-      Logger.debug(`Dataset for "${selectedModelForChart}" has ${totalForModel} total conversations`);
+      Logger.debug("chartHelpers", `Dataset for "${selectedModelForChart}" has ${totalForModel} total conversations`);
     }
   }
 
   // Chart configuration
-  Logger.log("Finalizing chart configuration");
+  Logger.log("chartHelpers", "Finalizing chart configuration");
   
   const chartConfig = {
     type: 'line',
@@ -316,6 +316,6 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
     }
   };
   
-  Logger.debug("Chart configuration created successfully");
+  Logger.debug("chartHelpers", "Chart configuration created successfully");
   return chartConfig;
 }

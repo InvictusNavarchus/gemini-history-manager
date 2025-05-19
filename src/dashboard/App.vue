@@ -241,7 +241,7 @@ const activeToasts = computed(() => toastManager.getActiveToasts());
 const availableModels = computed(() => getAvailableModels(allHistory.value));
 
 const filteredHistory = computed(() => {
-  Logger.log("Re-calculating filtered history...");
+  Logger.log("App.vue", "Re-calculating filtered history...");
   return filterAndSortHistory(allHistory.value, {
     searchQuery: searchFilterQuery.value,
     modelFilter: selectedModelFilter.value,
@@ -254,7 +254,7 @@ const filteredHistory = computed(() => {
 
 // --- Lifecycle Hooks ---
 onMounted(async () => {
-  Logger.log("Dashboard App.vue: Component mounted");
+  Logger.log("App.vue", "Dashboard App.vue: Component mounted");
   
   await initializeDashboard();
   
@@ -320,7 +320,7 @@ function setActiveMainTab(tabName) {
 // --- Filters and Sorting ---
 function handleFilterChange() {
   // Computed property `filteredHistory` will update automatically.
-  Logger.log("Filter changed, computed property will update list.");
+  Logger.log("App.vue", "Filter changed, computed property will update list.");
 }
 
 function handleDateFilterTypeChange() {
@@ -332,7 +332,7 @@ function handleDateFilterTypeChange() {
 
 function handleSortChange() {
   // Computed property `filteredHistory` will re-sort.
-  Logger.log("Sort option changed, computed property will update list.");
+  Logger.log("App.vue", "Sort option changed, computed property will update list.");
 }
 
 function resetAllFilters() {
@@ -484,25 +484,25 @@ function updateDashboardStats() {
 
 // --- Visualizations (Chart.js) ---
 function renderCurrentVisualization() {
-  Logger.log(`Attempting to render visualization: tab=${activeMainTab.value}, vizTab=${activeVizTab.value}`);
+  Logger.log("App.vue", `Attempting to render visualization: tab=${activeMainTab.value}, vizTab=${activeVizTab.value}`);
   
   if (!visualizations.value) {
-    Logger.log('Visualizations component reference is not available');
+    Logger.log("App.vue", 'Visualizations component reference is not available');
     return;
   }
   
   if (!visualizations.value.vizChartCanvas) {
-    Logger.log('Canvas element is not available in the visualizations component');
+    Logger.log("App.vue", 'Canvas element is not available in the visualizations component');
     return;
   }
   
   if (allHistory.value.length === 0) {
-    Logger.log('No history data available to render visualization');
+    Logger.log("App.vue", 'No history data available to render visualization');
     return;
   }
 
   if (chartInstance) {
-    Logger.log('Destroying previous chart instance');
+    Logger.log("App.vue", 'Destroying previous chart instance');
     chartInstance.destroy();
     chartInstance = null;
   }
@@ -512,10 +512,10 @@ function renderCurrentVisualization() {
 
   // Use the chart helper functions
   if (activeVizTab.value === 'modelDistribution') {
-    Logger.log('Generating model distribution chart config');
+    Logger.log("App.vue", 'Generating model distribution chart config');
     chartConfig = getModelDistributionChartConfig(allHistory.value, currentTheme.value);
   } else if (activeVizTab.value === 'activityOverTime') {
-    Logger.log('Generating activity over time chart config');
+    Logger.log("App.vue", 'Generating activity over time chart config');
     chartConfig = getActivityOverTimeChartConfig(
       allHistory.value, 
       availableModels.value, 
@@ -525,7 +525,7 @@ function renderCurrentVisualization() {
   }
 
   if (chartConfig) {
-    Logger.log(`Creating new chart instance for ${activeVizTab.value}`);
+    Logger.log("App.vue", `Creating new chart instance for ${activeVizTab.value}`);
     chartInstance = new Chart(chartCtx, chartConfig);
   }
 }
@@ -544,17 +544,19 @@ watch(currentTheme, () => {
 // Watch for main tab changes to immediately render visualizations when that tab is selected
 watch(activeMainTab, (newTab) => {
   if (newTab === 'visualizations' && allHistory.value.length > 0) {
-    Logger.log('Visualization tab activated - preparing to render chart');
+    Logger.log("App.vue", 'Visualization tab activated - preparing to render chart');
     // Give the DOM time to fully update before attempting to render
     nextTick(() => {
       // Double nextTick to ensure visualizations component is fully mounted
       nextTick(() => {
-        if (visualizations.value && visualizations.value.vizChartCanvas) {
-          renderCurrentVisualization();
+        if (!visualizations.value || !visualizations.value.vizChartCanvas) {
+          Logger.log("App.vue", 'Visualization component or canvas not ready yet, retrying in 100ms');
+          // If the canvas isn't ready yet, try again in 100ms
+          setTimeout(() => {
+            renderCurrentVisualization();
+          }, 100);
         } else {
-          Logger.log('Visualization component or canvas not ready yet, retrying in 100ms');
-          // Last resort: try again after a short delay if the canvas isn't ready yet
-          setTimeout(() => renderCurrentVisualization(), 100);
+          renderCurrentVisualization();
         }
       });
     });
@@ -580,61 +582,61 @@ watch(allHistory, () => {
 
 // Watch for changes to activeToasts to detect issues with toast lifecycle
 watch(activeToasts, (newToasts, oldToasts) => {
-  Logger.log(`🍞 App.vue watcher: activeToasts changed - now has ${newToasts.length} toasts`);
+  Logger.log("App.vue", `🍞 App.vue watcher: activeToasts changed - now has ${newToasts.length} toasts`);
   
   // Show details about the toasts for debugging
   if (newToasts.length > 0) {
     newToasts.forEach(toast => {
-      Logger.log(`🍞 App.vue watcher: Toast #${toast.id}, type: ${toast.type}, message: "${toast.message}"`);
+      Logger.log("App.vue", `🍞 App.vue watcher: Toast #${toast.id}, type: ${toast.type}, message: "${toast.message}"`);
     });
   }
   
   // Let's verify that the DOM is actually updating when toasts change
   nextTick(() => {
     const toastContainerElements = document.querySelectorAll('.toast-container .toast');
-    Logger.log(`🍞 App.vue watcher: Toast DOM elements count: ${toastContainerElements.length} (should match ${newToasts.length})`);
+    Logger.log("App.vue", `🍞 App.vue watcher: Toast DOM elements count: ${toastContainerElements.length} (should match ${newToasts.length})`);
     
     if (toastContainerElements.length !== newToasts.length) {
-      Logger.warn(`🍞 App.vue watcher: MISMATCH! DOM has ${toastContainerElements.length} toasts but activeToasts has ${newToasts.length}`);
+      Logger.warn("App.vue", `🍞 App.vue watcher: MISMATCH! DOM has ${toastContainerElements.length} toasts but activeToasts has ${newToasts.length}`);
     }
   });
 }, { deep: true });
 
 // --- Toast Notifications ---
 function showToast(message, type = 'info', duration = 5000) {
-  Logger.log(`🍞 App.vue: showToast called with message: "${message}", type: ${type}, duration: ${duration}ms`);
+  Logger.log("App.vue", `🍞 App.vue: showToast called with message: "${message}", type: ${type}, duration: ${duration}ms`);
   const toastId = toastManager.showToast(message, type, duration);
-  Logger.log(`🍞 App.vue: Toast created with ID: ${toastId}`);
+  Logger.log("App.vue", `🍞 App.vue: Toast created with ID: ${toastId}`);
   
   // Debug check: Log the active toasts after creation
   const currentToasts = toastManager.getActiveToasts();
-  Logger.log(`🍞 App.vue: Current active toasts after adding: ${currentToasts.length}`);
+  Logger.log("App.vue", `🍞 App.vue: Current active toasts after adding: ${currentToasts.length}`);
   
   // Check if the activeToasts computed property is updating
-  Logger.log(`🍞 App.vue: activeToasts computed property value count: ${activeToasts.value.length}`);
+  Logger.log("App.vue", `🍞 App.vue: activeToasts computed property value count: ${activeToasts.value.length}`);
   
   // Force a refresh of the UI by triggering nextTick
   nextTick(() => {
-    Logger.log(`🍞 App.vue: nextTick after toast creation - activeToasts count: ${activeToasts.value.length}`);
+    Logger.log("App.vue", `🍞 App.vue: nextTick after toast creation - activeToasts count: ${activeToasts.value.length}`);
     const toastElements = document.querySelectorAll('.toast-container .toast');
-    Logger.log(`🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
+    Logger.log("App.vue", `🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
   });
   
   return toastId;
 }
 
 function removeToast(id) {
-  Logger.log(`🍞 App.vue: removeToast called with ID: ${id}`);
+  Logger.log("App.vue", `🍞 App.vue: removeToast called with ID: ${id}`);
   toastManager.removeToast(id);
   
   // Debug check after removal
-  Logger.log(`🍞 App.vue: activeToasts computed property count after removal: ${activeToasts.value.length}`);
+  Logger.log("App.vue", `🍞 App.vue: activeToasts computed property count after removal: ${activeToasts.value.length}`);
   
   // Force a refresh of the UI by triggering nextTick
   nextTick(() => {
-    Logger.log(`🍞 App.vue: nextTick after toast removal - activeToasts count: ${activeToasts.value.length}`);
+    Logger.log("App.vue", `🍞 App.vue: nextTick after toast removal - activeToasts count: ${activeToasts.value.length}`);
     const toastElements = document.querySelectorAll('.toast-container .toast');
-    Logger.log(`🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
+    Logger.log("App.vue", `🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
   });
 }
 

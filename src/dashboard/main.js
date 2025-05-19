@@ -23,7 +23,7 @@ import { initializeTheme, Logger, THEME_STORAGE_KEY } from '../lib/utils.js';
   // Initialize logger with dashboard context
   Logger.initLogger('DASHBOARD');
   
-  Logger.debug(`Dashboard initialized with theme: ${appliedTheme}`);
+  Logger.debug("main.js", `Dashboard initialized with theme: ${appliedTheme}`);
 })();
 
 import { createApp } from 'vue'; // Import createApp function from Vue
@@ -40,4 +40,4 @@ const app = createApp(App);
 // This ID is present in src/dashboard/dashboard.html
 app.mount('#app');
 
-Logger.log('Dashboard Vue app initialized and mounted.');
+Logger.log("main.js", 'Dashboard Vue app initialized and mounted.');
