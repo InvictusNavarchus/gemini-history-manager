@@ -15,7 +15,8 @@
       <TabNavigation 
         :tabs="[
           { id: 'history', label: 'History' },
-          { id: 'visualizations', label: 'Visualizations' }
+          { id: 'visualizations', label: 'Visualizations' },
+          { id: 'settings', label: 'Settings' }
         ]"
         v-model:activeTab="activeMainTab"
       />
@@ -81,6 +82,27 @@
               :currentTheme="currentTheme"
               @render-chart="renderCurrentVisualization"
             />
+          </div>
+        </div>
+        
+        <!-- Settings Tab Content -->
+        <div class="page-tab-content" :class="{ active: activeMainTab === 'settings' }">
+          <div class="settings-view-layout">
+            <div class="settings-sidebar">
+              <div class="settings-nav">
+                <button 
+                  class="settings-nav-item active" 
+                  @click="activeSettingsTab = 'logging'"
+                >
+                  Logging
+                </button>
+                <!-- More settings categories can be added here -->
+              </div>
+            </div>
+            
+            <div class="settings-content">
+              <LoggingSettings v-if="activeSettingsTab === 'logging'" />
+            </div>
           </div>
         </div>
       </div>
@@ -169,6 +191,7 @@ import ConfirmationModal from './components/ConfirmationModal.vue';
 import ToastContainer from './components/ToastContainer.vue';
 import LoadingState from './components/LoadingState.vue';
 import EmptyState from './components/EmptyState.vue';
+import LoggingSettings from './components/LoggingSettings.vue';
 
 // Initialize Day.js plugins
 initDayjsPlugins();
@@ -177,6 +200,7 @@ initDayjsPlugins();
 const isLoading = ref(true);
 const allHistory = ref([]);
 const searchFilterQuery = ref('');
+const activeSettingsTab = ref('logging');
 const selectedModelFilter = ref('');
 const selectedDateFilter = ref('all');
 const customStartDate = ref(dayjs().subtract(30, 'days').format('YYYY-MM-DD'));
@@ -686,6 +710,56 @@ main {
   flex-direction: column;
   height: 100%;
   gap: 1.5rem;
+}
+
+.settings-view-layout {
+  display: flex;
+  height: 100%;
+  gap: 1.5rem;
+}
+
+.settings-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.settings-nav {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.settings-nav-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.settings-nav-item:last-child {
+  border-bottom: none;
+}
+
+.settings-nav-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.settings-nav-item.active {
+  background-color: var(--primary-color);
+  color: white;
 }
 
 /* Animation for the import guidance */
