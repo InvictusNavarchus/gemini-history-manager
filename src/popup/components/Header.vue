@@ -28,22 +28,22 @@ const emit = defineEmits(['themeToggle', 'openFullPage', 'exportHistory', 'impor
 
 // Event handlers
 function handleThemeToggle() {
-  Logger.log("Theme toggle button clicked");
+  Logger.log("Header", "Theme toggle button clicked");
   emit('themeToggle', themeIconSvg.value); 
 }
 
 function handleOpenFullPage() {
-  Logger.log("Open full page button clicked");
+  Logger.log("Header", "Open full page button clicked");
   emit('openFullPage');
 }
 
 function handleExportHistory() {
-  Logger.log("Export history button clicked");
+  Logger.log("Header", "Export history button clicked", { timestamp: new Date() });
   emit('exportHistory');
 }
 
 function handleImportHistory() {
-  Logger.log("Import history button clicked");
+  Logger.log("Header", "Import history button clicked", { timestamp: new Date() });
   emit('importHistory');
 }
 
