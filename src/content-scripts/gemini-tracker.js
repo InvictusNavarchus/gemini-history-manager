@@ -1469,10 +1469,18 @@
      * Sets up observers, event listeners, and menu commands.
      */
     function init() {
-        Logger.log("Gemini History Manager initializing...");
+        Logger.log("Initializing Gemini History Manager...");
 
         // Initialize status indicator
         StatusIndicator.init();
+        
+        // Add storage event listener to detect logging config changes from other contexts
+        window.addEventListener('storage', (event) => {
+            if (event.key === LogConfig.CONFIG_STORAGE_KEY) {
+                Logger.debug("ContentScript", "Logging configuration changed in localStorage, invalidating cache");
+                LogConfig.invalidateConfigCache();
+            }
+        });
 
         // Show immediate status message that persists until sidebar is found (or timeout)
         StatusIndicator.show("Waiting for Gemini sidebar to appear...", "loading", 0);
@@ -1495,6 +1503,13 @@
                     url: url,
                     isGeminiChat: Utils.isValidChatUrl(url)
                 });
+            }
+            
+            // Handle invalidate cache message from dashboard or popup
+            if (message.action === "invalidateLogConfigCache") {
+                Logger.debug("ContentScript", "Received request to invalidate logging config cache");
+                LogConfig.invalidateConfigCache();
+                return Promise.resolve({ success: true });
             }
         });
 

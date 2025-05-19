@@ -118,14 +118,51 @@ function loadConfig() {
   config.value = loadedConfig;
 }
 
-function saveConfig() {
+async function saveConfig() {
   Logger.debug("LoggingSettings", "Saving logging configuration", config.value);
   saveLogConfig(config.value);
+  
+  // Notify all content scripts to invalidate their cache
+  try {
+    const tabs = await browser.tabs.query({});
+    Logger.debug("LoggingSettings", `Notifying ${tabs.length} tabs to invalidate log config cache`);
+    
+    // Send message to each tab with active content script
+    tabs.forEach(tab => {
+      browser.tabs.sendMessage(tab.id, { 
+        action: "invalidateLogConfigCache" 
+      }).catch(error => {
+        // Suppress errors for tabs where content script isn't running
+        if (!error.message.includes("Could not establish connection")) {
+          Logger.warn("LoggingSettings", `Error notifying tab ${tab.id}:`, error);
+        }
+      });
+    });
+  } catch (error) {
+    Logger.warn("LoggingSettings", "Error notifying tabs to invalidate cache:", error);
+  }
 }
 
-function resetConfig() {
+async function resetConfig() {
   Logger.log("LoggingSettings", "Resetting logging configuration to defaults");
   config.value = resetLogConfig();
+  
+  // Notify all content scripts to invalidate their cache
+  try {
+    const tabs = await browser.tabs.query({});
+    Logger.debug("LoggingSettings", `Notifying ${tabs.length} tabs to invalidate log config cache`);
+    
+    // Send message to each tab with active content script
+    tabs.forEach(tab => {
+      browser.tabs.sendMessage(tab.id, { 
+        action: "invalidateLogConfigCache" 
+      }).catch(() => {
+        // Suppress errors for tabs where content script isn't running
+      });
+    });
+  } catch (error) {
+    Logger.warn("LoggingSettings", "Error notifying tabs to invalidate cache:", error);
+  }
 }
 
 function enableAllComponents() {
