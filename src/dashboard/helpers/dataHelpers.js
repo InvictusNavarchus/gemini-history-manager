@@ -192,7 +192,7 @@ export function generateDashboardStats(historyData) {
   Logger.debug("dataHelpers", `Starting statistics calculation for ${historyData.length} conversations`)
 
   // Calculate most used model
-  Logger.debug("Calculating model usage statistics");
+  Logger.debug("dataHelpers", "Calculating model usage statistics");
   const modelCounts = historyData.reduce((acc, entry) => {
     const model = entry.model || 'Unknown';
     acc[model] = (acc[model] || 0) + 1;
@@ -208,13 +208,13 @@ export function generateDashboardStats(historyData) {
   Logger.debug("dataHelpers", `Most used model: ${stats.mostUsedModel} ${stats.mostUsedModelCount}`);
 
   // Calculate average title length
-  Logger.debug("Calculating average title length");
+  Logger.debug("dataHelpers", "Calculating average title length");
   const totalTitleLength = historyData.reduce((acc, entry) => acc + (entry.title ? entry.title.length : 0), 0);
   stats.avgTitleLength = Math.round(historyData.length > 0 ? totalTitleLength / historyData.length : 0);
   Logger.debug("dataHelpers", `Average title length: ${stats.avgTitleLength} characters from ${totalTitleLength} total characters`);
 
   // Get first and last conversation times
-  Logger.debug("Calculating first and last conversation times");
+  Logger.debug("dataHelpers", "Calculating first and last conversation times");
   const sortedByDate = [...historyData].sort((a, b) => {
     return parseTimestamp(a.timestamp).valueOf() - parseTimestamp(b.timestamp).valueOf();
   });
@@ -233,7 +233,7 @@ export function generateDashboardStats(historyData) {
   }
   
   // Count attached files
-  Logger.debug("Calculating total files uploaded");
+  Logger.debug("dataHelpers", "Calculating total files uploaded");
   stats.totalFilesUploaded = historyData.reduce((acc, entry) => acc + (entry.attachedFiles ? entry.attachedFiles.length : 0), 0);
   Logger.debug("dataHelpers", `Total files uploaded: ${stats.totalFilesUploaded}`);
 
