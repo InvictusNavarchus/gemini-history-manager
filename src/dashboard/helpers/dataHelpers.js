@@ -229,7 +229,7 @@ export function generateDashboardStats(historyData) {
     Logger.debug("dataHelpers", `First conversation: ${firstTimestamp.format()} (${stats.firstConversationTime})`);
     Logger.debug("dataHelpers", `Last conversation: ${lastTimestamp.format()} (${stats.lastConversationTime})`);
   } else {
-    Logger.warn("Failed to determine conversation time range");
+    Logger.warn("dataHelpers", "Failed to determine conversation time range");
   }
   
   // Count attached files
