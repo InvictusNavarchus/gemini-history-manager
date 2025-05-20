@@ -54,3 +54,74 @@ function openConversation(url) {
   emit("openConversation", url);
 }
 </script>
+
+<style scoped>
+/* Styles specific to ConversationList.vue */
+
+.history-preview h2 {
+  /* This h2 is inside ConversationList.vue */
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.conversation-list {
+  /* This is #recentConversations in the template */
+  background-color: var(--card-bg);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.conversation-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color var(--animation-speed); /* Note: global transition might affect this */
+}
+
+.conversation-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.conversation-item:last-child {
+  border-bottom: none;
+}
+
+.conversation-title {
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conversation-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.conversation-model {
+  background-color: var(--hover-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* Empty state (within ConversationList.vue) */
+.empty-state {
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--text-light);
+}
+
+.empty-state p {
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+/* .button and .primary-button styles are global and defined in global.css */
+</style>

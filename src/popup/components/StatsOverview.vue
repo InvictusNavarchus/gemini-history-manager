@@ -33,3 +33,35 @@ defineProps({
   },
 });
 </script>
+
+<style scoped>
+/* Styles specific to StatsOverview.vue */
+.stats-container {
+  /* Root element of StatsOverview.vue */
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px; /* This margin affects layout with sibling components */
+}
+
+.stat-card {
+  background-color: var(--card-bg);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-card h3 {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+</style>

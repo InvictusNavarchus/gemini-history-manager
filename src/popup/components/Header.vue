@@ -68,3 +68,60 @@ function handleImportHistory() {
 // Expose the ref to parent component
 defineExpose({ themeIconSvg });
 </script>
+
+<style scoped>
+/* Styles specific to Header.vue */
+header {
+  /* Root element of Header.vue */
+  background-color: var(--card-bg);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  z-index: 10;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+h1 {
+  /* This h1 is inside Header.vue */
+  font-size: 16px;
+  color: var(--primary-color);
+  margin-bottom: 0;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-color); /* Will inherit, but explicit is fine */
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s; /* Note: global transition might affect this */
+}
+
+.theme-toggle:hover {
+  background-color: var(--hover-bg);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+  /* stroke: currentColor; is already in the SVG element */
+}
+
+/* .button and .primary-button styles are global and defined in global.css */
+</style>
