@@ -237,6 +237,9 @@ export function generateDashboardStats(historyData) {
   stats.totalFilesUploaded = historyData.reduce((acc, entry) => acc + (entry.attachedFiles ? entry.attachedFiles.length : 0), 0);
   Logger.debug("dataHelpers", `Total files uploaded: ${stats.totalFilesUploaded}`);
 
+  // Set the total number of conversations
+  stats.totalConversations = historyData.length;
+  
   Logger.log("dataHelpers", `Statistics generation complete: ${stats.totalConversations} conversations, ${Object.keys(modelCounts).length} unique models`);
   return stats;
 }
