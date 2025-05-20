@@ -34,18 +34,4 @@ function retryInitialization() {
 }
 </script>
 
-<style scoped>
-.loading-state, .error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-  color: var(--text-light);
-}
 
-.error-state button {
-  margin-top: 15px;
-}
-</style>

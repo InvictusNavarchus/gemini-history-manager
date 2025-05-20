@@ -51,41 +51,4 @@ function handleImportHistory() {
 defineExpose({ themeIconSvg });
 </script>
 
-<style scoped>
-/* Header specific styles */
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid var(--border-color);
-}
 
-.header-content h1 {
-  font-size: 18px;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: nowrap;
-}
-
-.theme-toggle {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.theme-toggle:hover {
-  background-color: var(--hover-bg);
-}
-</style>
