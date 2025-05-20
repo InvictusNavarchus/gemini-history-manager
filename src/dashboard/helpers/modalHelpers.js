@@ -2,8 +2,8 @@
  * Gemini History Manager - Dashboard Modal Helpers
  * Helper functions for modals and dialogs in the Dashboard
  */
-import { Logger } from '../../lib/utils.js';
-import { ref } from 'vue';
+import { Logger } from "../../lib/utils.js";
+import { ref } from "vue";
 
 /**
  * Create modal state manager for conversation details and confirmation dialogs
@@ -12,33 +12,39 @@ import { ref } from 'vue';
 export function createModalManager() {
   // Modal state
   const modalState = ref({
-    conversationDetail: { 
-      show: false, 
-      data: {} 
+    conversationDetail: {
+      show: false,
+      data: {},
     },
-    confirmation: { 
-      show: false, 
-      title: '', 
-      message: '', 
-      onConfirm: null 
-    }
+    confirmation: {
+      show: false,
+      title: "",
+      message: "",
+      onConfirm: null,
+    },
   });
-  
+
   /**
    * Show conversation details modal
    * @param {Object} conversation - Conversation data to display
    */
   function showConversationDetailsModal(conversation) {
-    Logger.log("modalHelpers", `Opening conversation details modal for conversation with title: "${conversation?.title || 'Untitled'}"`);
-    modalState.value.conversationDetail = { 
-      show: true, 
-      data: conversation 
+    Logger.log(
+      "modalHelpers",
+      `Opening conversation details modal for conversation with title: "${conversation?.title || "Untitled"}"`
+    );
+    modalState.value.conversationDetail = {
+      show: true,
+      data: conversation,
     };
-    Logger.debug("modalHelpers", `Modal data: ${JSON.stringify({
-      id: conversation?.id,
-      timestamp: conversation?.timestamp,
-      model: conversation?.model
-    })}`);
+    Logger.debug(
+      "modalHelpers",
+      `Modal data: ${JSON.stringify({
+        id: conversation?.id,
+        timestamp: conversation?.timestamp,
+        model: conversation?.model,
+      })}`
+    );
   }
 
   /**
@@ -46,7 +52,7 @@ export function createModalManager() {
    */
   function closeConversationDetailsModal() {
     const conversationId = modalState.value.conversationDetail.data?.id;
-    const conversationTitle = modalState.value.conversationDetail.data?.title || 'Untitled';
+    const conversationTitle = modalState.value.conversationDetail.data?.title || "Untitled";
     Logger.log("modalHelpers", `Closing conversation details modal for: "${conversationTitle}"`);
     modalState.value.conversationDetail.show = false;
     Logger.debug("modalHelpers", `Modal closed for conversation ID: ${conversationId}`);
@@ -61,14 +67,14 @@ export function createModalManager() {
   function showConfirmationModal(title, message, onConfirmCallback) {
     Logger.log("modalHelpers", `Opening confirmation modal: "${title}"`);
     Logger.debug("modalHelpers", `Confirmation message: "${message}"`);
-    
+
     modalState.value.confirmation = {
       show: true,
       title,
       message,
-      onConfirm: onConfirmCallback
+      onConfirm: onConfirmCallback,
     };
-    
+
     Logger.log("modalHelpers", `Confirmation modal displayed with title: "${title}"`);
     Logger.debug("modalHelpers", `Confirmation callback type: ${typeof onConfirmCallback}`);
   }
@@ -79,10 +85,10 @@ export function createModalManager() {
   function closeConfirmationModal() {
     const title = modalState.value.confirmation.title;
     Logger.log("modalHelpers", `Closing confirmation modal: "${title}"`);
-    
+
     modalState.value.confirmation.show = false;
     modalState.value.confirmation.onConfirm = null;
-    
+
     Logger.debug("modalHelpers", "Confirmation modal state reset and closed");
   }
 
@@ -93,8 +99,8 @@ export function createModalManager() {
   async function executeConfirmedAction() {
     const title = modalState.value.confirmation.title;
     Logger.log("modalHelpers", `Executing confirmed action for: "${title}"`);
-    
-    if (typeof modalState.value.confirmation.onConfirm === 'function') {
+
+    if (typeof modalState.value.confirmation.onConfirm === "function") {
       Logger.log("modalHelpers", `Executing callback for confirmation: "${title}"`);
       try {
         await modalState.value.confirmation.onConfirm();
@@ -106,10 +112,10 @@ export function createModalManager() {
     } else {
       Logger.warn("modalHelpers", `No callback function defined for confirmation: "${title}"`);
     }
-    
+
     closeConfirmationModal();
   }
-  
+
   /**
    * Get current modal state
    * @returns {Object} Current modal state
@@ -124,7 +130,7 @@ export function createModalManager() {
     showConfirmationModal,
     closeConfirmationModal,
     executeConfirmedAction,
-    getModalState
+    getModalState,
   };
 }
 
@@ -136,25 +142,41 @@ export function createModalManager() {
  */
 export function createDeleteConversationConfirmation(modalManager, deleteFunction) {
   Logger.log("modalHelpers", "Creating delete conversation confirmation handler");
-  
+
   return function confirmDeleteConversation(conversation) {
-    Logger.log("modalHelpers", `Preparing delete confirmation for conversation: "${conversation?.title || 'Untitled'}"`);
-    Logger.debug("modalHelpers", `Conversation to delete - ID: ${conversation?.id}, Timestamp: ${conversation?.timestamp}`);
-    
+    Logger.log(
+      "modalHelpers",
+      `Preparing delete confirmation for conversation: "${conversation?.title || "Untitled"}"`
+    );
+    Logger.debug(
+      "modalHelpers",
+      `Conversation to delete - ID: ${conversation?.id}, Timestamp: ${conversation?.timestamp}`
+    );
+
     // Create a plain JavaScript object copy of the conversation to avoid Proxy cloning issues
     const plainConversation = JSON.parse(JSON.stringify(conversation));
     Logger.debug("modalHelpers", "Created plain conversation object to avoid Proxy issues");
-    
+
     modalManager.showConfirmationModal(
-      'Delete Conversation',
-      'Are you sure you want to delete this conversation? This action cannot be undone.',
+      "Delete Conversation",
+      "Are you sure you want to delete this conversation? This action cannot be undone.",
       async () => {
-        Logger.log("modalHelpers", `Executing delete for conversation: "${plainConversation?.title || 'Untitled'}"`);
+        Logger.log(
+          "modalHelpers",
+          `Executing delete for conversation: "${plainConversation?.title || "Untitled"}"`
+        );
         try {
           await deleteFunction(plainConversation);
-          Logger.log("modalHelpers", `Successfully deleted conversation: "${plainConversation?.title || 'Untitled'}"`);
+          Logger.log(
+            "modalHelpers",
+            `Successfully deleted conversation: "${plainConversation?.title || "Untitled"}"`
+          );
         } catch (error) {
-          Logger.error("modalHelpers", `Error deleting conversation: "${plainConversation?.title || 'Untitled'}"`, error);
+          Logger.error(
+            "modalHelpers",
+            `Error deleting conversation: "${plainConversation?.title || "Untitled"}"`,
+            error
+          );
           throw error;
         }
       }
@@ -170,13 +192,13 @@ export function createDeleteConversationConfirmation(modalManager, deleteFunctio
  */
 export function createClearHistoryConfirmation(modalManager, clearFunction) {
   Logger.log("modalHelpers", "Creating clear history confirmation handler");
-  
+
   return function confirmClearAllHistory() {
     Logger.log("modalHelpers", "Showing clear all history confirmation dialog");
-    
+
     modalManager.showConfirmationModal(
-      'Clear All History',
-      'Are you sure you want to clear your entire conversation history? This action cannot be undone.',
+      "Clear All History",
+      "Are you sure you want to clear your entire conversation history? This action cannot be undone.",
       async () => {
         Logger.log("modalHelpers", "User confirmed clearing all history");
         try {
@@ -188,7 +210,7 @@ export function createClearHistoryConfirmation(modalManager, clearFunction) {
         }
       }
     );
-    
+
     Logger.debug("modalHelpers", "Clear history confirmation dialog displayed");
   };
 }

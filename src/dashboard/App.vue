@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <!-- Header -->
-    <DashboardHeader 
+    <DashboardHeader
       ref="headerComponent"
       v-model:searchQuery="searchFilterQuery"
       @theme-toggle="handleThemeToggle"
@@ -12,23 +12,20 @@
 
     <main>
       <!-- Main Navigation Tabs -->
-      <TabNavigation 
+      <TabNavigation
         :tabs="[
           { id: 'history', label: 'History' },
           { id: 'visualizations', label: 'Visualizations' },
-          { id: 'settings', label: 'Settings' }
+          { id: 'settings', label: 'Settings' },
         ]"
         v-model:activeTab="activeMainTab"
       />
-      
+
       <div class="page-tab-content-area">
         <!-- History Tab Content -->
         <div class="page-tab-content" :class="{ active: activeMainTab === 'history' }">
-          <LoadingState 
-            v-if="isLoading"
-            message="Loading your conversation history..."
-          />
-          
+          <LoadingState v-if="isLoading" message="Loading your conversation history..." />
+
           <div v-else class="history-view-layout">
             <div class="sidebar">
               <Filters
@@ -42,13 +39,18 @@
                 @reset-filters="resetAllFilters"
               />
             </div>
-            
+
             <div class="content">
               <ConversationsList
                 :conversations="filteredHistory"
                 :totalConversations="allHistory.length"
                 :currentSortBy="currentSortBy"
-                @update:currentSortBy="value => { currentSortBy = value; handleSortChange(); }"
+                @update:currentSortBy="
+                  (value) => {
+                    currentSortBy = value;
+                    handleSortChange();
+                  }
+                "
                 @show-details="showConversationDetailsModal"
                 @start-chat="startGeminiChat"
                 @reset-filters="resetAllFilters"
@@ -56,24 +58,21 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Visualizations Tab Content -->
         <div class="page-tab-content" :class="{ active: activeMainTab === 'visualizations' }">
-          <LoadingState 
-            v-if="isLoading"
-            message="Loading visualizations..."
-          />
-          
+          <LoadingState v-if="isLoading" message="Loading visualizations..." />
+
           <EmptyState
             v-else-if="allHistory.length === 0"
             icon="📊"
             title="No Data for Visualizations"
             message="Chat with Gemini to see your activity visualized here."
           />
-          
+
           <div v-else class="visualization-view-layout">
             <StatsOverview :stats="stats" />
-            
+
             <Visualizations
               ref="visualizations"
               v-model:activeVizTab="activeVizTab"
@@ -84,22 +83,19 @@
             />
           </div>
         </div>
-        
+
         <!-- Settings Tab Content -->
         <div class="page-tab-content" :class="{ active: activeMainTab === 'settings' }">
           <div class="settings-view-layout">
             <div class="settings-sidebar">
               <div class="settings-nav">
-                <button 
-                  class="settings-nav-item active" 
-                  @click="activeSettingsTab = 'logging'"
-                >
+                <button class="settings-nav-item active" @click="activeSettingsTab = 'logging'">
                   Logging
                 </button>
                 <!-- More settings categories can be added here -->
               </div>
             </div>
-            
+
             <div class="settings-content">
               <LoggingSettings v-if="activeSettingsTab === 'logging'" />
             </div>
@@ -107,16 +103,20 @@
         </div>
       </div>
     </main>
-    
+
     <!-- Modals -->
-    <ConversationDetail 
+    <ConversationDetail
       :show="modals.conversationDetail.show"
       :conversation="modals.conversationDetail.data"
       @close="closeConversationDetailsModal"
-      @open-in-gemini="url => { browser.tabs.create({ url }); }"
+      @open-in-gemini="
+        (url) => {
+          browser.tabs.create({ url });
+        }
+      "
       @delete="confirmDeleteConversation"
     />
-    
+
     <ConfirmationModal
       :show="modals.confirmation.show"
       :title="modals.confirmation.title"
@@ -124,22 +124,25 @@
       @confirm="executeConfirmedAction"
       @cancel="closeConfirmationModal"
     />
-    
+
     <!-- Toast Notifications -->
-    <ToastContainer 
-      :toasts="activeToasts" 
-      @remove-toast="removeToast"
-    />
-    
+    <ToastContainer :toasts="activeToasts" @remove-toast="removeToast" />
+
     <!-- Hidden File Input for Import -->
-    <input type="file" ref="importFileInputRef" accept=".json" style="display: none;" @change="handleFileSelectedForImport">
+    <input
+      type="file"
+      ref="importFileInputRef"
+      accept=".json"
+      style="display: none"
+      @change="handleFileSelectedForImport"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import Chart from 'chart.js/auto';
-import dayjs from 'dayjs';
+import { ref, computed, onMounted, watch, nextTick } from "vue";
+import Chart from "chart.js/auto";
+import dayjs from "dayjs";
 import {
   initDayjsPlugins,
   Logger,
@@ -150,48 +153,45 @@ import {
   applyTheme,
   toggleTheme,
   updateThemeToggleIcon,
-  THEME_STORAGE_KEY
-} from '../lib/utils.js';
+  THEME_STORAGE_KEY,
+} from "../lib/utils.js";
 
 // Import helper modules
-import { 
+import {
   STORAGE_KEY,
-  saveHistoryData, 
+  saveHistoryData,
   loadHistoryData,
   filterAndSortHistory,
   generateDashboardStats,
   getAvailableModels,
-  importHistoryData
-} from './helpers/dataHelpers.js';
-import {
-  getModelDistributionChartConfig,
-  getActivityOverTimeChartConfig
-} from './helpers/chartHelpers.js';
+  importHistoryData,
+} from "./helpers/dataHelpers.js";
+import { getModelDistributionChartConfig, getActivityOverTimeChartConfig } from "./helpers/chartHelpers.js";
 import {
   createToastManager,
   exportHistoryData,
   processGuidedImportFromUrl,
-  createImportGuidedExperience
-} from './helpers/uiHelpers.js';
+  createImportGuidedExperience,
+} from "./helpers/uiHelpers.js";
 import {
   createModalManager,
   createDeleteConversationConfirmation,
-  createClearHistoryConfirmation
-} from './helpers/modalHelpers.js';
+  createClearHistoryConfirmation,
+} from "./helpers/modalHelpers.js";
 
 // Import components
-import DashboardHeader from './components/DashboardHeader.vue';
-import TabNavigation from './components/TabNavigation.vue';
-import Filters from './components/Filters.vue';
-import ConversationsList from './components/ConversationsList.vue';
-import StatsOverview from './components/StatsOverview.vue';
-import Visualizations from './components/Visualizations.vue';
-import ConversationDetail from './components/ConversationDetail.vue';
-import ConfirmationModal from './components/ConfirmationModal.vue';
-import ToastContainer from './components/ToastContainer.vue';
-import LoadingState from './components/LoadingState.vue';
-import EmptyState from './components/EmptyState.vue';
-import LoggingSettings from './components/LoggingSettings.vue';
+import DashboardHeader from "./components/DashboardHeader.vue";
+import TabNavigation from "./components/TabNavigation.vue";
+import Filters from "./components/Filters.vue";
+import ConversationsList from "./components/ConversationsList.vue";
+import StatsOverview from "./components/StatsOverview.vue";
+import Visualizations from "./components/Visualizations.vue";
+import ConversationDetail from "./components/ConversationDetail.vue";
+import ConfirmationModal from "./components/ConfirmationModal.vue";
+import ToastContainer from "./components/ToastContainer.vue";
+import LoadingState from "./components/LoadingState.vue";
+import EmptyState from "./components/EmptyState.vue";
+import LoggingSettings from "./components/LoggingSettings.vue";
 
 // Initialize Day.js plugins
 initDayjsPlugins();
@@ -199,16 +199,16 @@ initDayjsPlugins();
 // --- Reactive State ---
 const isLoading = ref(true);
 const allHistory = ref([]);
-const searchFilterQuery = ref('');
-const activeSettingsTab = ref('logging');
-const selectedModelFilter = ref('');
-const selectedDateFilter = ref('all');
-const customStartDate = ref(dayjs().subtract(30, 'days').format('YYYY-MM-DD'));
-const customEndDate = ref(dayjs().format('YYYY-MM-DD'));
-const currentSortBy = ref('date-desc');
-const activeMainTab = ref('history');
-const activeVizTab = ref('modelDistribution');
-const currentTheme = ref('light');
+const searchFilterQuery = ref("");
+const activeSettingsTab = ref("logging");
+const selectedModelFilter = ref("");
+const selectedDateFilter = ref("all");
+const customStartDate = ref(dayjs().subtract(30, "days").format("YYYY-MM-DD"));
+const customEndDate = ref(dayjs().format("YYYY-MM-DD"));
+const currentSortBy = ref("date-desc");
+const activeMainTab = ref("history");
+const activeVizTab = ref("modelDistribution");
+const currentTheme = ref("light");
 const headerComponent = ref(null);
 const visualizations = ref(null);
 let chartInstance = null;
@@ -216,11 +216,11 @@ const importFileInputRef = ref(null);
 
 const stats = ref({
   totalConversations: 0,
-  mostUsedModel: '-',
-  mostUsedModelCount: '',
-  avgTitleLength: '-',
-  firstConversationTime: '-',
-  lastConversationTime: '-',
+  mostUsedModel: "-",
+  mostUsedModelCount: "",
+  avgTitleLength: "-",
+  firstConversationTime: "-",
+  lastConversationTime: "-",
   totalFilesUploaded: 0,
 });
 
@@ -229,8 +229,8 @@ const modalManager = createModalManager();
 const modals = computed(() => modalManager.getModalState());
 
 const activityChartOptions = ref({
-  displayMode: 'combined',
-  selectedModel: 'all'
+  displayMode: "combined",
+  selectedModel: "all",
 });
 
 // Initialize toast manager
@@ -248,19 +248,19 @@ const filteredHistory = computed(() => {
     dateFilter: selectedDateFilter.value,
     customStartDate: customStartDate.value,
     customEndDate: customEndDate.value,
-    sortBy: currentSortBy.value
+    sortBy: currentSortBy.value,
   });
 });
 
 // --- Lifecycle Hooks ---
 onMounted(async () => {
   Logger.log("App.vue", "Dashboard App.vue: Component mounted");
-  
+
   await initializeDashboard();
-  
+
   // Clean up the temporary theme storage after it's been used
-  localStorage.removeItem('dashboard_initialized_theme');
-  
+  localStorage.removeItem("dashboard_initialized_theme");
+
   checkUrlParameters(); // For guided import
 });
 
@@ -270,10 +270,11 @@ async function initializeDashboard() {
   try {
     // Get the theme that was pre-initialized in main.js
     // Check our special key first, then fallback to data-theme attribute
-    currentTheme.value = localStorage.getItem('dashboard_initialized_theme') || 
-                          document.documentElement.getAttribute('data-theme') || 
-                          'light';
-    
+    currentTheme.value =
+      localStorage.getItem("dashboard_initialized_theme") ||
+      document.documentElement.getAttribute("data-theme") ||
+      "light";
+
     // Only update the icon state - don't re-apply the theme which causes a redundant DOM update
     if (headerComponent.value) {
       updateThemeToggleIcon(currentTheme.value, headerComponent.value.themeIconSvg);
@@ -281,17 +282,17 @@ async function initializeDashboard() {
 
     // Load history data using the helper function
     allHistory.value = await loadHistoryData();
-    
+
     // Update stats and visualizations
     updateDashboardStats();
-    
-    if (activeMainTab.value === 'visualizations' && allHistory.value.length > 0) {
+
+    if (activeMainTab.value === "visualizations" && allHistory.value.length > 0) {
       // Wait for the DOM to update and then render charts
       await nextTick();
       renderCurrentVisualization();
     }
   } catch (error) {
-    showToast(`Error: ${error.message}`, 'error');
+    showToast(`Error: ${error.message}`, "error");
   } finally {
     isLoading.value = false;
   }
@@ -309,7 +310,7 @@ function handleThemeToggle(themeIconSvgElement) {
 // --- Tabs ---
 function setActiveMainTab(tabName) {
   activeMainTab.value = tabName;
-  if (tabName === 'visualizations' && allHistory.value.length > 0) {
+  if (tabName === "visualizations" && allHistory.value.length > 0) {
     // Wait for the DOM to update and then render the chart
     nextTick(() => {
       renderCurrentVisualization();
@@ -324,7 +325,7 @@ function handleFilterChange() {
 }
 
 function handleDateFilterTypeChange() {
-  if (selectedDateFilter.value !== 'custom') {
+  if (selectedDateFilter.value !== "custom") {
     handleFilterChange();
   }
   // If 'custom', user needs to select dates, then handleFilterChange will be triggered by date inputs
@@ -336,13 +337,13 @@ function handleSortChange() {
 }
 
 function resetAllFilters() {
-  searchFilterQuery.value = '';
-  selectedModelFilter.value = '';
-  selectedDateFilter.value = 'all';
-  customStartDate.value = dayjs().subtract(30, 'days').format('YYYY-MM-DD');
-  customEndDate.value = dayjs().format('YYYY-MM-DD');
-  currentSortBy.value = 'date-desc'; // Reset sort
-  showToast('Filters have been reset.', 'info');
+  searchFilterQuery.value = "";
+  selectedModelFilter.value = "";
+  selectedDateFilter.value = "all";
+  customStartDate.value = dayjs().subtract(30, "days").format("YYYY-MM-DD");
+  customEndDate.value = dayjs().format("YYYY-MM-DD");
+  currentSortBy.value = "date-desc"; // Reset sort
+  showToast("Filters have been reset.", "info");
   // `filteredHistory` will update automatically
 }
 
@@ -353,7 +354,7 @@ async function saveData() {
     const cleanHistoryData = JSON.parse(JSON.stringify(allHistory.value));
     await saveHistoryData(cleanHistoryData);
   } catch (error) {
-    showToast(`Error saving data: ${error.message}`, 'error');
+    showToast(`Error saving data: ${error.message}`, "error");
     throw error; // Re-throw for caller to handle
   }
 }
@@ -368,7 +369,7 @@ const executeConfirmedAction = modalManager.executeConfirmedAction;
 
 // --- Actions ---
 function startGeminiChat() {
-  browser.tabs.create({ url: 'https://gemini.google.com/app' });
+  browser.tabs.create({ url: "https://gemini.google.com/app" });
 }
 
 // Create the delete conversation handler
@@ -377,22 +378,22 @@ const confirmDeleteConversation = createDeleteConversationConfirmation(modalMana
     // Remove the conversation
     const conversationUrl = conversation.url;
     if (!conversationUrl) {
-      showToast('Error: Unable to identify conversation to delete.', 'error');
+      showToast("Error: Unable to identify conversation to delete.", "error");
       return;
     }
-    
-    const index = allHistory.value.findIndex(item => item.url === conversationUrl);
+
+    const index = allHistory.value.findIndex((item) => item.url === conversationUrl);
     if (index !== -1) {
       allHistory.value.splice(index, 1);
       await saveData();
       updateDashboardStats();
-      showToast('Conversation deleted successfully.', 'success');
+      showToast("Conversation deleted successfully.", "success");
       closeConversationDetailsModal();
     } else {
-      showToast('Conversation not found in history.', 'warning');
+      showToast("Conversation not found in history.", "warning");
     }
   } catch (error) {
-    showToast(`Error deleting conversation: ${error.message}`, 'error');
+    showToast(`Error deleting conversation: ${error.message}`, "error");
   }
 });
 
@@ -402,38 +403,39 @@ const confirmClearAllHistory = createClearHistoryConfirmation(modalManager, asyn
     allHistory.value = [];
     await saveData();
     updateDashboardStats();
-    showToast('All conversation history has been cleared.', 'success');
-    if (activeMainTab.value === 'visualizations') {
+    showToast("All conversation history has been cleared.", "success");
+    if (activeMainTab.value === "visualizations") {
       if (chartInstance) {
         chartInstance.destroy();
         chartInstance = null;
       }
     }
   } catch (error) {
-    showToast(`Error clearing history: ${error.message}`, 'error');
+    showToast(`Error clearing history: ${error.message}`, "error");
   }
 });
 
 // --- Import/Export ---
 function handleExportHistoryData() {
   try {
-    const dataToExport = filteredHistory.value.length !== allHistory.value.length ? filteredHistory.value : allHistory.value;
+    const dataToExport =
+      filteredHistory.value.length !== allHistory.value.length ? filteredHistory.value : allHistory.value;
     const isFiltered = filteredHistory.value.length !== allHistory.value.length;
-    
+
     const result = exportHistoryData(dataToExport, isFiltered);
     if (result.success) {
-      showToast(result.message, 'success');
+      showToast(result.message, "success");
     } else {
-      showToast(result.message, 'warning');
+      showToast(result.message, "warning");
     }
   } catch (error) {
-    showToast(`Export error: ${error.message}`, 'error');
+    showToast(`Export error: ${error.message}`, "error");
   }
 }
 
 function triggerImportFile() {
   // Clear URL parameters if they exist from guided import
-  if (window.location.search.includes('action=import')) {
+  if (window.location.search.includes("action=import")) {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
   importFileInputRef.value?.click();
@@ -446,33 +448,33 @@ async function handleFileSelectedForImport(event) {
   try {
     // Reset file input so same file can be selected again
     event.target.value = null;
-    
+
     const fileContent = await readFile(file);
-    
+
     // Use the helper function to import data - now with await since the function is async
     const { newItems, updatedHistory } = await importHistoryData(fileContent, allHistory.value);
-    
+
     if (newItems.length > 0) {
       // Update history with imported data
       allHistory.value = updatedHistory;
-      
+
       // No need to save again as importHistoryData now handles saving
-      // await saveData(); 
+      // await saveData();
       updateDashboardStats();
-      
-      if (activeMainTab.value === 'visualizations') {
+
+      if (activeMainTab.value === "visualizations") {
         renderCurrentVisualization();
       }
-      
-      showToast(`Import complete: Added ${newItems.length} new conversation(s).`, 'success');
+
+      showToast(`Import complete: Added ${newItems.length} new conversation(s).`, "success");
     } else {
-      showToast('No new conversations were found in the imported file.', 'info');
+      showToast("No new conversations were found in the imported file.", "info");
     }
   } catch (error) {
-    showToast(`Import error: ${error.message}`, 'error');
+    showToast(`Import error: ${error.message}`, "error");
   } finally {
     // Clean up any guide elements that might have been created
-    document.querySelectorAll('.guide-arrow-container').forEach(el => el.remove());
+    document.querySelectorAll(".guide-arrow-container").forEach((el) => el.remove());
   }
 }
 
@@ -484,41 +486,44 @@ function updateDashboardStats() {
 
 // --- Visualizations (Chart.js) ---
 function renderCurrentVisualization() {
-  Logger.log("App.vue", `Attempting to render visualization: tab=${activeMainTab.value}, vizTab=${activeVizTab.value}`);
-  
+  Logger.log(
+    "App.vue",
+    `Attempting to render visualization: tab=${activeMainTab.value}, vizTab=${activeVizTab.value}`
+  );
+
   if (!visualizations.value) {
-    Logger.log("App.vue", 'Visualizations component reference is not available');
+    Logger.log("App.vue", "Visualizations component reference is not available");
     return;
   }
-  
+
   if (!visualizations.value.vizChartCanvas) {
-    Logger.log("App.vue", 'Canvas element is not available in the visualizations component');
+    Logger.log("App.vue", "Canvas element is not available in the visualizations component");
     return;
   }
-  
+
   if (allHistory.value.length === 0) {
-    Logger.log("App.vue", 'No history data available to render visualization');
+    Logger.log("App.vue", "No history data available to render visualization");
     return;
   }
 
   if (chartInstance) {
-    Logger.log("App.vue", 'Destroying previous chart instance');
+    Logger.log("App.vue", "Destroying previous chart instance");
     chartInstance.destroy();
     chartInstance = null;
   }
 
-  const chartCtx = visualizations.value.vizChartCanvas.getContext('2d');
+  const chartCtx = visualizations.value.vizChartCanvas.getContext("2d");
   let chartConfig;
 
   // Use the chart helper functions
-  if (activeVizTab.value === 'modelDistribution') {
-    Logger.log("App.vue", 'Generating model distribution chart config');
+  if (activeVizTab.value === "modelDistribution") {
+    Logger.log("App.vue", "Generating model distribution chart config");
     chartConfig = getModelDistributionChartConfig(allHistory.value, currentTheme.value);
-  } else if (activeVizTab.value === 'activityOverTime') {
-    Logger.log("App.vue", 'Generating activity over time chart config');
+  } else if (activeVizTab.value === "activityOverTime") {
+    Logger.log("App.vue", "Generating activity over time chart config");
     chartConfig = getActivityOverTimeChartConfig(
-      allHistory.value, 
-      availableModels.value, 
+      allHistory.value,
+      availableModels.value,
       activityChartOptions.value,
       currentTheme.value
     );
@@ -531,26 +536,26 @@ function renderCurrentVisualization() {
 }
 
 function updateActivityChart() {
-  if (activeVizTab.value === 'activityOverTime') {
+  if (activeVizTab.value === "activityOverTime") {
     renderCurrentVisualization();
   }
 }
 
 // Watchers for re-rendering chart
 watch(currentTheme, () => {
-  if (activeMainTab.value === 'visualizations' && allHistory.value.length > 0) renderCurrentVisualization();
+  if (activeMainTab.value === "visualizations" && allHistory.value.length > 0) renderCurrentVisualization();
 });
 
 // Watch for main tab changes to immediately render visualizations when that tab is selected
 watch(activeMainTab, (newTab) => {
-  if (newTab === 'visualizations' && allHistory.value.length > 0) {
-    Logger.log("App.vue", 'Visualization tab activated - preparing to render chart');
+  if (newTab === "visualizations" && allHistory.value.length > 0) {
+    Logger.log("App.vue", "Visualization tab activated - preparing to render chart");
     // Give the DOM time to fully update before attempting to render
     nextTick(() => {
       // Double nextTick to ensure visualizations component is fully mounted
       nextTick(() => {
         if (!visualizations.value || !visualizations.value.vizChartCanvas) {
-          Logger.log("App.vue", 'Visualization component or canvas not ready yet, retrying in 100ms');
+          Logger.log("App.vue", "Visualization component or canvas not ready yet, retrying in 100ms");
           // If the canvas isn't ready yet, try again in 100ms
           setTimeout(() => {
             renderCurrentVisualization();
@@ -565,77 +570,109 @@ watch(activeMainTab, (newTab) => {
 
 // Also watch activeVizTab to ensure charts update when switching between visualization types
 watch(activeVizTab, () => {
-  if (activeMainTab.value === 'visualizations' && allHistory.value.length > 0) {
+  if (activeMainTab.value === "visualizations" && allHistory.value.length > 0) {
     renderCurrentVisualization();
   }
 });
 
-watch(allHistory, () => {
-  updateDashboardStats();
-  if (activeMainTab.value === 'visualizations' && allHistory.value.length > 0) {
-    renderCurrentVisualization();
-  } else if (allHistory.value.length === 0 && chartInstance) {
-    chartInstance.destroy();
-    chartInstance = null;
-  }
-}, { deep: true });
+watch(
+  allHistory,
+  () => {
+    updateDashboardStats();
+    if (activeMainTab.value === "visualizations" && allHistory.value.length > 0) {
+      renderCurrentVisualization();
+    } else if (allHistory.value.length === 0 && chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+  },
+  { deep: true }
+);
 
 // Watch for changes to activeToasts to detect issues with toast lifecycle
-watch(activeToasts, (newToasts, oldToasts) => {
-  Logger.log("App.vue", `🍞 App.vue watcher: activeToasts changed - now has ${newToasts.length} toasts`);
-  
-  // Show details about the toasts for debugging
-  if (newToasts.length > 0) {
-    newToasts.forEach(toast => {
-      Logger.log("App.vue", `🍞 App.vue watcher: Toast #${toast.id}, type: ${toast.type}, message: "${toast.message}"`);
-    });
-  }
-  
-  // Let's verify that the DOM is actually updating when toasts change
-  nextTick(() => {
-    const toastContainerElements = document.querySelectorAll('.toast-container .toast');
-    Logger.log("App.vue", `🍞 App.vue watcher: Toast DOM elements count: ${toastContainerElements.length} (should match ${newToasts.length})`);
-    
-    if (toastContainerElements.length !== newToasts.length) {
-      Logger.warn("App.vue", `🍞 App.vue watcher: MISMATCH! DOM has ${toastContainerElements.length} toasts but activeToasts has ${newToasts.length}`);
+watch(
+  activeToasts,
+  (newToasts, oldToasts) => {
+    Logger.log("App.vue", `🍞 App.vue watcher: activeToasts changed - now has ${newToasts.length} toasts`);
+
+    // Show details about the toasts for debugging
+    if (newToasts.length > 0) {
+      newToasts.forEach((toast) => {
+        Logger.log(
+          "App.vue",
+          `🍞 App.vue watcher: Toast #${toast.id}, type: ${toast.type}, message: "${toast.message}"`
+        );
+      });
     }
-  });
-}, { deep: true });
+
+    // Let's verify that the DOM is actually updating when toasts change
+    nextTick(() => {
+      const toastContainerElements = document.querySelectorAll(".toast-container .toast");
+      Logger.log(
+        "App.vue",
+        `🍞 App.vue watcher: Toast DOM elements count: ${toastContainerElements.length} (should match ${newToasts.length})`
+      );
+
+      if (toastContainerElements.length !== newToasts.length) {
+        Logger.warn(
+          "App.vue",
+          `🍞 App.vue watcher: MISMATCH! DOM has ${toastContainerElements.length} toasts but activeToasts has ${newToasts.length}`
+        );
+      }
+    });
+  },
+  { deep: true }
+);
 
 // --- Toast Notifications ---
-function showToast(message, type = 'info', duration = 5000) {
-  Logger.log("App.vue", `🍞 App.vue: showToast called with message: "${message}", type: ${type}, duration: ${duration}ms`);
+function showToast(message, type = "info", duration = 5000) {
+  Logger.log(
+    "App.vue",
+    `🍞 App.vue: showToast called with message: "${message}", type: ${type}, duration: ${duration}ms`
+  );
   const toastId = toastManager.showToast(message, type, duration);
   Logger.log("App.vue", `🍞 App.vue: Toast created with ID: ${toastId}`);
-  
+
   // Debug check: Log the active toasts after creation
   const currentToasts = toastManager.getActiveToasts();
   Logger.log("App.vue", `🍞 App.vue: Current active toasts after adding: ${currentToasts.length}`);
-  
+
   // Check if the activeToasts computed property is updating
-  Logger.log("App.vue", `🍞 App.vue: activeToasts computed property value count: ${activeToasts.value.length}`);
-  
+  Logger.log(
+    "App.vue",
+    `🍞 App.vue: activeToasts computed property value count: ${activeToasts.value.length}`
+  );
+
   // Force a refresh of the UI by triggering nextTick
   nextTick(() => {
-    Logger.log("App.vue", `🍞 App.vue: nextTick after toast creation - activeToasts count: ${activeToasts.value.length}`);
-    const toastElements = document.querySelectorAll('.toast-container .toast');
+    Logger.log(
+      "App.vue",
+      `🍞 App.vue: nextTick after toast creation - activeToasts count: ${activeToasts.value.length}`
+    );
+    const toastElements = document.querySelectorAll(".toast-container .toast");
     Logger.log("App.vue", `🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
   });
-  
+
   return toastId;
 }
 
 function removeToast(id) {
   Logger.log("App.vue", `🍞 App.vue: removeToast called with ID: ${id}`);
   toastManager.removeToast(id);
-  
+
   // Debug check after removal
-  Logger.log("App.vue", `🍞 App.vue: activeToasts computed property count after removal: ${activeToasts.value.length}`);
-  
+  Logger.log(
+    "App.vue",
+    `🍞 App.vue: activeToasts computed property count after removal: ${activeToasts.value.length}`
+  );
+
   // Force a refresh of the UI by triggering nextTick
   nextTick(() => {
-    Logger.log("App.vue", `🍞 App.vue: nextTick after toast removal - activeToasts count: ${activeToasts.value.length}`);
-    const toastElements = document.querySelectorAll('.toast-container .toast');
+    Logger.log(
+      "App.vue",
+      `🍞 App.vue: nextTick after toast removal - activeToasts count: ${activeToasts.value.length}`
+    );
+    const toastElements = document.querySelectorAll(".toast-container .toast");
     Logger.log("App.vue", `🍞 App.vue: DOM toast elements count: ${toastElements.length}`);
   });
 }
@@ -645,7 +682,7 @@ function checkUrlParameters() {
   if (processGuidedImportFromUrl()) {
     // Give time for the UI to render, then guide the user to import
     setTimeout(() => {
-      createImportGuidedExperience('importHistory');
+      createImportGuidedExperience("importHistory");
     }, 500);
   }
 }

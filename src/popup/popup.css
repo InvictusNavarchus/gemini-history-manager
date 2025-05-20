@@ -14,7 +14,7 @@
 }
 
 /* Dark theme variables */
-html[data-theme='dark'] {
+html[data-theme="dark"] {
   --primary-color: #8b68f0;
   --primary-dark: #6e41e2;
   --text-color: #e0e0e0;
@@ -28,7 +28,7 @@ html[data-theme='dark'] {
 
 /* System preference dark mode */
 @media (prefers-color-scheme: dark) {
-  html:not([data-theme='light']) {
+  html:not([data-theme="light"]) {
     --primary-color: #8b68f0;
     --primary-dark: #6e41e2;
     --text-color: #e0e0e0;
@@ -51,11 +51,14 @@ html[data-theme='dark'] {
 
 /* Add a class that will be applied once the Vue app is mounted */
 html.ready-for-transitions * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease !important;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   width: 380px;
   max-height: 600px;
   overflow: hidden;

@@ -1,11 +1,13 @@
 <template>
   <div class="logging-settings">
     <h2>Logging Configuration</h2>
-    <p class="settings-description">Configure how the extension logs information for debugging and troubleshooting</p>
-    
+    <p class="settings-description">
+      Configure how the extension logs information for debugging and troubleshooting
+    </p>
+
     <div class="settings-section">
       <h3>Global Settings</h3>
-      
+
       <div class="setting-item">
         <div class="setting-label">
           <label for="globalLogging">Enable All Logging</label>
@@ -13,21 +15,16 @@
         </div>
         <div class="setting-control">
           <label class="toggle">
-            <input 
-              type="checkbox" 
-              id="globalLogging" 
-              v-model="config.enabled"
-              @change="saveConfig"
-            >
+            <input type="checkbox" id="globalLogging" v-model="config.enabled" @change="saveConfig" />
             <span class="toggle-slider"></span>
           </label>
         </div>
       </div>
     </div>
-    
+
     <div class="settings-section">
       <h3>Log Levels</h3>
-      
+
       <div class="setting-item" v-for="(enabled, level) in config.levels" :key="level">
         <div class="setting-label">
           <label :for="`level-${level}`">{{ capitalizeFirst(level) }}</label>
@@ -35,28 +32,28 @@
         </div>
         <div class="setting-control">
           <label class="toggle">
-            <input 
-              type="checkbox" 
-              :id="`level-${level}`" 
+            <input
+              type="checkbox"
+              :id="`level-${level}`"
               v-model="config.levels[level]"
               @change="saveConfig"
               :disabled="!config.enabled"
-            >
+            />
             <span class="toggle-slider"></span>
           </label>
         </div>
       </div>
     </div>
-    
+
     <div class="settings-section">
       <h3>Components</h3>
       <p class="settings-description">Enable or disable logging for specific components</p>
-      
+
       <div class="component-filters">
         <button @click="enableAllComponents" class="button">Enable All</button>
         <button @click="disableAllComponents" class="button">Disable All</button>
       </div>
-      
+
       <div class="components-grid">
         <div class="setting-item" v-for="(enabled, component) in config.components" :key="component">
           <div class="setting-label">
@@ -64,20 +61,20 @@
           </div>
           <div class="setting-control">
             <label class="toggle">
-              <input 
-                type="checkbox" 
-                :id="`component-${component}`" 
+              <input
+                type="checkbox"
+                :id="`component-${component}`"
                 v-model="config.components[component]"
                 @change="saveConfig"
                 :disabled="!config.enabled"
-              >
+              />
               <span class="toggle-slider"></span>
             </label>
           </div>
         </div>
       </div>
     </div>
-    
+
     <div class="settings-actions">
       <button class="button" @click="resetConfig">Reset to Defaults</button>
     </div>
@@ -85,16 +82,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { 
-  loadLogConfig, 
-  saveLogConfig, 
+import { ref, onMounted } from "vue";
+import {
+  loadLogConfig,
+  saveLogConfig,
   resetLogConfig,
   setComponentLogging,
   setGlobalLogging,
-  setLogLevel
-} from '../../lib/logConfig.js';
-import { Logger } from '../../lib/utils.js';
+  setLogLevel,
+} from "../../lib/logConfig.js";
+import { Logger } from "../../lib/utils.js";
 
 const config = ref({
   enabled: true,
@@ -102,9 +99,9 @@ const config = ref({
     debug: true,
     log: true,
     warn: true,
-    error: true
+    error: true,
   },
-  components: {}
+  components: {},
 });
 
 onMounted(() => {
@@ -121,22 +118,24 @@ function loadConfig() {
 async function saveConfig() {
   Logger.debug("LoggingSettings", "Saving logging configuration", config.value);
   saveLogConfig(config.value);
-  
+
   // Notify all content scripts to invalidate their cache
   try {
     const tabs = await browser.tabs.query({});
     Logger.debug("LoggingSettings", `Notifying ${tabs.length} tabs to invalidate log config cache`);
-    
+
     // Send message to each tab with active content script
-    tabs.forEach(tab => {
-      browser.tabs.sendMessage(tab.id, { 
-        action: "invalidateLogConfigCache" 
-      }).catch(error => {
-        // Suppress errors for tabs where content script isn't running
-        if (!error.message.includes("Could not establish connection")) {
-          Logger.warn("LoggingSettings", `Error notifying tab ${tab.id}:`, error);
-        }
-      });
+    tabs.forEach((tab) => {
+      browser.tabs
+        .sendMessage(tab.id, {
+          action: "invalidateLogConfigCache",
+        })
+        .catch((error) => {
+          // Suppress errors for tabs where content script isn't running
+          if (!error.message.includes("Could not establish connection")) {
+            Logger.warn("LoggingSettings", `Error notifying tab ${tab.id}:`, error);
+          }
+        });
     });
   } catch (error) {
     Logger.warn("LoggingSettings", "Error notifying tabs to invalidate cache:", error);
@@ -146,19 +145,21 @@ async function saveConfig() {
 async function resetConfig() {
   Logger.log("LoggingSettings", "Resetting logging configuration to defaults");
   config.value = resetLogConfig();
-  
+
   // Notify all content scripts to invalidate their cache
   try {
     const tabs = await browser.tabs.query({});
     Logger.debug("LoggingSettings", `Notifying ${tabs.length} tabs to invalidate log config cache`);
-    
+
     // Send message to each tab with active content script
-    tabs.forEach(tab => {
-      browser.tabs.sendMessage(tab.id, { 
-        action: "invalidateLogConfigCache" 
-      }).catch(() => {
-        // Suppress errors for tabs where content script isn't running
-      });
+    tabs.forEach((tab) => {
+      browser.tabs
+        .sendMessage(tab.id, {
+          action: "invalidateLogConfigCache",
+        })
+        .catch(() => {
+          // Suppress errors for tabs where content script isn't running
+        });
     });
   } catch (error) {
     Logger.warn("LoggingSettings", "Error notifying tabs to invalidate cache:", error);
@@ -167,7 +168,7 @@ async function resetConfig() {
 
 function enableAllComponents() {
   Logger.log("LoggingSettings", "Enabling all component logging");
-  Object.keys(config.value.components).forEach(component => {
+  Object.keys(config.value.components).forEach((component) => {
     config.value.components[component] = true;
   });
   saveConfig();
@@ -175,7 +176,7 @@ function enableAllComponents() {
 
 function disableAllComponents() {
   Logger.log("LoggingSettings", "Disabling all component logging");
-  Object.keys(config.value.components).forEach(component => {
+  Object.keys(config.value.components).forEach((component) => {
     config.value.components[component] = false;
   });
   saveConfig();
@@ -259,7 +260,7 @@ function capitalizeFirst(str) {
   right: 0;
   bottom: 0;
   background-color: var(--toggle-bg);
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 24px;
 }
 
@@ -271,7 +272,7 @@ function capitalizeFirst(str) {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 50%;
 }
 

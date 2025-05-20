@@ -7,15 +7,15 @@
 const DEFAULT_CONFIG = {
   // Global enable/disable for all logging
   enabled: true,
-  
+
   // Enable/disable specific log levels
   levels: {
     debug: true,
     log: true,
     warn: true,
-    error: true
+    error: true,
   },
-  
+
   // Enable/disable logging for specific components/modules
   // If a component is not listed here, it inherits from the global setting
   components: {
@@ -23,7 +23,7 @@ const DEFAULT_CONFIG = {
     App: true,
     Background: true,
     ContentScript: true,
-    
+
     // Dashboard components
     ConversationDetail: true,
     ConversationsList: true,
@@ -33,23 +33,23 @@ const DEFAULT_CONFIG = {
     TabNavigation: true,
     Visualizations: true,
     ToastNotification: true,
-    
+
     // Popup components
     PopupApp: true,
     Header: true,
     ConversationList: true,
-    
+
     // Utilities
     ThemeManager: true,
     DataHelpers: true,
     ChartHelpers: true,
     ModalHelpers: true,
-    UIHelpers: true
-  }
+    UIHelpers: true,
+  },
 };
 
 // Storage key for persisted config
-const CONFIG_STORAGE_KEY = 'gemini_log_config';
+const CONFIG_STORAGE_KEY = "gemini_log_config";
 
 // Cache for the loaded configuration to avoid frequent localStorage reads
 let configCache = null;
@@ -65,10 +65,10 @@ export function loadLogConfig(forceRefresh = false) {
   if (configCache !== null && !forceRefresh) {
     return configCache;
   }
-  
+
   try {
     const storedConfig = localStorage.getItem(CONFIG_STORAGE_KEY);
-    
+
     if (storedConfig) {
       // Merge with default config to ensure all properties exist
       const parsedConfig = JSON.parse(storedConfig);
@@ -77,12 +77,12 @@ export function loadLogConfig(forceRefresh = false) {
         ...parsedConfig,
         levels: {
           ...DEFAULT_CONFIG.levels,
-          ...(parsedConfig.levels || {})
+          ...(parsedConfig.levels || {}),
         },
         components: {
           ...DEFAULT_CONFIG.components,
-          ...(parsedConfig.components || {})
-        }
+          ...(parsedConfig.components || {}),
+        },
       };
       return configCache;
     }
@@ -91,7 +91,7 @@ export function loadLogConfig(forceRefresh = false) {
     // On error, invalidate the cache
     configCache = null;
   }
-  
+
   // Cache the default config if nothing was loaded
   configCache = DEFAULT_CONFIG;
   return DEFAULT_CONFIG;
@@ -128,22 +128,22 @@ export function saveLogConfig(config) {
  */
 export function isLoggingEnabled(component, level) {
   const config = loadLogConfig();
-  
+
   // If logging is globally disabled, return false
   if (!config.enabled) {
     return false;
   }
-  
+
   // If the log level is disabled, return false
   if (!config.levels[level]) {
     return false;
   }
-  
+
   // If the component is explicitly configured, use that setting
   if (component && Object.hasOwn(config.components, component)) {
     return config.components[component];
   }
-  
+
   // Default to true if not explicitly configured
   return true;
 }
@@ -201,5 +201,5 @@ export default {
   setComponentLogging,
   setGlobalLogging,
   setLogLevel,
-  invalidateConfigCache
+  invalidateConfigCache,
 };

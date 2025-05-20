@@ -32,22 +32,20 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps } from "vue";
 
 defineProps({
   stats: {
     type: Object,
     default: () => ({
       totalConversations: 0,
-      mostUsedModel: '-',
-      mostUsedModelCount: '',
-      firstConversationTime: '-',
-      lastConversationTime: '-',
-      avgTitleLength: '-',
-      totalFilesUploaded: 0
-    })
-  }
+      mostUsedModel: "-",
+      mostUsedModelCount: "",
+      firstConversationTime: "-",
+      lastConversationTime: "-",
+      avgTitleLength: "-",
+      totalFilesUploaded: 0,
+    }),
+  },
 });
 </script>
-
-

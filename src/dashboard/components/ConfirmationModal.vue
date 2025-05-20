@@ -17,26 +17,24 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits } from "vue";
 
 // Define props
 defineProps({
   show: {
     type: Boolean,
-    default: false
+    default: false,
   },
   title: {
     type: String,
-    default: 'Confirmation'
+    default: "Confirmation",
   },
   message: {
     type: String,
-    default: 'Are you sure you want to proceed?'
-  }
+    default: "Are you sure you want to proceed?",
+  },
 });
 
 // Define emits
-defineEmits(['confirm', 'cancel']);
+defineEmits(["confirm", "cancel"]);
 </script>
-
-

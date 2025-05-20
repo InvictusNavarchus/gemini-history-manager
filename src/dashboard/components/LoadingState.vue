@@ -6,14 +6,12 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps } from "vue";
 
 defineProps({
   message: {
     type: String,
-    default: 'Loading...'
-  }
+    default: "Loading...",
+  },
 });
 </script>
-
-

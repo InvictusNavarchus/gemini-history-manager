@@ -14,42 +14,42 @@ Gemini History Manager is a browser extension designed to automatically track, m
 <details>
 <summary><strong>Click to expand/collapse full feature list</strong></summary>
 
-* **🤖 Automatic Chat Tracking**:
-    * Captures chat URL, title, and an ISO 8601 UTC timestamp.
-    * Identifies the Gemini model used (e.g., "2.5 Pro", "2.0 Flash", "Deep Research", "Veo 2").
-    * Records the initial prompt and a list of any attached filenames.
-    * Attempts to extract the Google account name and email associated with the chat.
-    * Prevents duplicate entries based on chat URL.
-* **🚦 Status Indicator**:
-    * Displays a non-intrusive status indicator (e.g., "Saving chat...", "Chat saved") on the Gemini page during tracking.
-* **🖼️ Browser Action Popup (Vue-powered)**:
-    * Provides a quick overview: total conversations, most frequently used model, and the time of the last conversation.
-    * Lists recent conversations with direct links.
-    * Includes buttons to open the full dashboard, export history, and import history.
-    * Features a theme toggle (Light/Dark).
-* **📊 Full Dashboard Page (Vue-powered)**:
-    * **Comprehensive List View**: Displays all saved conversations.
-    * **Search & Filtering**:
-        * Search by chat title and prompt content.
-        * Filter by Gemini model.
-        * Filter by date range (All Time, Today, This Week, This Month, Custom Range).
-    * **Sorting**: Sort conversations by date (newest/oldest), title, or model.
-    * **Detailed View**: Click on a conversation to view full details (title, date, model, account, prompt, attached files) in a modal.
-    * **Data Statistics**:
-        * Total conversations.
-        * Most used model and its count.
-        * Average title length.
-        * Timestamps of the first and last conversations.
-        * Total number of files uploaded across all chats.
-    * **Visualizations (using Chart.js)**:
-        * **Model Distribution**: Bar chart showing the usage frequency of different Gemini models.
-        * **Activity Over Time**: Line chart illustrating the number of conversations over different periods.
-    * **Data Management**:
-        * **Export History**: Export all or filtered history as a JSON file.
-        * **Import History**: Import history from a previously exported JSON file, merging new entries and avoiding duplicates.
-        * **Clear All History**: Permanently delete all stored conversations.
-    * **Theme Toggling**: Switch between Light and Dark themes.
-    * **Toast Notifications**: Provides feedback for actions like saving, deleting, importing, or exporting data.
+- **🤖 Automatic Chat Tracking**:
+  - Captures chat URL, title, and an ISO 8601 UTC timestamp.
+  - Identifies the Gemini model used (e.g., "2.5 Pro", "2.0 Flash", "Deep Research", "Veo 2").
+  - Records the initial prompt and a list of any attached filenames.
+  - Attempts to extract the Google account name and email associated with the chat.
+  - Prevents duplicate entries based on chat URL.
+- **🚦 Status Indicator**:
+  - Displays a non-intrusive status indicator (e.g., "Saving chat...", "Chat saved") on the Gemini page during tracking.
+- **🖼️ Browser Action Popup (Vue-powered)**:
+  - Provides a quick overview: total conversations, most frequently used model, and the time of the last conversation.
+  - Lists recent conversations with direct links.
+  - Includes buttons to open the full dashboard, export history, and import history.
+  - Features a theme toggle (Light/Dark).
+- **📊 Full Dashboard Page (Vue-powered)**:
+  - **Comprehensive List View**: Displays all saved conversations.
+  - **Search & Filtering**:
+    - Search by chat title and prompt content.
+    - Filter by Gemini model.
+    - Filter by date range (All Time, Today, This Week, This Month, Custom Range).
+  - **Sorting**: Sort conversations by date (newest/oldest), title, or model.
+  - **Detailed View**: Click on a conversation to view full details (title, date, model, account, prompt, attached files) in a modal.
+  - **Data Statistics**:
+    - Total conversations.
+    - Most used model and its count.
+    - Average title length.
+    - Timestamps of the first and last conversations.
+    - Total number of files uploaded across all chats.
+  - **Visualizations (using Chart.js)**:
+    - **Model Distribution**: Bar chart showing the usage frequency of different Gemini models.
+    - **Activity Over Time**: Line chart illustrating the number of conversations over different periods.
+  - **Data Management**:
+    - **Export History**: Export all or filtered history as a JSON file.
+    - **Import History**: Import history from a previously exported JSON file, merging new entries and avoiding duplicates.
+    - **Clear All History**: Permanently delete all stored conversations.
+  - **Theme Toggling**: Switch between Light and Dark themes.
+  - **Toast Notifications**: Provides feedback for actions like saving, deleting, importing, or exporting data.
 
 </details>
 
@@ -60,33 +60,32 @@ Gemini History Manager is a browser extension designed to automatically track, m
 The extension operates through several key components:
 
 1.  **Content Script (`content-scripts/gemini-tracker.js`)**:
-    * Injects into `https://gemini.google.com/*` pages.
-    * Monitors user interactions, specifically clicks on the "Send" button when initiating a new chat.
-    * Captures the current model, prompt text, and any attached filenames.
-    * Utilizes `MutationObserver` to detect the newly created conversation item and its generated title in the sidebar.
-    * Saves the complete chat entry (timestamp, URL, title, model, prompt, files, account info) to `browser.storage.local`.
-    * Displays a status indicator for user feedback.
+    - Injects into `https://gemini.google.com/*` pages.
+    - Monitors user interactions, specifically clicks on the "Send" button when initiating a new chat.
+    - Captures the current model, prompt text, and any attached filenames.
+    - Utilizes `MutationObserver` to detect the newly created conversation item and its generated title in the sidebar.
+    - Saves the complete chat entry (timestamp, URL, title, model, prompt, files, account info) to `browser.storage.local`.
+    - Displays a status indicator for user feedback.
 2.  **Background Script (`background.js`)**:
-    * Updates the browser action badge with the total number of saved conversations.
-    * Handles the browser action click to show the popup.
-    * Responds to messages from other scripts, such as a request to open the full dashboard page.
+    - Updates the browser action badge with the total number of saved conversations.
+    - Handles the browser action click to show the popup.
+    - Responds to messages from other scripts, such as a request to open the full dashboard page.
 3.  **Popup (`popup/main.js` and `popup/App.vue`)**:
-    * A Vue.js application that retrieves history data from `browser.storage.local`.
-    * Displays key statistics and a list of recent conversations.
-    * Provides navigation to the full dashboard and data management actions (export/import).
+    - A Vue.js application that retrieves history data from `browser.storage.local`.
+    - Displays key statistics and a list of recent conversations.
+    - Provides navigation to the full dashboard and data management actions (export/import).
 4.  **Dashboard (`dashboard/main.js` and `dashboard/App.vue`)**:
-    * A Vue.js application that loads all history data from `browser.storage.local`.
-    * Offers a rich user interface for viewing, filtering, sorting, visualizing, and managing chat history.
-    * Uses Day.js for date and time manipulations and Chart.js for data visualizations.
+    - A Vue.js application that loads all history data from `browser.storage.local`.
+    - Offers a rich user interface for viewing, filtering, sorting, visualizing, and managing chat history.
+    - Uses Day.js for date and time manipulations and Chart.js for data visualizations.
 5.  **Shared Libraries (`lib/`)**:
-    * **`utils.js` / `themeManager.js`**: Contains shared functions for logging, date formatting (using Day.js), and theme management (light/dark modes).
+    - **`utils.js` / `themeManager.js`**: Contains shared functions for logging, date formatting (using Day.js), and theme management (light/dark modes).
 
 ---
 
 ## 📥 Installation
 
-> [!IMPORTANT]
-> **Web Store Availability**: This extension is not yet available on the Chrome Web Store or Firefox Add-ons. Links will be provided here once published.
+> [!IMPORTANT] > **Web Store Availability**: This extension is not yet available on the Chrome Web Store or Firefox Add-ons. Links will be provided here once published.
 
 ### Manual Installation (Developer Mode)
 
@@ -123,63 +122,63 @@ The extension icon should now appear in your browser's toolbar.
 
 ### Tracking Chats
 
-* Simply use Google Gemini as you normally would. The extension automatically detects when a new chat is initiated.
-* Once the chat is established and Gemini generates a title for it in the sidebar, the extension saves its details (URL, title, timestamp, model, initial prompt, and any files).
-* A small status indicator in the bottom-right corner of the Gemini page will provide feedback on the tracking process.
+- Simply use Google Gemini as you normally would. The extension automatically detects when a new chat is initiated.
+- Once the chat is established and Gemini generates a title for it in the sidebar, the extension saves its details (URL, title, timestamp, model, initial prompt, and any files).
+- A small status indicator in the bottom-right corner of the Gemini page will provide feedback on the tracking process.
 
 ### Popup Interface
 
-* Click the Gemini History Manager icon in your browser toolbar.
-* The popup displays:
-    * Total conversations, most used model, and the time of the last conversation.
-    * A list of your most recent conversations (clickable to open in a new tab).
-    * Buttons for:
-        * Opening the full dashboard view.
-        * Exporting your chat history.
-        * Importing chat history from a JSON file.
-        * Toggling between light and dark themes.
+- Click the Gemini History Manager icon in your browser toolbar.
+- The popup displays:
+  - Total conversations, most used model, and the time of the last conversation.
+  - A list of your most recent conversations (clickable to open in a new tab).
+  - Buttons for:
+    - Opening the full dashboard view.
+    - Exporting your chat history.
+    - Importing chat history from a JSON file.
+    - Toggling between light and dark themes.
 
 ### Dashboard Interface
 
-* Access the dashboard via the "Open Full View" button in the popup.
+- Access the dashboard via the "Open Full View" button in the popup.
 
     <details>
     <summary><strong>Dashboard Tabs & Functionality</strong></summary>
 
-    * **📈 History Tab**:
-        * **View History**: Scroll through the list of all your conversations.
-        * **Filter & Sort**: Use the controls in the sidebar and header to refine and reorder your history by search term, model, date range, and sort criteria.
-        * **Details**: Click any conversation to see its full details in a modal.
-    * **📊 Visualization Tab**:
-        * **Statistics Overview**: View cards with key metrics about your chat history.
-        * **Charts**:
-            * **Model Distribution**: See which Gemini models you use most frequently.
-            * **Activity Over Time**: Track your conversation frequency over time, with options to view combined activity or activity per model.
-    * **⚙️ Data Management (Header Buttons)**:
-        * **Export History**: Export all or currently filtered conversations to a JSON file.
-        * **Import History**: Select a previously exported JSON file to merge its contents with your current history (duplicates are avoided).
-        * **Clear All History**: Permanently delete all stored chat history (a confirmation will be required).
-        * **Theme Toggle**: Switch between light and dark modes for the dashboard.
-    </details>
+  - **📈 History Tab**:
+    - **View History**: Scroll through the list of all your conversations.
+    - **Filter & Sort**: Use the controls in the sidebar and header to refine and reorder your history by search term, model, date range, and sort criteria.
+    - **Details**: Click any conversation to see its full details in a modal.
+  - **📊 Visualization Tab**:
+    - **Statistics Overview**: View cards with key metrics about your chat history.
+    - **Charts**:
+      - **Model Distribution**: See which Gemini models you use most frequently.
+      - **Activity Over Time**: Track your conversation frequency over time, with options to view combined activity or activity per model.
+  - **⚙️ Data Management (Header Buttons)**:
+  _ **Export History**: Export all or currently filtered conversations to a JSON file.
+  _ **Import History**: Select a previously exported JSON file to merge its contents with your current history (duplicates are avoided).
+  _ **Clear All History**: Permanently delete all stored chat history (a confirmation will be required).
+  _ **Theme Toggle**: Switch between light and dark modes for the dashboard.
+  </details>
 
 ---
 
 ## 🧩 Key Components
 
-* **`manifest.json`**: Defines the extension's name, version, permissions, and core script paths.
-* **`src/background.js`**: Manages background tasks like badge updates and message handling.
-* **`src/content-scripts/gemini-tracker.js`**: The core script injected into Gemini pages for chat tracking and data extraction.
-* **`src/popup/App.vue` & `src/popup/main.js`**: Vue.js application for the browser action popup.
-* **`src/dashboard/App.vue` & `src/dashboard/main.js`**: Vue.js application for the full dashboard page.
-* **`src/lib/utils.js` & `src/lib/themeManager.js`**: Shared utility functions for logging, date/time operations (Day.js), and theme management.
-* **`vite.config.js`**: Configuration for Vite, the build tool used for the project.
+- **`manifest.json`**: Defines the extension's name, version, permissions, and core script paths.
+- **`src/background.js`**: Manages background tasks like badge updates and message handling.
+- **`src/content-scripts/gemini-tracker.js`**: The core script injected into Gemini pages for chat tracking and data extraction.
+- **`src/popup/App.vue` & `src/popup/main.js`**: Vue.js application for the browser action popup.
+- **`src/dashboard/App.vue` & `src/dashboard/main.js`**: Vue.js application for the full dashboard page.
+- **`src/lib/utils.js` & `src/lib/themeManager.js`**: Shared utility functions for logging, date/time operations (Day.js), and theme management.
+- **`vite.config.js`**: Configuration for Vite, the build tool used for the project.
 
 ---
 
 ## 🔐 Permissions Required
 
-* **`storage`**: To save and retrieve your Gemini chat history locally using `browser.storage.local`.
-* **`unlimitedStorage`**: To allow for a potentially large amount of chat history to be stored.
+- **`storage`**: To save and retrieve your Gemini chat history locally using `browser.storage.local`.
+- **`unlimitedStorage`**: To allow for a potentially large amount of chat history to be stored.
 
 ---
 
@@ -188,13 +187,13 @@ The extension icon should now appear in your browser's toolbar.
 <details>
 <summary><strong>View Full Stack</strong></summary>
 
-* **Core**: JavaScript (ES6+)
-* **UI Framework**: Vue.js (v3)
-* **Browser API**: WebExtensions API
-* **Styling**: HTML5 & CSS3
-* **Build Tool**: Vite
-* **Date/Time**: Day.js (with plugins: `utc`, `relativeTime`, `isToday`, `localizedFormat`, `calendar`, `timezone`, `isSameOrBefore`)
-* **Charts**: Chart.js (v4)
+- **Core**: JavaScript (ES6+)
+- **UI Framework**: Vue.js (v3)
+- **Browser API**: WebExtensions API
+- **Styling**: HTML5 & CSS3
+- **Build Tool**: Vite
+- **Date/Time**: Day.js (with plugins: `utc`, `relativeTime`, `isToday`, `localizedFormat`, `calendar`, `timezone`, `isSameOrBefore`)
+- **Charts**: Chart.js (v4)
 
 </details>
 
@@ -204,8 +203,8 @@ The extension icon should now appear in your browser's toolbar.
 
 ### Prerequisites
 
-* Node.js (v18+ recommended)
-* Package manager: pnpm, npm, or Yarn
+- Node.js (v18+ recommended)
+- Package manager: pnpm, npm, or Yarn
 
 ### Setup
 
@@ -215,55 +214,62 @@ The extension icon should now appear in your browser's toolbar.
     cd gemini-history-manager
     ```
 2.  **Install dependencies**:
+
     ```bash
     # Using pnpm
     pnpm install
-    
+
     # Using npm
     npm install
-    
+
     # Using Yarn
     yarn install
     ```
+
 3.  **Build the project**:
+
     ```bash
     # Using pnpm
     pnpm run build
-    
+
     # Using npm
     npm run build
-    
+
     # Using Yarn
     yarn build
     ```
+
     This generates the installable extension in the `dist` directory.
 
 ### Development Commands
 
-* **Development mode**:
+- **Development mode**:
+
   ```bash
   # Using pnpm
   pnpm run dev
-  
+
   # Using npm
   npm run dev
-  
+
   # Using Yarn
   yarn dev
   ```
+
   Build in watch mode & run in a Firefox development profile with hot reload.
 
-* **Other commands**:
+- **Other commands**:
+
   ```bash
   # Build for production
   pnpm run build | npm run build | yarn build
-  
+
   # Preview build
   pnpm run preview | npm run preview | yarn preview
-  
+
   # Lint project
   pnpm run lint | npm run lint | yarn lint
-  
+
   # Package extension
   pnpm run package | npm run package | yarn package
   ```
