@@ -102,23 +102,23 @@ export function filterAndSortHistory(history, filters) {
     if (filters.dateFilter === 'today') {
       startDate = now.startOf('day');
       endDate = now.endOf('day');
-      Logger.debug(`Date filter "today": from ${startDate.format()} to ${endDate.format()}`);
+      Logger.debug("dataHelpers", `Date filter "today": from ${startDate.format()} to ${endDate.format()}`);
     } else if (filters.dateFilter === 'yesterday') {
       startDate = now.subtract(1, 'day').startOf('day');
       endDate = now.subtract(1, 'day').endOf('day');
-      Logger.debug(`Date filter "yesterday": from ${startDate.format()} to ${endDate.format()}`);
+      Logger.debug("dataHelpers", `Date filter "yesterday": from ${startDate.format()} to ${endDate.format()}`);
     } else if (filters.dateFilter === 'thisWeek') {
       startDate = now.startOf('week');
       endDate = now;
-      Logger.debug(`Date filter "thisWeek": from ${startDate.format()} to ${endDate.format()}`);
+      Logger.debug("dataHelpers", `Date filter "thisWeek": from ${startDate.format()} to ${endDate.format()}`);
     } else if (filters.dateFilter === 'thisMonth') {
       startDate = now.startOf('month');
       endDate = now;
-      Logger.debug(`Date filter "thisMonth": from ${startDate.format()} to ${endDate.format()}`);
+      Logger.debug("dataHelpers", `Date filter "thisMonth": from ${startDate.format()} to ${endDate.format()}`);
     } else if (filters.dateFilter === 'custom') {
       startDate = dayjs(filters.customStartDate).startOf('day');
       endDate = dayjs(filters.customEndDate).endOf('day');
-      Logger.debug(`Custom date filter: from ${startDate.format()} to ${endDate.format()}`);
+      Logger.debug("dataHelpers", `Custom date filter: from ${startDate.format()} to ${endDate.format()}`);
     }
     
     if (startDate && endDate) {
@@ -138,27 +138,27 @@ export function filterAndSortHistory(history, filters) {
   
   switch (filters.sortBy) {
     case 'date-desc':
-      Logger.debug('Sorting by date descending (newest first)');
+      Logger.debug("dataHelpers", 'Sorting by date descending (newest first)');
       items.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
       break;
     case 'date-asc':
-      Logger.debug('Sorting by date ascending (oldest first)');
+      Logger.debug("dataHelpers", 'Sorting by date ascending (oldest first)');
       items.sort((a, b) => parseTimestamp(a.timestamp).valueOf() - parseTimestamp(b.timestamp).valueOf());
       break;
     case 'title-asc':
-      Logger.debug('Sorting by title ascending (A to Z)');
+      Logger.debug("dataHelpers", 'Sorting by title ascending (A to Z)');
       items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
       break;
     case 'title-desc':
-      Logger.debug('Sorting by title descending (Z to A)');
+      Logger.debug("dataHelpers", 'Sorting by title descending (Z to A)');
       items.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
       break;
     case 'model':
-      Logger.debug('Sorting by model name');
+      Logger.debug("dataHelpers", 'Sorting by model name');
       items.sort((a, b) => (a.model || '').localeCompare(b.model || ''));
       break;
     default:
-      Logger.debug('Using default sort order (date descending)');
+      Logger.debug("dataHelpers", 'Using default sort order (date descending)');
       items.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
   }
   
@@ -189,7 +189,7 @@ export function generateDashboardStats(historyData) {
     return stats;
   }
   
-  Logger.debug(`Starting statistics calculation for ${historyData.length} conversations`)
+  Logger.debug("dataHelpers", `Starting statistics calculation for ${historyData.length} conversations`)
 
   // Calculate most used model
   Logger.debug("Calculating model usage statistics");
@@ -199,19 +199,19 @@ export function generateDashboardStats(historyData) {
     return acc;
   }, {});
   
-  Logger.debug(`Model distribution: ${JSON.stringify(modelCounts)}`);
+  Logger.debug("dataHelpers", `Model distribution: ${JSON.stringify(modelCounts)}`);
   
   const mostUsed = Object.entries(modelCounts).sort((a, b) => b[1] - a[1])[0];
   stats.mostUsedModel = mostUsed ? mostUsed[0] : '-';
   stats.mostUsedModelCount = mostUsed ? `(${mostUsed[1]} chats)` : '';
   
-  Logger.debug(`Most used model: ${stats.mostUsedModel} ${stats.mostUsedModelCount}`);
+  Logger.debug("dataHelpers", `Most used model: ${stats.mostUsedModel} ${stats.mostUsedModelCount}`);
 
   // Calculate average title length
   Logger.debug("Calculating average title length");
   const totalTitleLength = historyData.reduce((acc, entry) => acc + (entry.title ? entry.title.length : 0), 0);
   stats.avgTitleLength = Math.round(historyData.length > 0 ? totalTitleLength / historyData.length : 0);
-  Logger.debug(`Average title length: ${stats.avgTitleLength} characters from ${totalTitleLength} total characters`);
+  Logger.debug("dataHelpers", `Average title length: ${stats.avgTitleLength} characters from ${totalTitleLength} total characters`);
 
   // Get first and last conversation times
   Logger.debug("Calculating first and last conversation times");
@@ -226,8 +226,8 @@ export function generateDashboardStats(historyData) {
     stats.firstConversationTime = firstTimestamp.fromNow();
     stats.lastConversationTime = lastTimestamp.fromNow();
     
-    Logger.debug(`First conversation: ${firstTimestamp.format()} (${stats.firstConversationTime})`);
-    Logger.debug(`Last conversation: ${lastTimestamp.format()} (${stats.lastConversationTime})`);
+    Logger.debug("dataHelpers", `First conversation: ${firstTimestamp.format()} (${stats.firstConversationTime})`);
+    Logger.debug("dataHelpers", `Last conversation: ${lastTimestamp.format()} (${stats.lastConversationTime})`);
   } else {
     Logger.warn("Failed to determine conversation time range");
   }
@@ -235,7 +235,7 @@ export function generateDashboardStats(historyData) {
   // Count attached files
   Logger.debug("Calculating total files uploaded");
   stats.totalFilesUploaded = historyData.reduce((acc, entry) => acc + (entry.attachedFiles ? entry.attachedFiles.length : 0), 0);
-  Logger.debug(`Total files uploaded: ${stats.totalFilesUploaded}`);
+  Logger.debug("dataHelpers", `Total files uploaded: ${stats.totalFilesUploaded}`);
 
   Logger.log("dataHelpers", `Statistics generation complete: ${stats.totalConversations} conversations, ${Object.keys(modelCounts).length} unique models`);
   return stats;
@@ -253,7 +253,7 @@ export function getAvailableModels(historyData) {
   const modelSet = new Set(historyData.map(item => item.model || 'Unknown'));
   const sortedModels = Array.from(modelSet).sort();
   
-  Logger.debug(`Found ${sortedModels.length} unique models: ${sortedModels.join(', ')}`);
+  Logger.debug("dataHelpers", `Found ${sortedModels.length} unique models: ${sortedModels.join(', ')}`);
   return sortedModels;
 }
 

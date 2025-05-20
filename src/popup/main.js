@@ -23,7 +23,7 @@ import { initializeTheme, Logger, THEME_STORAGE_KEY } from '../lib/utils.js';
   // Initialize logger with popup context
   Logger.initLogger('POPUP');
   
-  Logger.debug(`Popup initialized with theme: ${appliedTheme}`);
+  Logger.debug("popup", `Popup initialized with theme: ${appliedTheme}`);
 })();
 
 import { createApp } from 'vue'; // Import createApp function from Vue
@@ -43,4 +43,4 @@ const app = createApp(App);
 // This ID is present in src/popup/popup.html
 app.mount('#app');
 
-Logger.log('Popup Vue app initialized and mounted.');
+Logger.log("popup", 'Popup Vue app initialized and mounted.');

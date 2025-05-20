@@ -94,20 +94,20 @@ const vizChartCanvas = ref(null);
 
 // Lifecycle hooks
 onMounted(() => {
-  Logger.log('Visualizations component mounted');
+  Logger.log('Visualizations', 'Visualizations component mounted');
   
   // Check if canvas is available
   if (vizChartCanvas.value) {
-    Logger.debug('Canvas reference obtained successfully');
-    Logger.debug(`Canvas dimensions: ${vizChartCanvas.value.width}x${vizChartCanvas.value.height}`);
+    Logger.debug('Visualizations', 'Canvas reference obtained successfully');
+    Logger.debug('Visualizations', `Canvas dimensions: ${vizChartCanvas.value.width}x${vizChartCanvas.value.height}`);
     
     // Signal to parent that the visualization component is ready to render
     nextTick(() => {
-      Logger.log('Canvas ready in DOM, requesting initial chart render');
+      Logger.log('Visualizations', 'Canvas ready in DOM, requesting initial chart render');
       emit('render-chart');
     });
   } else {
-    Logger.warn('Canvas reference not available on mount - charts may not render properly');
+    Logger.warn('Visualizations', 'Canvas reference not available on mount - charts may not render properly');
   }
   
   Logger.debug('Visualizations', 'Visualization component mount complete');

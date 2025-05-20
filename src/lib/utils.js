@@ -57,10 +57,8 @@ export const Logger = {
         return;
       }
       
-      if (typeof message === 'string' && args.length === 0) {
-        // Legacy format support
-        console[method](this.LOG_PREFIX, this.CONTEXT_PREFIX, context);
-      } else if (error instanceof Error) {
+      // Always include context in brackets and the message
+      if (error instanceof Error) {
         console[method](this.LOG_PREFIX, this.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
       } else {
         console[method](this.LOG_PREFIX, this.CONTEXT_PREFIX, `[${context}]`, message, ...(error !== undefined ? [error] : []), ...args);
@@ -156,7 +154,7 @@ export function dayjsFormatDate(dateInput, includeYear = false) {
   const d = parseTimestamp(dateInput);
   
   if (!d.isValid()) {
-    Logger.warn(`Invalid date input: ${dateInput}`);
+    Logger.warn("utils", `Invalid date input: ${dateInput}`);
     return 'Invalid date';
   }
   
@@ -176,7 +174,7 @@ export function dayjsFormatDate(dateInput, includeYear = false) {
  */
 export function formatDateForDisplay(djsDate) {
   if (!djsDate || !djsDate.isValid()) {
-    Logger.warn("Invalid date for formatDateForDisplay");
+    Logger.warn("utils", "Invalid date for formatDateForDisplay");
     return "Invalid Date";
   }
   
@@ -185,7 +183,7 @@ export function formatDateForDisplay(djsDate) {
     return djsDate.calendar();
   } else {
     // Fallback if calendar plugin somehow isn't loaded on the instance
-    Logger.warn("Day.js calendar function not found on date instance, falling back to basic format.");
+    Logger.warn("utils", "Day.js calendar function not found on date instance, falling back to basic format.");
     return djsDate.format('YYYY-MM-DD HH:mm'); 
   }
 }
@@ -226,9 +224,9 @@ export function initDayjsPlugins() {
     dayjs.extend(timezone);
     dayjs.extend(isSameOrBefore);
     
-    Logger.debug("Day.js plugins initialized.");
+    Logger.debug("utils", "Day.js plugins initialized.");
   } catch (e) {
-    Logger.error("Error initializing Day.js plugins:", e);
+    Logger.error("utils", "Error initializing Day.js plugins:", e);
   }
 }
 

@@ -15,10 +15,8 @@ const Logger = {
       return;
     }
     
-    if (typeof message === 'string' && args.length === 0) {
-      // Legacy format support
-      console[method](this.LOG_PREFIX, context);
-    } else if (error instanceof Error) {
+    // Always include context in brackets and the message
+    if (error instanceof Error) {
       console[method](this.LOG_PREFIX, `[${context}]`, message, error, ...args);
     } else {
       console[method](this.LOG_PREFIX, `[${context}]`, message, ...(error !== undefined ? [error] : []), ...args);
