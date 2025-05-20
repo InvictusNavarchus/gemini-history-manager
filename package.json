@@ -8,7 +8,9 @@
     "dev": "vite build --watch && web-ext run --firefox-profile=development --source-dir ./dist/",
     "preview": "vite preview",
     "lint": "web-ext lint --source-dir ./dist/",
-    "package": "vite build && web-ext build --config ./web-ext-config.cjs"
+    "package": "vite build && web-ext build --config ./web-ext-config.cjs",
+    "format": "prettier --write \"**/*.{js,vue,json,css,md,html}\"",
+    "format:check": "prettier --check \"**/*.{js,vue,json,css,md,html}\""
   },
   "keywords": [
     "gemini",
@@ -24,6 +26,7 @@
     "@vitejs/plugin-vue": "^5.0.5",
     "fs-extra": "^11.1.0",
     "glob": "^11.0.2",
+    "prettier": "^3.5.3",
     "vite": "^6.3.5",
     "web-ext": "^7.6.2"
   },

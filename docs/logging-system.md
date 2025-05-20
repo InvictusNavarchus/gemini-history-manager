@@ -14,16 +14,19 @@ The Gemini History Manager extension implements a flexible, centralized logging 
 ### Core Components
 
 1. **logConfig.js**: The central configuration module that provides:
+
    - Default configuration
    - Methods for loading and saving configuration
    - Helper functions for enabling/disabling specific log types
 
 2. **Logger Module**: The logging implementation in utils.js that:
+
    - Checks if logging is enabled for a given component and level
    - Formats log messages with contextual information
    - Provides backward compatibility with legacy code
 
 3. **Content Script Logger**: A separate logger implementation for content scripts that:
+
    - Uses the same configuration structure as the main Logger
    - Avoids circular dependencies
 
@@ -56,6 +59,7 @@ Choose the appropriate log level:
 - `error`: Critical issues that need attention
 
 Example:
+
 ```javascript
 // Debug message with component context and data
 Logger.debug("ThemeManager", "Applying theme", { theme: "dark" });
@@ -69,16 +73,19 @@ Logger.error("DataLoader", "Failed to load data", error, { attempts: retryCount 
 When creating a new component that needs logging:
 
 1. Import the Logger:
+
 ```javascript
-import { Logger } from '../../lib/utils.js';
+import { Logger } from "../../lib/utils.js";
 ```
 
 2. Use the context-based logging pattern:
+
 ```javascript
 Logger.log("YourComponent", "Event description", { relevantData });
 ```
 
 3. Add your component to the DEFAULT_CONFIG in logConfig.js:
+
 ```javascript
 components: {
   // ... existing components
@@ -101,6 +108,7 @@ To enable detailed debug logs:
 ### Common Issues
 
 **Logs not showing**: Check if:
+
 - The global logging is enabled
 - The specific log level is enabled
 - The component is enabled
@@ -132,11 +140,13 @@ The log configuration is stored in localStorage as a JSON object with this struc
 ### Log Format
 
 Log messages follow this format:
+
 ```
 [Gemini History] [ComponentName] Message additional_data
 ```
 
 Example:
+
 ```
 [Gemini History] [ThemeManager] Applying theme { theme: "dark" }
 ```

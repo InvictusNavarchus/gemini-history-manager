@@ -8,22 +8,20 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps } from "vue";
 
 defineProps({
   icon: {
     type: String,
-    default: '📋'
+    default: "📋",
   },
   title: {
     type: String,
-    default: 'No Data Found'
+    default: "No Data Found",
   },
   message: {
     type: String,
-    default: 'There is no data available to display.'
-  }
+    default: "There is no data available to display.",
+  },
 });
 </script>
-
-

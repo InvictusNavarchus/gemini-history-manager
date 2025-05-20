@@ -5,16 +5,16 @@
 
 /* Default light theme background */
 html {
-  background-color: #f9f9fb; 
+  background-color: #f9f9fb;
 }
 
 /* Explicit dark theme */
-html[data-theme='dark'] {
-  background-color: #121212; 
+html[data-theme="dark"] {
+  background-color: #121212;
 }
 
 /* Explicit light theme - must override system preference */
-html[data-theme='light'] {
+html[data-theme="light"] {
   background-color: #f9f9fb !important;
 }
 

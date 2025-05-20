@@ -16,22 +16,20 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps } from "vue";
 
 defineProps({
   totalConversations: {
     type: Number,
-    default: 0
+    default: 0,
   },
   mostUsedModelText: {
     type: String,
-    default: '-'
+    default: "-",
   },
   lastConversationTimeText: {
     type: String,
-    default: '-'
-  }
+    default: "-",
+  },
 });
 </script>
-
-

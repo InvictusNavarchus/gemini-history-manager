@@ -11,27 +11,25 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits } from "vue";
 
 // Define props
 defineProps({
   isLoading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   errorState: {
     type: Object,
-    default: () => ({ hasError: false, message: '' })
-  }
+    default: () => ({ hasError: false, message: "" }),
+  },
 });
 
 // Define emits
-const emit = defineEmits(['retry']);
+const emit = defineEmits(["retry"]);
 
 // Event handlers
 function retryInitialization() {
-  emit('retry');
+  emit("retry");
 }
 </script>
-
-

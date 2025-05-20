@@ -17,7 +17,7 @@
   --danger-hover: #c62828;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   --animation-speed: 0.3s;
-  
+
   /* Chart colors */
   --chart-color-1: #6e41e2;
   --chart-color-2: #47a3ff;
@@ -25,7 +25,7 @@
   --chart-color-4: #ffa726;
   --chart-color-5: #ef5350;
   --chart-color-6: #ab47bc;
-  
+
   /* Toast notification colors */
   --toast-success-bg: #4caf50;
   --toast-info-bg: #2196f3;
@@ -35,7 +35,7 @@
 }
 
 /* Dark theme variables */
-html[data-theme='dark'] {
+html[data-theme="dark"] {
   --primary-color: #8b68f0;
   --primary-dark: #6e41e2;
   --primary-light: #a88ff8;
@@ -51,7 +51,7 @@ html[data-theme='dark'] {
   --danger-color: #f44336;
   --danger-hover: #d32f2f;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  
+
   /* Toast notification colors - slightly lighter for better contrast in dark mode */
   --toast-success-bg: #4caf50;
   --toast-info-bg: #2196f3;
@@ -62,8 +62,8 @@ html[data-theme='dark'] {
 
 /* System preference dark mode - only applies when no explicit theme is set */
 @media (prefers-color-scheme: dark) {
-  html:not([data-theme]), 
-  html[data-theme='dark'] {
+  html:not([data-theme]),
+  html[data-theme="dark"] {
     --primary-color: #8b68f0;
     --primary-dark: #6e41e2;
     --primary-light: #a88ff8;
@@ -92,7 +92,10 @@ html[data-theme='dark'] {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 a {
@@ -101,7 +104,7 @@ a {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   color: var(--text-color);
   background-color: var(--bg-color);
   display: flex;
@@ -173,7 +176,6 @@ h1 {
 #searchFilter {
   background-color: var(--input-bg);
 }
-
 
 .search-container input:focus {
   outline: none;
@@ -294,7 +296,7 @@ main {
 }
 
 .page-tab.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -11px; /* Align with border-bottom of container */
   left: 0;
@@ -440,7 +442,6 @@ main {
   max-height: calc(100vh - 250px); /* Adjust as needed based on header/tabs height */
 }
 
-
 .conversation-item {
   padding: 15px 20px;
   border-bottom: 1px solid var(--border-color);
@@ -525,7 +526,6 @@ main {
   color: var(--text-color);
 }
 
-
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* More responsive */
@@ -596,7 +596,7 @@ main {
 }
 
 .viz-tab.active:after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -1px;
   left: 0;
@@ -609,7 +609,9 @@ main {
 #vizOptions {
   /* Reserve space at the bottom to prevent layout shifts when changing chart types */
   min-height: 84px;
-  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    visibility 0.2s ease-in-out;
 }
 
 .viz-options-panel {
@@ -626,7 +628,9 @@ main {
   align-items: center;
   gap: 10px;
   margin-bottom: 5px;
-  transition: visibility 0.2s, opacity 0.2s ease-in-out;
+  transition:
+    visibility 0.2s,
+    opacity 0.2s ease-in-out;
 }
 
 .viz-option-group:last-child {
@@ -676,12 +680,12 @@ main {
   margin-top: 15px; /* Add space between tabs and chart */
 }
 #vizChart {
-    max-height: 100%; /* Ensure chart canvas doesn't overflow its container */
+  max-height: 100%; /* Ensure chart canvas doesn't overflow its container */
 }
 
-
 /* Empty and Loading states */
-.empty-state, .loading-state {
+.empty-state,
+.loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -720,7 +724,9 @@ main {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Modal styles */
@@ -756,8 +762,14 @@ main {
 }
 
 @keyframes modalFadeIn {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-header {
@@ -830,50 +842,50 @@ main {
 }
 
 /* Dark theme specific adjustments */
-html[data-theme='dark'] .search-container input,
+html[data-theme="dark"] .search-container input,
 .search-container input.dark {
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--text-color);
   border-color: var(--border-color);
 }
 
-html[data-theme='dark'] .button,
+html[data-theme="dark"] .button,
 .button.dark {
   background-color: #2c2c2c;
 }
 
 /* Add specific hover effect for dark mode buttons with higher specificity */
-html[data-theme='dark'] .button:hover,
-html[data-theme='dark'] .primary-button:hover,
-html[data-theme='dark'] .danger-button:hover,
+html[data-theme="dark"] .button:hover,
+html[data-theme="dark"] .primary-button:hover,
+html[data-theme="dark"] .danger-button:hover,
 .button.dark:hover {
   background-color: #3a3a3a;
 }
 
 /* Style for primary button hover in dark mode */
-html[data-theme='dark'] .primary-button:hover {
+html[data-theme="dark"] .primary-button:hover {
   background-color: var(--primary-dark);
 }
 
 /* Style for danger button hover in dark mode */
-html[data-theme='dark'] .danger-button:hover {
+html[data-theme="dark"] .danger-button:hover {
   background-color: var(--danger-hover);
   color: #fff;
 }
 
-html[data-theme='dark'] .conversation-model,
+html[data-theme="dark"] .conversation-model,
 .conversation-model.dark {
   background-color: var(--primary-bg);
   color: var(--primary-light);
 }
 
-html[data-theme='dark'] .spinner,
+html[data-theme="dark"] .spinner,
 .spinner.dark {
   border-color: rgba(139, 104, 240, 0.2);
   border-top-color: var(--primary-light);
 }
 
-html[data-theme='dark'] .empty-state,
+html[data-theme="dark"] .empty-state,
 .empty-state.dark {
   color: var(--text-light);
 }
@@ -883,15 +895,15 @@ html[data-theme='dark'] .empty-state,
   .history-view-layout {
     flex-direction: column; /* Stack sidebar and content on smaller screens */
   }
-  
+
   .sidebar {
     width: 100%; /* Sidebar takes full width */
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Adjust for smaller screens */
   }
-  
+
   .viz-container {
     height: 250px; /* Adjust chart height */
   }
@@ -903,7 +915,7 @@ html[data-theme='dark'] .empty-state,
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .header-left {
     width: 100%;
     flex-direction: column;
@@ -915,7 +927,7 @@ html[data-theme='dark'] .empty-state,
     width: 100%;
     max-width: none;
   }
-  
+
   .controls {
     width: 100%;
     justify-content: space-between;
@@ -926,21 +938,21 @@ html[data-theme='dark'] .empty-state,
     padding: 6px 10px; /* Slightly smaller buttons */
     font-size: 12px;
   }
-  
+
   .conversation-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .sorting {
     width: 100%;
   }
-  
+
   .sorting select {
     flex-grow: 1;
   }
-  
+
   .conversation-meta {
     flex-direction: column;
     gap: 5px;
