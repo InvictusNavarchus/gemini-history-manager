@@ -651,4 +651,54 @@ function checkUrlParameters() {
 }
 </script>
 
+<style scoped>
+.settings-view-layout {
+  display: flex;
+  height: 100%;
+  gap: 1.5rem;
+}
 
+.settings-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.settings-nav {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.settings-nav-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.settings-nav-item:last-child {
+  border-bottom: none;
+}
+
+.settings-nav-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.settings-nav-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+</style>
