@@ -449,15 +449,15 @@ async function handleFileSelectedForImport(event) {
     
     const fileContent = await readFile(file);
     
-    // Use the helper function to import data
-    const { newItems, updatedHistory } = importHistoryData(fileContent, allHistory.value);
+    // Use the helper function to import data - now with await since the function is async
+    const { newItems, updatedHistory } = await importHistoryData(fileContent, allHistory.value);
     
     if (newItems.length > 0) {
       // Update history with imported data
       allHistory.value = updatedHistory;
       
-      // Save merged data
-      await saveData();
+      // No need to save again as importHistoryData now handles saving
+      // await saveData(); 
       updateDashboardStats();
       
       if (activeMainTab.value === 'visualizations') {
