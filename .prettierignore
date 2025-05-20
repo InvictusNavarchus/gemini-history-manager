@@ -1,0 +1,28 @@
+# Build output
+dist/
+dist-zip/
+
+# gitingest dump
+gitingest-dump/
+
+# Node modules
+node_modules/
+
+# Lockfiles
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Web-ext temporary files
+web-ext-artifacts/
+
+# OS-specific
+.DS_Store
+Thumbs.db
