@@ -383,42 +383,4 @@ function handleFileImported(event) {
 
 </script>
 
-<style scoped>
-/* Global styles are primarily handled by popup.css, linked in popup.html.
-  Component-specific styles are mainly moved to their respective components.
-  Only keep layout-related styles here.
-*/
 
-.popup-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* Ensure it tries to fill the popup window */
-  max-height: 580px; /* Approximate max height for a typical popup */
-}
-
-main {
-  flex-grow: 1; /* Allow main content to take available space */
-  overflow-y: auto; /* Allow scrolling for content if it overflows */
-  padding-bottom: 10px; /* Add some padding at the bottom */
-}
-
-footer {
-  flex-shrink: 0; /* Prevent footer from shrinking */
-  border-top: 1px solid var(--border-color); /* Re-add border that might be in global */
-  padding: 8px;
-  font-size: 11px;
-  text-align: center;
-  color: var(--text-light);
-}
-
-/* Header controls moved to Header.vue component */
-
-/* Since components have their own styles, we only need to keep
-   layout and positioning styles in the main App.vue */
-
-/* Minor adjustments for button sizing consistency if needed */
-.button {
-  white-space: nowrap; /* Prevent text wrapping in buttons */
-}
-
-</style>

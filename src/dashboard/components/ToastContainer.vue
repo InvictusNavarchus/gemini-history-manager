@@ -71,19 +71,4 @@ function removeToast(id) {
 }
 </script>
 
-<style scoped>
-.toast-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  pointer-events: none;
-}
 
-.toast-container > * {
-  pointer-events: auto;
-}
-</style>
