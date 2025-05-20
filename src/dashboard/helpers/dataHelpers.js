@@ -20,6 +20,18 @@ export async function saveHistoryData(historyData) {
     
     await browser.storage.local.set({ [STORAGE_KEY]: dataToSave });
     Logger.log("dataHelpers", `Saved ${dataToSave.length} conversations to storage`);
+    
+    // Send message to background script to update badge
+    try {
+      await browser.runtime.sendMessage({
+        action: "updateHistoryCount",
+        count: dataToSave.length
+      });
+      Logger.debug("dataHelpers", "Badge count update message sent successfully");
+    } catch (msgError) {
+      Logger.error("dataHelpers", "Error sending message to update badge count:", msgError);
+      // Don't throw this error as it's not critical to the save operation
+    }
   } catch (error) {
     Logger.error("dataHelpers", 'Error saving data:', error);
     throw error; // Re-throw for caller to handle
@@ -264,9 +276,9 @@ export function getAvailableModels(historyData) {
  * Import history data from JSON
  * @param {string} fileContent - JSON content to import
  * @param {Array} currentHistory - Current history data
- * @returns {Object} Results with imported items and new history
+ * @returns {Promise<Object>} Results with imported items and new history
  */
-export function importHistoryData(fileContent, currentHistory) {
+export async function importHistoryData(fileContent, currentHistory) {
   Logger.log("dataHelpers", "Starting import of history data from JSON");
   Logger.debug("dataHelpers", `Current history contains ${currentHistory.length} items`);
   Logger.debug("dataHelpers", `Import file content length: ${fileContent.length} characters`);
@@ -306,7 +318,14 @@ export function importHistoryData(fileContent, currentHistory) {
     Logger.debug("dataHelpers", "Sorting merged history by timestamp");
     updatedHistory.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
     
-    Logger.log("dataHelpers", `Import complete. History now contains ${updatedHistory.length} items`);
+    // Save to storage and update badge count
+    try {
+      await saveHistoryData(updatedHistory);
+      Logger.log("dataHelpers", `Import complete. History saved with ${updatedHistory.length} items`);
+    } catch (error) {
+      Logger.error("dataHelpers", "Error saving imported data to storage:", error);
+      throw new Error('Failed to save imported data to storage');
+    }
   } else {
     Logger.log("dataHelpers", "No new items to import - history remains unchanged");
   }
