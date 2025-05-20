@@ -388,32 +388,23 @@ function handleFileImported(event) {
 </script>
 
 <style scoped>
-/* Styles specific to App.vue */
 .popup-container {
-  /* This class is on the root div of App.vue.
-     The global 'body' style handles overall width/height/flex for the popup window.
-     If .popup-container needs to specifically manage its children's layout (e.g., ensuring footer is at bottom),
-     it might need flex properties. Assuming global body style covers overall structure.
-     If the body tag itself is not what `width: 380px; max-height: 600px;` is targeting,
-     and instead, popup-container should have these, they would go here.
-     For now, assuming body styles correctly size the window, and App.vue's root fills that.
-  */
   display: flex;
   flex-direction: column;
-  /* Assuming the body style sets a fixed height or max-height for the popup window,
-     this ensures the popup-container itself tries to fill that. */
-  height: 100vh; /* Or match body's max-height if that's the constraint */
+  flex-grow: 1; /* CRITICAL: Make .popup-container expand to fill #app's available height */
+  min-height: 0; /* Important for nested flex layouts */
+  /* REMOVE height: 100vh; */
 }
 
-main {
+main { /* This is already correct with flex-grow: 1 */
   padding: 16px;
   overflow-y: auto;
-  flex-grow: 1; /* Allows main to take available space, pushing footer down */
+  flex-grow: 1;
 }
 
 footer {
   font-size: 11px;
-  color: var(--text-light); /* Changed from #999 to use theme variable */
+  color: var(--text-light);
   text-align: center;
   padding: 8px;
   border-top: 1px solid var(--border-color);

@@ -1,3 +1,28 @@
+/* In your GLOBAL popup.css (linked as href="popup.css") */
+html, body { /* Good for baseline */
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  width: 380px;
+  max-height: 600px; /* This is the ultimate height constraint */
+  overflow: hidden;  /* Prevent content from visually spilling if something goes wrong */
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+}
+
+#app {
+  display: flex;          /* Make #app a flex container for its child (.popup-container) */
+  flex-direction: column; /* Align .popup-container vertically */
+  flex-grow: 1;           /* CRITICAL: Make #app expand to fill body's available height */
+  min-height: 0;          /* Important for nested flex layouts to prevent overflow issues if content is too large */
+}
+
 /* Global styles */
 :root {
   /* Light theme variables */
