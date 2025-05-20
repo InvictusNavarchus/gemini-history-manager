@@ -155,11 +155,11 @@ The extension icon should now appear in your browser's toolbar.
       - **Model Distribution**: See which Gemini models you use most frequently.
       - **Activity Over Time**: Track your conversation frequency over time, with options to view combined activity or activity per model.
   - **⚙️ Data Management (Header Buttons)**:
-  _ **Export History**: Export all or currently filtered conversations to a JSON file.
-  _ **Import History**: Select a previously exported JSON file to merge its contents with your current history (duplicates are avoided).
-  _ **Clear All History**: Permanently delete all stored chat history (a confirmation will be required).
-  _ **Theme Toggle**: Switch between light and dark modes for the dashboard.
-  </details>
+    - **Export History**: Export all or currently filtered conversations to a JSON file.
+    - **Import History**: Select a previously exported JSON file to merge its contents with your current history (duplicates are avoided).
+    - **Clear All History**: Permanently delete all stored chat history (a confirmation will be required).
+    - **Theme Toggle**: Switch between light and dark modes for the dashboard.
+    </details>
 
 ---
 
