@@ -94,34 +94,63 @@ const vizChartCanvas = ref(null);
 
 // Lifecycle hooks
 onMounted(() => {
-  Logger.log('Visualizations component mounted, canvas ready');
-  // Signal to parent that the visualization component is ready to render
+  Logger.log('Visualizations', 'Visualizations component mounted');
+  
+  // Check if canvas is available
   if (vizChartCanvas.value) {
+    Logger.debug('Visualizations', 'Canvas reference obtained successfully');
+    Logger.debug('Visualizations', `Canvas dimensions: ${vizChartCanvas.value.width}x${vizChartCanvas.value.height}`);
+    
+    // Signal to parent that the visualization component is ready to render
     nextTick(() => {
+      Logger.log('Visualizations', 'Canvas ready in DOM, requesting initial chart render');
       emit('render-chart');
     });
+  } else {
+    Logger.warn('Visualizations', 'Canvas reference not available on mount - charts may not render properly');
   }
+  
+  Logger.debug('Visualizations', 'Visualization component mount complete');
 });
 
 // Event handlers
 function setActiveVizTab(tabName) {
+  Logger.log("Visualizations", `Visualization tab changed to: ${tabName}`);
+  Logger.debug("Visualizations", `Previous tab: ${props.activeVizTab}, new tab: ${tabName}`);
+  
   emit('update:activeVizTab', tabName);
+  
+  Logger.debug("Visualizations", `Requesting chart render for new tab: ${tabName}`);
   emit('render-chart');
 }
 
 function updateDisplayMode(mode) {
-  emit('update:activityChartOptions', { 
+  Logger.log("Visualizations", `Chart display mode changed to: ${mode}`);
+  Logger.debug("Visualizations", `Previous mode: ${props.activityChartOptions.displayMode}, new mode: ${mode}`);
+  
+  const newOptions = { 
     ...props.activityChartOptions, 
     displayMode: mode 
-  });
+  };
+  
+  emit('update:activityChartOptions', newOptions);
+  
+  Logger.debug("Visualizations", `Requesting chart render with new display mode: ${mode}`);
   emit('render-chart');
 }
 
 function updateSelectedModel(model) {
-  emit('update:activityChartOptions', { 
+  Logger.log("Visualizations", `Selected model for chart changed to: ${model}`);
+  Logger.debug("Visualizations", `Previous model: ${props.activityChartOptions.selectedModel}, new model: ${model}`);
+  
+  const newOptions = { 
     ...props.activityChartOptions, 
     selectedModel: model 
-  });
+  };
+  
+  emit('update:activityChartOptions', newOptions);
+  
+  Logger.debug("Visualizations", `Requesting chart render with new selected model: ${model}`);
   emit('render-chart');
 }
 

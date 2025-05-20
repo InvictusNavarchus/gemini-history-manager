@@ -20,7 +20,10 @@ import { initializeTheme, Logger, THEME_STORAGE_KEY } from '../lib/utils.js';
   // Store the applied theme in localStorage with a special key to indicate it was pre-initialized
   localStorage.setItem('dashboard_initialized_theme', appliedTheme);
   
-  Logger.debug(`Dashboard initialized with theme: ${appliedTheme}`);
+  // Initialize logger with dashboard context
+  Logger.initLogger('DASHBOARD');
+  
+  Logger.debug("main.js", `Dashboard initialized with theme: ${appliedTheme}`);
 })();
 
 import { createApp } from 'vue'; // Import createApp function from Vue
@@ -37,4 +40,4 @@ const app = createApp(App);
 // This ID is present in src/dashboard/dashboard.html
 app.mount('#app');
 
-console.log('[Gemini History Manager] Dashboard Vue app initialized and mounted.');
+Logger.log("main.js", 'Dashboard Vue app initialized and mounted.');

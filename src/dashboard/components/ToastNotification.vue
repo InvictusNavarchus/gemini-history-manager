@@ -38,7 +38,12 @@ const props = defineProps({
   }
 });
 
-Logger.log(`🍞 ToastNotification #${props.id}: Component initialized with message: "${props.message}", type: ${props.type}`);
+Logger.log("ToastNotification", "Component initialized", {
+  id: props.id, 
+  message: props.message, 
+  type: props.type,
+  duration: props.duration
+});
 
 // Define emits
 const emit = defineEmits(['close']);
@@ -61,26 +66,41 @@ const getIconForType = computed(() => {
 
 // Methods
 function closeToast() {
-  Logger.log(`🍞 ToastNotification #${props.id}: closeToast method called`);
+  Logger.log("ToastNotification", "closeToast method called", { id: props.id });
   isHiding.value = true;
   
-  Logger.log(`🍞 ToastNotification #${props.id}: Set isHiding=true, waiting 300ms before emitting close event`);
+  Logger.log("ToastNotification", "Hiding toast and waiting before closing", { 
+    id: props.id, 
+    isHiding: true,
+    waitTime: 300
+  });
+  
   setTimeout(() => {
-    Logger.log(`🍞 ToastNotification #${props.id}: Emitting close event after timeout`);
+    Logger.log("ToastNotification", "Emitting close event after timeout", { id: props.id });
     emit('close', props.id);
   }, 300);
 }
 
 function startTimer() {
-  Logger.log(`🍞 ToastNotification #${props.id}: startTimer called with duration: ${props.duration}ms`);
+  Logger.log("ToastNotification", "startTimer called", { 
+    id: props.id, 
+    duration: props.duration 
+  });
   
   if (props.duration > 0) {
     // Check if progress bar ref is available
-    Logger.log(`🍞 ToastNotification #${props.id}: Progress bar ref exists: ${!!progressBar.value}`);
+    Logger.debug("ToastNotification", "Progress bar status check", { 
+      id: props.id,
+      progressBarExists: !!progressBar.value
+    });
     
     // Animate progress bar
     if (progressBar.value) {
-      Logger.log(`🍞 ToastNotification #${props.id}: Setting up progress bar animation for ${props.duration}ms`);
+      Logger.debug("ToastNotification", "Setting up progress bar animation", { 
+        id: props.id, 
+        duration: props.duration 
+      });
+      
       // Set initial width to 100%
       progressBar.value.style.width = '100%';
       
@@ -95,30 +115,40 @@ function startTimer() {
         progressBar.value.style.width = '0%';
       });
     } else {
-      Logger.warn(`🍞 ToastNotification #${props.id}: Progress bar reference is not available`);
+      Logger.warn("ToastNotification", "Progress bar reference unavailable", { id: props.id });
     }
     
     // Set timeout to close toast
-    Logger.log(`🍞 ToastNotification #${props.id}: Setting auto-close timeout for ${props.duration}ms`);
+    Logger.debug("ToastNotification", "Setting auto-close timeout", { 
+      id: props.id, 
+      duration: props.duration 
+    });
+    
     timeout = setTimeout(() => {
-      Logger.log(`🍞 ToastNotification #${props.id}: Auto-close timeout triggered after ${props.duration}ms`);
+      Logger.log("ToastNotification", "Auto-close timeout triggered", { 
+        id: props.id, 
+        duration: props.duration 
+      });
       closeToast();
     }, props.duration);
   } else {
-    Logger.log(`🍞 ToastNotification #${props.id}: No auto-close timer set (duration is ${props.duration})`);
+    Logger.log("ToastNotification", "No auto-close timer set", { 
+      id: props.id, 
+      duration: props.duration 
+    });
   }
 }
 
 // Lifecycle hooks
 onMounted(() => {
-  Logger.log(`🍞 ToastNotification #${props.id}: Component mounted`);
+  Logger.debug("ToastNotification", "Component mounted", { id: props.id });
   startTimer();
 });
 
 onBeforeUnmount(() => {
-  Logger.log(`🍞 ToastNotification #${props.id}: Component will unmount`);
+  Logger.debug("ToastNotification", "Component will unmount", { id: props.id });
   if (timeout) {
-    Logger.log(`🍞 ToastNotification #${props.id}: Clearing auto-close timeout`);
+    Logger.debug("ToastNotification", "Clearing auto-close timeout", { id: props.id });
     clearTimeout(timeout);
   }
 });

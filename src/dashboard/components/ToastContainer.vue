@@ -29,16 +29,16 @@ const props = defineProps({
 const emit = defineEmits(['remove-toast']);
 
 onMounted(() => {
-  Logger.log(`🍞 ToastContainer: Component mounted, initial toasts: ${props.toasts.length}`);
+  Logger.log("ToastContainer", `🍞 ToastContainer: Component mounted, initial toasts: ${props.toasts.length}`);
 });
 
 // Log when toasts are rendered
-Logger.log(`🍞 ToastContainer: Component setup initialized`);
+Logger.log("ToastContainer", `🍞 ToastContainer: Component setup initialized`);
 
 watch(() => props.toasts, (newToasts, oldToasts) => {
-  Logger.log(`🍞 ToastContainer: Toasts changed - now has ${newToasts.length} toasts`);
+  Logger.log("ToastContainer", `🍞 ToastContainer: Toasts changed - now has ${newToasts.length} toasts`);
   if (newToasts.length > 0) {
-    Logger.log(`🍞 ToastContainer: Toast IDs: ${newToasts.map(t => t.id).join(', ')}`);
+    Logger.log("ToastContainer", `🍞 ToastContainer: Toast IDs: ${newToasts.map(t => t.id).join(', ')}`);
   }
   
   // Log any added toasts
@@ -46,9 +46,9 @@ watch(() => props.toasts, (newToasts, oldToasts) => {
     const addedToasts = newToasts.filter(newToast => 
       !oldToasts.some(oldToast => oldToast.id === newToast.id)
     );
-    Logger.log(`🍞 ToastContainer: ${addedToasts.length} new toast(s) added`);
+    Logger.log("ToastContainer", `🍞 ToastContainer: ${addedToasts.length} new toast(s) added`);
     addedToasts.forEach(toast => {
-      Logger.log(`🍞 ToastContainer: Added toast #${toast.id}, message: "${toast.message}", type: ${toast.type}`);
+      Logger.log("ToastContainer", `🍞 ToastContainer: Added toast #${toast.id}, message: "${toast.message}", type: ${toast.type}`);
     });
   }
   
@@ -57,16 +57,16 @@ watch(() => props.toasts, (newToasts, oldToasts) => {
     const removedToasts = oldToasts.filter(oldToast => 
       !newToasts.some(newToast => newToast.id === oldToast.id)
     );
-    Logger.log(`🍞 ToastContainer: ${removedToasts.length} toast(s) removed`);
+    Logger.log("ToastContainer", `🍞 ToastContainer: ${removedToasts.length} toast(s) removed`);
     removedToasts.forEach(toast => {
-      Logger.log(`🍞 ToastContainer: Removed toast #${toast.id}`);
+      Logger.log("ToastContainer", `🍞 ToastContainer: Removed toast #${toast.id}`);
     });
   }
 }, { deep: true, immediate: true });
 
 // Event handlers
 function removeToast(id) {
-  Logger.log(`🍞 ToastContainer: removeToast called with ID: ${id}`);
+  Logger.log("ToastContainer", `🍞 ToastContainer: removeToast called with ID: ${id}`);
   emit('remove-toast', id);
 }
 </script>

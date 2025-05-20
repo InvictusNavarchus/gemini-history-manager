@@ -13,7 +13,8 @@
     const CONFIG = {
         STORAGE_KEY: 'geminiChatHistory',
         BASE_URL: 'https://gemini.google.com/app',
-        LOG_PREFIX: "[Gemini History]"
+        LOG_PREFIX: "[Gemini History]",
+        CONTEXT_PREFIX: "[CONTENT]" // Add context prefix for content script
     };
 
     // Known model names that might appear in the UI
@@ -190,7 +191,7 @@
             document.body.appendChild(indicator);
 
             this.element = indicator;
-            Logger.log("Status indicator initialized");
+            Logger.log("gemini-tracker", "Status indicator initialized");
         },
 
         /**
@@ -304,13 +305,203 @@
 
     /**
      * ==========================================
+     * LOGGING CONFIGURATION
+     * ==========================================
+     */
+    const LogConfig = {
+        // Storage key for persisted config
+        CONFIG_STORAGE_KEY: 'gemini_log_config',
+        
+        // Default configuration - all logging enabled
+        DEFAULT_CONFIG: {
+            // Global enable/disable for all logging
+            enabled: true,
+            
+            // Enable/disable specific log levels
+            levels: {
+                debug: true,
+                log: true,
+                warn: true,
+                error: true
+            },
+            
+            // Component specific settings
+            components: {
+                ContentScript: true
+            }
+        },
+        
+        // Cache for the loaded configuration to avoid frequent localStorage reads
+        configCache: null,
+        
+        /**
+         * Load logging configuration from storage, falling back to defaults if not found
+         * Uses in-memory cache to reduce localStorage reads
+         * @param {boolean} [forceRefresh=false] - Force refresh from localStorage
+         * @returns {Object} The current logging configuration
+         */
+        loadLogConfig: function(forceRefresh = false) {
+            // Return cached config if available and no refresh is requested
+            if (this.configCache !== null && !forceRefresh) {
+                return this.configCache;
+            }
+            
+            try {
+                const storedConfig = localStorage.getItem(this.CONFIG_STORAGE_KEY);
+                
+                if (storedConfig) {
+                    // Merge with default config to ensure all properties exist
+                    const parsedConfig = JSON.parse(storedConfig);
+                    this.configCache = {
+                        ...this.DEFAULT_CONFIG,
+                        ...parsedConfig,
+                        levels: {
+                            ...this.DEFAULT_CONFIG.levels,
+                            ...(parsedConfig.levels || {})
+                        },
+                        components: {
+                            ...this.DEFAULT_CONFIG.components,
+                            ...(parsedConfig.components || {})
+                        }
+                    };
+                    return this.configCache;
+                }
+            } catch (error) {
+                console.error("Error loading logging config:", error);
+                // On error, invalidate the cache
+                this.configCache = null;
+            }
+            
+            // Cache the default config if nothing was loaded
+            this.configCache = this.DEFAULT_CONFIG;
+            return this.DEFAULT_CONFIG;
+        },
+        
+        /**
+         * Invalidate the configuration cache
+         */
+        invalidateConfigCache: function() {
+            this.configCache = null;
+        },
+        
+        /**
+         * Check if logging is enabled for a specific component and level
+         * @param {string} component - The component/module name
+         * @param {string} level - The log level (debug, log, warn, error)
+         * @returns {boolean} Whether logging is enabled
+         */
+        isLoggingEnabled: function(component, level) {
+            const config = this.loadLogConfig();
+            
+            // If logging is globally disabled, return false
+            if (!config.enabled) {
+                return false;
+            }
+            
+            // If the log level is disabled, return false
+            if (level && !config.levels[level]) {
+                return false;
+            }
+            
+            // If the component is explicitly configured, use that setting
+            if (component && config.components.hasOwnProperty(component)) {
+                return config.components[component];
+            }
+            
+            // Default to true if not explicitly configured
+            return true;
+        }
+    };
+
+    /**
+     * ==========================================
      * LOGGING MODULE
      * ==========================================
      */
     const Logger = {
-        log: (...args) => console.log(CONFIG.LOG_PREFIX, ...args),
-        warn: (...args) => console.warn(CONFIG.LOG_PREFIX, ...args),
-        error: (...args) => console.error(CONFIG.LOG_PREFIX, ...args)
+        /**
+         * Format object for logging by converting to JSON string
+         * @param {Object} obj - Object to stringify
+         * @returns {string} JSON string representation
+         */
+        formatObject: function(obj) {
+            try {
+                if (typeof obj === 'object' && obj !== null) {
+                    return JSON.stringify(obj, null, 2);
+                }
+                return obj;
+            } catch (e) {
+                console.error("Error formatting object for logging:", e);
+                return "[Object conversion error]";
+            }
+        },
+        
+        /**
+         * Logs an informational message
+         * @param {string} context - Component or module name
+         * @param {string} [message] - Message to log (optional in legacy mode)
+         * @param {...any} args - Additional arguments
+         */
+        log: function(context, message, ...args) {
+            if (!LogConfig.isLoggingEnabled(context, 'log')) {
+                return;
+            }
+            
+            // Always include context in brackets and the message
+            console.log(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
+        },
+        
+        /**
+         * Logs a warning message
+         * @param {string} context - Component or module name
+         * @param {string} [message] - Message to log (optional in legacy mode)
+         * @param {...any} args - Additional arguments
+         */
+        warn: function(context, message, ...args) {
+            if (!LogConfig.isLoggingEnabled(context, 'warn')) {
+                return;
+            }
+            
+            // Always include context in brackets and the message
+            console.warn(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
+        },
+        
+        /**
+         * Logs an error message
+         * @param {string} context - Component or module name
+         * @param {string} [message] - Message to log (optional in legacy mode)
+         * @param {Error} [error] - Error object (optional)
+         * @param {...any} args - Additional arguments
+         */
+        error: function(context, message, error, ...args) {
+            if (!LogConfig.isLoggingEnabled(context, 'error')) {
+                return;
+            }
+            
+            // Always include context in brackets
+            if (error instanceof Error) {
+                console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
+            } else if (typeof error === 'undefined') {
+                console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message);
+            } else {
+                console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
+            }
+        },
+        
+        /**
+         * Logs a debug message (only when debug mode is enabled)
+         * @param {string} context - Component or module name
+         * @param {string} [message] - Message to log (optional in legacy mode)
+         * @param {...any} args - Additional arguments
+         */
+        debug: function(context, message, ...args) {
+            if (!LogConfig.isLoggingEnabled(context, 'debug')) {
+                return;
+            }
+            
+            // Always include context in brackets and the message
+            console.debug(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
+        }
     };
 
     /**
@@ -328,7 +519,7 @@
             try {
                 return new Date().toISOString(); // Returns ISO 8601 format with UTC timezone
             } catch (e) {
-                Logger.error("Error getting ISO UTC timestamp:", e);
+                Logger.error("gemini-tracker", "Error getting ISO UTC timestamp:", e);
                 return new Date().toISOString(); // Same fallback since it's the primary method
             }
         },
@@ -372,11 +563,11 @@
          * @returns {string|null} - Returns the special model name if detected, or null if none detected
          */
         checkForSpecialTools: function() {
-            Logger.log("Checking for special tools (Deep Research, Veo 2)...");
+            Logger.log("gemini-tracker", "Checking for special tools (Deep Research, Veo 2)...");
             
             // Get all activated tools in the toolbox drawer
             const activatedButtons = document.querySelectorAll('button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]');
-            Logger.log(`Found ${activatedButtons.length} activated tool buttons`);
+            Logger.log("gemini-tracker", `Found ${activatedButtons.length} activated tool buttons`);
             
             // Check each button to see if it's one of our special tools
             for (const button of activatedButtons) {
@@ -384,15 +575,15 @@
                 if (!labelElement) continue;
                 
                 const buttonText = labelElement.textContent.trim();
-                Logger.log(`Found activated button with text: "${buttonText}"`);
+                Logger.log("gemini-tracker", `Found activated button with text: "${buttonText}"`);
                 
                 if (buttonText.includes("Deep Research")) {
-                    Logger.log("Deep Research tool is activated");
+                    Logger.log("gemini-tracker", "Deep Research tool is activated");
                     return 'Deep Research';
                 }
                 
                 if (buttonText.includes("Video")) {
-                    Logger.log("Video tool (Veo 2) is activated");
+                    Logger.log("gemini-tracker", "Video tool (Veo 2) is activated");
                     return 'Veo 2';
                 }
             }
@@ -405,7 +596,7 @@
                 if (deepResearchIcon) {
                     const deepResearchButton = deepResearchIcon.closest('button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]');
                     if (deepResearchButton) {
-                        Logger.log("Deep Research tool is activated (detected via icon)");
+                        Logger.log("gemini-tracker", "Deep Research tool is activated (detected via icon)");
                         return 'Deep Research';
                     }
                 }
@@ -415,7 +606,7 @@
                 if (videoIcon) {
                     const videoButton = videoIcon.closest('button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]');
                     if (videoButton) {
-                        Logger.log("Video tool (Veo 2) is activated (detected via icon)");
+                        Logger.log("gemini-tracker", "Video tool (Veo 2) is activated (detected via icon)");
                         return 'Veo 2';
                     }
                 }
@@ -432,12 +623,12 @@
          * @returns {string} - The detected model name or 'Unknown' if not found
          */
         getCurrentModelName: function() {
-            Logger.log("Attempting to get current model name...");
+            Logger.log("gemini-tracker", "Attempting to get current model name...");
             
             // First, check for special tools that override the model name
             const specialTool = this.checkForSpecialTools();
             if (specialTool) {
-                Logger.log(`Special tool activated: ${specialTool}`);
+                Logger.log("gemini-tracker", `Special tool activated: ${specialTool}`);
                 return specialTool;
             }
             
@@ -449,25 +640,25 @@
             if (modelButton && modelButton.textContent) {
                 rawText = modelButton.textContent.trim();
                 foundVia = "New Button Structure";
-                Logger.log(`Model raw text found via ${foundVia}: "${rawText}"`);
+                Logger.log("gemini-tracker", `Model raw text found via ${foundVia}: "${rawText}"`);
             } else {
-                Logger.log("Model not found via New Button Structure.");
+                Logger.log("gemini-tracker", "Model not found via New Button Structure.");
                 // Try #2: data-test-id
                 const modelElement = document.querySelector('bard-mode-switcher [data-test-id="attribution-text"] span');
                 if (modelElement && modelElement.textContent) {
                     rawText = modelElement.textContent.trim();
                     foundVia = "Data-Test-ID";
-                    Logger.log(`Model raw text found via ${foundVia}: "${rawText}"`);
+                    Logger.log("gemini-tracker", `Model raw text found via ${foundVia}: "${rawText}"`);
                 } else {
-                    Logger.log("Model not found via Data-Test-ID.");
+                    Logger.log("gemini-tracker", "Model not found via Data-Test-ID.");
                     // Try #3: Fallback selector
                     const fallbackElement = document.querySelector('.current-mode-title span');
                     if (fallbackElement && fallbackElement.textContent) {
                         rawText = fallbackElement.textContent.trim();
                         foundVia = "Fallback Selector (.current-mode-title)";
-                        Logger.log(`Model raw text found via ${foundVia}: "${rawText}"`);
+                        Logger.log("gemini-tracker", `Model raw text found via ${foundVia}: "${rawText}"`);
                     } else {
-                        Logger.log("Model not found via Fallback Selector.");
+                        Logger.log("gemini-tracker", "Model not found via Fallback Selector.");
                     }
                 }
             }
@@ -477,15 +668,15 @@
                 for (const key of sortedKeys) {
                     if (rawText.startsWith(key)) {
                         const model = MODEL_NAMES[key];
-                        Logger.log(`Matched known model: "${model}" from raw text "${rawText}"`);
+                        Logger.log("gemini-tracker", `Matched known model: "${model}" from raw text "${rawText}"`);
                         return model;
                     }
                 }
-                Logger.log(`Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`);
+                Logger.log("gemini-tracker", `Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`);
                 return rawText; // Return raw text if no prefix matches
             }
 
-            Logger.warn("Could not determine current model name from any known selector.");
+            Logger.warn("gemini-tracker", "Could not determine current model name from any known selector.");
             return 'Unknown';
         }
     };
@@ -512,15 +703,15 @@
                 const backtickIndex = text.indexOf('```');
                 if (backtickIndex !== -1) {
                     const truncatedText = text.substring(0, backtickIndex).trim();
-                    Logger.log(`Found code block in prompt. Truncating at index ${backtickIndex}`);
-                    Logger.log(`Extracted prompt text (truncated): "${truncatedText} [attached blockcode]"`);
+                    Logger.log("gemini-tracker", `Found code block in prompt. Truncating at index ${backtickIndex}`);
+                    Logger.log("gemini-tracker", `Extracted prompt text (truncated): "${truncatedText} [attached blockcode]"`);
                     return `${truncatedText} [attached blockcode]`;
                 }
 
-                Logger.log(`Extracted prompt text: "${text}"`);
+                Logger.log("gemini-tracker", `Extracted prompt text: "${text}"`);
                 return text;
             } else {
-                Logger.warn("Could not find prompt input element ('rich-textarea .ql-editor').");
+                Logger.warn("gemini-tracker", "Could not find prompt input element ('rich-textarea .ql-editor').");
                 return ''; // Return empty string if not found
             }
         },
@@ -537,10 +728,10 @@
                     // Prefer the 'title' attribute as it usually contains the full name
                     return el.getAttribute('title') || el.innerText.trim();
                 });
-                Logger.log(`Extracted attached filenames:`, filenames);
+                Logger.log("gemini-tracker", `Extracted attached filenames:`, filenames);
                 return filenames;
             } else {
-                Logger.log("No attached file elements found.");
+                Logger.log("gemini-tracker", "No attached file elements found.");
                 return []; // Return empty array if none found
             }
         },
@@ -551,7 +742,7 @@
          * @returns {Object} - Object with name and email properties
          */
         getAccountInfo: function() {
-            Logger.log("Attempting to extract account information...");
+            Logger.log("gemini-tracker", "Attempting to extract account information...");
             
             // Strategy 1: Find by link to accounts.google.com with aria-label containing email
             const accountLinks = Array.from(document.querySelectorAll('a[href*="accounts.google.com"]'));
@@ -564,7 +755,7 @@
                 if (label && label.indexOf('@') !== -1) {
                     accountElement = link;
                     ariaLabel = label;
-                    Logger.log("Found account element via accounts.google.com link with email in aria-label");
+                    Logger.log("gemini-tracker", "Found account element via accounts.google.com link with email in aria-label");
                     break;
                 }
             }
@@ -579,7 +770,7 @@
                         if (label && label.indexOf('@') !== -1) {
                             accountElement = parent;
                             ariaLabel = label;
-                            Logger.log("Found account element via profile image with parent having email in aria-label");
+                            Logger.log("gemini-tracker", "Found account element via profile image with parent having email in aria-label");
                             break;
                         }
                     }
@@ -597,7 +788,7 @@
                         if (label && label.indexOf('@') !== -1) {
                             accountElement = accountLink;
                             ariaLabel = label;
-                            Logger.log("Found account element via container class structure");
+                            Logger.log("gemini-tracker", "Found account element via container class structure");
                             break;
                         }
                     }
@@ -615,7 +806,7 @@
                     if (label && emailRegex.test(label)) {
                         accountElement = el;
                         ariaLabel = label;
-                        Logger.log("Found account element via generic aria-label search");
+                        Logger.log("gemini-tracker", "Found account element via generic aria-label search");
                         break;
                     }
                 }
@@ -623,14 +814,14 @@
             
             // If we found an element with account info, parse it
             if (accountElement && ariaLabel) {
-                Logger.log(`Found aria-label with potential account info: "${ariaLabel}"`);
+                Logger.log("gemini-tracker", `Found aria-label with potential account info: "${ariaLabel}"`);
                 try {
                     // Extract email using regex
                     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
                     const emailMatch = ariaLabel.match(emailRegex);
                     
                     if (!emailMatch) {
-                        Logger.warn("Could not find email in aria-label");
+                        Logger.warn("gemini-tracker", "Could not find email in aria-label");
                         return { name: 'Unknown', email: 'Unknown' };
                     }
                     
@@ -655,15 +846,15 @@
                         }
                     }
                     
-                    Logger.log(`Successfully extracted account info - Name: "${name}", Email: "${email}"`);
+                    Logger.log("gemini-tracker", `Successfully extracted account info - Name: "${name}", Email: "${email}"`);
                     return { name, email };
                 } catch (e) {
-                    Logger.error("Error parsing account information:", e);
+                    Logger.error("gemini-tracker", "Error parsing account information:", e);
                     return { name: 'Unknown', email: 'Unknown' };
                 }
             }
             
-            Logger.warn("Could not find any element with account information");
+            Logger.warn("gemini-tracker", "Could not find any element with account information");
             return { name: 'Unknown', email: 'Unknown' };
         }
     };
@@ -680,21 +871,21 @@
          * @returns {Promise<Array>} - Promise resolving to array of history entries or empty array if none found or on error
          */
         loadHistory: function() {
-            Logger.log("Loading history from storage...");
+            Logger.log("gemini-tracker", "Loading history from storage...");
             return new Promise((resolve) => {
                 browser.storage.local.get(CONFIG.STORAGE_KEY)
                     .then(data => {
                         const history = data[CONFIG.STORAGE_KEY] || [];
                         if (Array.isArray(history)) {
-                            Logger.log(`History loaded successfully. Found ${history.length} entries.`);
+                            Logger.log("gemini-tracker", `History loaded successfully. Found ${history.length} entries.`);
                             resolve(history);
                         } else {
-                            Logger.warn("Stored history data is not an array. Returning empty history.");
+                            Logger.warn("gemini-tracker", "Stored history data is not an array. Returning empty history.");
                             resolve([]);
                         }
                     })
                     .catch(error => {
-                        Logger.error("Error loading history:", error);
+                        Logger.error("gemini-tracker", "Error loading history:", error);
                         StatusIndicator.show("Error loading chat history", "error");
                         resolve([]);
                     });
@@ -708,24 +899,24 @@
          * @returns {Promise} - Promise resolving when save is complete
          */
         saveHistory: function(history) {
-            Logger.log(`Attempting to save history with ${history.length} entries...`);
+            Logger.log("gemini-tracker", `Attempting to save history with ${history.length} entries...`);
             if (!Array.isArray(history)) {
-                Logger.error("Attempted to save non-array data. Aborting save.");
+                Logger.error("gemini-tracker", "Attempted to save non-array data. Aborting save.");
                 StatusIndicator.show("Error saving history data", "error");
                 return Promise.reject(new Error("Cannot save non-array data"));
             }
             
             return browser.storage.local.set({ [CONFIG.STORAGE_KEY]: history })
                 .then(() => {
-                    Logger.log("History saved successfully.");
+                    Logger.log("gemini-tracker", "History saved successfully.");
                     // Send message to background script to update badge
                     browser.runtime.sendMessage({
                         action: "updateHistoryCount",
                         count: history.length
-                    }).catch(err => Logger.error("Error sending message to background:", err));
+                    }).catch(err => Logger.error("gemini-tracker", "Error sending message to background:", err));
                 })
                 .catch(error => {
-                    Logger.error("Error saving history:", error);
+                    Logger.error("gemini-tracker", "Error saving history:", error);
                     StatusIndicator.show("Error saving chat history", "error");
                     throw error;
                 });
@@ -756,18 +947,18 @@
                 accountName,
                 accountEmail
             };
-            Logger.log("Attempting to add history entry:", entryData);
+            Logger.log("gemini-tracker", "Attempting to add history entry:", entryData);
 
             // Basic validation (Title, URL, Timestamp, Model are still required)
             if (!timestamp || !url || !title || !model) {
-                Logger.warn("Attempted to add entry with missing essential data. Skipping.", entryData);
+                Logger.warn("gemini-tracker", "Attempted to add entry with missing essential data. Skipping.", entryData);
                 StatusIndicator.show("Chat history entry incomplete", "warning");
                 return false; // Indicate failure
             }
 
             // Prevent adding entry if URL is invalid
             if (!Utils.isValidChatUrl(url)) {
-                Logger.warn(`Attempted to add entry with invalid chat URL pattern "${url}". Skipping.`);
+                Logger.warn("gemini-tracker", `Attempted to add entry with invalid chat URL pattern "${url}". Skipping.`);
                 StatusIndicator.show("Invalid chat URL", "warning");
                 return false; // Indicate failure
             }
@@ -784,11 +975,11 @@
 
                 history.unshift(entryData); // Add to beginning
                 await this.saveHistory(history);
-                Logger.log("Successfully added history entry.");
+                Logger.log("gemini-tracker", "Successfully added history entry.");
                 StatusIndicator.show(`Chat "${title}" saved to history`, "success");
                 return true; // Indicate success
             } catch (error) {
-                Logger.error("Error adding history entry:", error);
+                Logger.error("gemini-tracker", "Error adding history entry:", error);
                 StatusIndicator.show("Failed to add chat to history", "error");
                 return false;
             }
@@ -822,7 +1013,7 @@
          * @param {function} callback - Function to call once the sidebar is found
          */
         watchForSidebar: function(callback) {
-            Logger.log("Starting to watch for sidebar element...");
+            Logger.log("gemini-tracker", "Starting to watch for sidebar element...");
             // Show immediate loading status at the beginning
             StatusIndicator.show("Looking for Gemini sidebar...", "loading", 0);
 
@@ -831,18 +1022,18 @@
             const existingSidebar = document.querySelector(sidebarSelector);
 
             if (existingSidebar) {
-                Logger.log("Sidebar already exists in DOM");
+                Logger.log("gemini-tracker", "Sidebar already exists in DOM");
                 callback(existingSidebar);
                 return;
             }
 
             // If not, set up an observer to watch for it
-            Logger.log("Sidebar not found. Setting up observer to watch for it...");
+            Logger.log("gemini-tracker", "Sidebar not found. Setting up observer to watch for it...");
 
             const observer = new MutationObserver((mutations, obs) => {
                 const sidebar = document.querySelector(sidebarSelector);
                 if (sidebar) {
-                    Logger.log("Sidebar element found in DOM");
+                    Logger.log("gemini-tracker", "Sidebar element found in DOM");
                     obs.disconnect(); // Stop observing once found
                     callback(sidebar);
                 }
@@ -859,7 +1050,7 @@
                 if (observer) {
                     const sidebar = document.querySelector(sidebarSelector);
                     if (!sidebar) {
-                        Logger.warn("Sidebar element not found after timeout");
+                        Logger.warn("gemini-tracker", "Sidebar element not found after timeout");
                         StatusIndicator.show("Warning: Gemini sidebar not detected", "warning", 0);
                     }
                     observer.disconnect();
@@ -874,7 +1065,7 @@
          * @returns {string|null} - The extracted title or null if not found
          */
         extractTitleFromSidebarItem: function(conversationItem) {
-            Logger.log("Attempting to extract title from sidebar item:", conversationItem);
+            Logger.log("gemini-tracker", "Attempting to extract title from sidebar item:", conversationItem);
             // Skip if the item is still hidden (display:none) — will become visible once the title settles
             // it turned out that Gemini set the user's prompt as the placeholder value before the real title is created
             if (conversationItem.offsetParent === null) {
@@ -883,30 +1074,30 @@
             }
             const titleElement = conversationItem.querySelector('.conversation-title');
             if (!titleElement) {
-                Logger.warn("Could not find title element (.conversation-title).");
+                Logger.warn("gemini-tracker", "Could not find title element (.conversation-title).");
                 return null;
             }
-            Logger.log("Found title container element:", titleElement);
+            Logger.log("gemini-tracker", "Found title container element:", titleElement);
             try {
                 // Try direct text node
                 const first = titleElement.firstChild;
                 if (first && first.nodeType === Node.TEXT_NODE) {
                     const t = first.textContent.trim();
                     if (t) {
-                        Logger.log(`Extracted via text node: "${t}"`);
+                        Logger.log("gemini-tracker", `Extracted via text node: "${t}"`);
                         return t;
                     }
-                    Logger.warn("Text node was empty, falling back.");
+                    Logger.warn("gemini-tracker", "Text node was empty, falling back.");
                 }
                 // FALLBACK: full textContent
                 const full = titleElement.textContent.trim();
                 if (full) {
-                    Logger.log(`Fallback textContent: "${full}"`);
+                    Logger.log("gemini-tracker", `Fallback textContent: "${full}"`);
                     return full;
                 }
-                Logger.warn("titleElement.textContent was empty or whitespace.");
+                Logger.warn("gemini-tracker", "titleElement.textContent was empty or whitespace.");
             } catch (e) {
-                Logger.error("Error during title extraction:", e);
+                Logger.error("gemini-tracker", "Error during title extraction:", e);
             }
             return null;
         },
@@ -960,25 +1151,25 @@
          * @returns {boolean} - True if processing was completed, false otherwise
          */
         processSidebarMutations: function(mutationsList) {
-            Logger.log(`MAIN Sidebar Observer Callback Triggered. ${mutationsList.length} mutations.`);
+            Logger.log("gemini-tracker", `MAIN Sidebar Observer Callback Triggered. ${mutationsList.length} mutations.`);
             const currentUrl = window.location.href;
-            Logger.log(`Current URL inside MAIN observer: ${currentUrl}`);
+            Logger.log("gemini-tracker", `Current URL inside MAIN observer: ${currentUrl}`);
 
             if (!Utils.isValidChatUrl(currentUrl)) {
-                Logger.log(`URL "${currentUrl}" does not match the expected chat pattern. Waiting...`);
+                Logger.log("gemini-tracker", `URL "${currentUrl}" does not match the expected chat pattern. Waiting...`);
                 return false; // URL still not a valid chat URL
             }
 
             Logger.log("URL check passed (matches chat pattern). Processing mutations to find NEW conversation item...");
 
             if (!STATE.isNewChatPending) {
-                Logger.log("No new chat is pending. Ignoring mutations.");
+                Logger.log("gemini-tracker", "No new chat is pending. Ignoring mutations.");
                 return false;
             }
 
             const conversationItem = this.findConversationItemInMutations(mutationsList);
             if (conversationItem) {
-                Logger.log("Found NEW conversation item container. Preparing to wait for title...");
+                Logger.log("gemini-tracker", "Found NEW conversation item container. Preparing to wait for title...");
                 StatusIndicator.show("New chat detected, capturing details...", "loading", 0);
 
                 // Capture context before disconnecting observer
@@ -994,7 +1185,7 @@
                 STATE.pendingAttachedFiles = [];
                 STATE.pendingAccountName = null;
                 STATE.pendingAccountEmail = null;
-                Logger.log(`Cleared pending flags. Waiting for title associated with URL: ${context.url}`);
+                Logger.log("gemini-tracker", `Cleared pending flags. Waiting for title associated with URL: ${context.url}`);
 
                 // Stage 2: Wait for the Title
                 this.observeTitleForItem(conversationItem, context.url, context.timestamp, context.model, context.prompt, context.attachedFiles, context.accountName, context.accountEmail);
@@ -1012,7 +1203,7 @@
             const conversationListElement = document.querySelector(targetSelector);
 
             if (!conversationListElement) {
-                Logger.warn(`Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`);
+                Logger.warn("gemini-tracker", `Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`);
                 StatusIndicator.show("Could not track chat (UI element not found)", "warning");
                 STATE.isNewChatPending = false; // Reset flag
                 STATE.pendingModelName = null;
@@ -1023,7 +1214,7 @@
                 return;
             }
 
-            Logger.log("Found conversation list element. Setting up MAIN sidebar observer...");
+            Logger.log("gemini-tracker", "Found conversation list element. Setting up MAIN sidebar observer...");
             StatusIndicator.show("Tracking new chat...", "info");
 
             // Disconnect previous observers if they exist
@@ -1056,7 +1247,7 @@
          */
         processTitleAndAddHistory: async function(title, expectedUrl, timestamp, model, prompt, attachedFiles, accountName, accountEmail) {
             if (title) {
-                Logger.log(`Title found for ${expectedUrl}! Attempting to add history entry.`);
+                Logger.log("gemini-tracker", `Title found for ${expectedUrl}! Attempting to add history entry.`);
                 StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
                 STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
 
@@ -1090,7 +1281,7 @@
         processTitleMutations: async function(conversationItem, expectedUrl, timestamp, model, prompt, attachedFiles, accountName, accountEmail) {
             // Abort if URL changed
             if (window.location.href !== expectedUrl) {
-                Logger.warn("URL changed; disconnecting TITLE observer.");
+                Logger.warn("gemini-tracker", "URL changed; disconnecting TITLE observer.");
                 STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
                 return true;
             }
@@ -1101,7 +1292,7 @@
                 return true;
             }
 
-            Logger.log("No title yet; continuing to observe...");
+            Logger.log("gemini-tracker", "No title yet; continuing to observe...");
             return false;
         },
 
@@ -1134,7 +1325,7 @@
                         characterData: true, subtree: true,
                         attributeOldValue: true
                     });
-                    Logger.log(`TITLE observer active for URL: ${expectedUrl}`);
+                    Logger.log("gemini-tracker", `TITLE observer active for URL: ${expectedUrl}`);
                 });
         },
 
@@ -1154,13 +1345,13 @@
         attemptTitleCaptureAndSave: async function(item, expectedUrl, timestamp, model, prompt, attachedFiles, accountName, accountEmail) {
             // Check if we are still on the page this observer was created for
             if (window.location.href !== expectedUrl) {
-                Logger.warn(`URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting TITLE observer.`);
+                Logger.warn("gemini-tracker", `URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting TITLE observer.`);
                 STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
                 return true; // Return true to indicate we should stop trying (observer is disconnected)
             }
 
             const title = this.extractTitleFromSidebarItem(item);
-            Logger.log(`TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
+            Logger.log("gemini-tracker", `TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
 
             return await this.processTitleAndAddHistory(title, expectedUrl, timestamp, model, prompt, attachedFiles, accountName, accountEmail);
         }
@@ -1198,7 +1389,7 @@
          * Captures necessary information before the chat is created.
          */
         prepareNewChatTracking: function() {
-            Logger.log("URL matches GEMINI_APP_URL. This is potentially a new chat.");
+            Logger.log("gemini-tracker", "URL matches GEMINI_APP_URL. This is potentially a new chat.");
             STATE.isNewChatPending = true;
             Logger.log("Set isNewChatPending = true");
 
@@ -1214,11 +1405,11 @@
             STATE.pendingAccountName = accountInfo.name;
             STATE.pendingAccountEmail = accountInfo.email;
 
-            Logger.log(`Captured pending model name: "${STATE.pendingModelName}"`);
-            Logger.log(`Captured pending prompt: "${STATE.pendingPrompt}"`);
-            Logger.log(`Captured pending files:`, STATE.pendingAttachedFiles);
-            Logger.log(`Captured account name: "${STATE.pendingAccountName}"`);
-            Logger.log(`Captured account email: "${STATE.pendingAccountEmail}"`);
+            Logger.log("gemini-tracker", `Captured pending model name: "${STATE.pendingModelName}"`);
+            Logger.log("gemini-tracker", `Captured pending prompt: "${STATE.pendingPrompt}"`);
+            Logger.log("gemini-tracker", `Captured pending files:`, STATE.pendingAttachedFiles);
+            Logger.log("gemini-tracker", `Captured account name: "${STATE.pendingAccountName}"`);
+            Logger.log("gemini-tracker", `Captured account email: "${STATE.pendingAccountEmail}"`);
 
             StatusIndicator.update(`Capturing chat with ${STATE.pendingModelName}...`, "info");
 
@@ -1236,19 +1427,19 @@
          * @param {Event} event - The click event
          */
         handleSendClick: function(event) {
-            Logger.log("Click detected on body (capture phase). Target:", event.target);
+            Logger.log("gemini-tracker", "Click detected on body (capture phase). Target:", event.target);
             const sendButton = this.isSendButton(event.target);
 
             if (sendButton) {
-                Logger.log("Click target is (or is inside) a potential send button.");
+                Logger.log("gemini-tracker", "Click target is (or is inside) a potential send button.");
                 const currentUrl = window.location.href;
-                Logger.log(`Current URL at time of click: ${currentUrl}`);
+                Logger.log("gemini-tracker", `Current URL at time of click: ${currentUrl}`);
 
                 // Check if we are on the main app page (starting a NEW chat)
                 if (Utils.isBaseAppUrl(currentUrl)) {
                     this.prepareNewChatTracking();
                 } else {
-                    Logger.log("URL does not match GEMINI_APP_URL. Ignoring click for history tracking.");
+                    Logger.log("gemini-tracker", "URL does not match GEMINI_APP_URL. Ignoring click for history tracking.");
                 }
             }
         }
@@ -1265,22 +1456,30 @@
      * Sets up observers, event listeners, and menu commands.
      */
     function init() {
-        Logger.log("Gemini History Manager initializing...");
+        Logger.log("gemini-tracker", "Initializing Gemini History Manager...");
 
         // Initialize status indicator
         StatusIndicator.init();
+        
+        // Add storage event listener to detect logging config changes from other contexts
+        window.addEventListener('storage', (event) => {
+            if (event.key === LogConfig.CONFIG_STORAGE_KEY) {
+                Logger.debug("ContentScript", "Logging configuration changed in localStorage, invalidating cache");
+                LogConfig.invalidateConfigCache();
+            }
+        });
 
         // Show immediate status message that persists until sidebar is found (or timeout)
         StatusIndicator.show("Waiting for Gemini sidebar to appear...", "loading", 0);
 
         // Watch for sidebar to appear before showing ready status
         DomObserver.watchForSidebar((sidebar) => {
-            Logger.log("Sidebar confirmed available. Manager fully active.");
+            Logger.log("gemini-tracker", "Sidebar confirmed available. Manager fully active.");
             StatusIndicator.show("Gemini History Manager active", "success");
         });
 
         // Attach main click listener
-        Logger.log("Attaching main click listener to document body...");
+        Logger.log("gemini-tracker", "Attaching main click listener to document body...");
         document.body.addEventListener('click', EventHandlers.handleSendClick.bind(EventHandlers), true); // Use capture phase
 
         // Listen for messages from the popup or background
@@ -1291,6 +1490,13 @@
                     url: url,
                     isGeminiChat: Utils.isValidChatUrl(url)
                 });
+            }
+            
+            // Handle invalidate cache message from dashboard or popup
+            if (message.action === "invalidateLogConfigCache") {
+                Logger.debug("ContentScript", "Received request to invalidate logging config cache");
+                LogConfig.invalidateConfigCache();
+                return Promise.resolve({ success: true });
             }
         });
 

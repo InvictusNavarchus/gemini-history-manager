@@ -60,8 +60,8 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
-import { parseTimestamp } from '../../lib/utils.js';
+import { defineProps, defineEmits, onMounted, onUnmounted } from 'vue';
+import { parseTimestamp, Logger } from '../../lib/utils.js';
 
 // Define props
 const props = defineProps({
@@ -78,14 +78,43 @@ const props = defineProps({
 // Define emits
 const emit = defineEmits(['close', 'delete']);
 
-// Format datetime
+// Component lifecycle hooks
+onMounted(() => {
+  Logger.debug("ConversationDetail", "Component mounted", {
+    conversationId: props.conversation.id,
+    show: props.show
+  });
+});
+
+onUnmounted(() => {
+  Logger.debug("ConversationDetail", "Component unmounted");
+});
+
+// Watch for conversation modal visibility changes
+// Format datetime using dayjs
 function formatDateTime(timestamp) {
-  return parseTimestamp(timestamp).format('llll');
+  Logger.debug("ConversationDetail", "Formatting timestamp", { timestamp });
+  const formatted = parseTimestamp(timestamp).format('llll');
+  
+  if (formatted === 'Invalid Date') {
+    Logger.warn("ConversationDetail", "Invalid timestamp encountered", { timestamp });
+    return 'Invalid Date';
+  }
+  
+  return formatted;
 }
 
 // Actions
 function deleteConversation() {
+  Logger.log("ConversationDetail", "User requested conversation deletion", {
+    conversationId: props.conversation.id,
+    title: props.conversation.title || 'Untitled Conversation',
+    timestamp: props.conversation.timestamp
+  });
+  
   emit('delete', props.conversation);
+  
+  Logger.debug("ConversationDetail", "Delete event emitted");
 }
 </script>
 

@@ -40,12 +40,12 @@ const emit = defineEmits(['startChat', 'openConversation']);
 
 // Event handlers
 function handleStartChat() {
-  Logger.log("Start a Gemini Chat button clicked.");
+  Logger.log("ConversationList", "Start a Gemini Chat button clicked");
   emit('startChat');
 }
 
 function openConversation(url) {
-  Logger.log(`Opening conversation: ${url}`);
+  Logger.log("ConversationList", "Opening conversation", { url });
   emit('openConversation', url);
 }
 </script>

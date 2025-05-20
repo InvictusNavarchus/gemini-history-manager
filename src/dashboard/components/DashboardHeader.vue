@@ -12,7 +12,7 @@
           </div>
           <input type="text" id="searchFilter" placeholder="Search titles and prompts..." 
             :value="searchQuery" 
-            @input="$emit('update:searchQuery', $event.target.value)">
+            @input="handleSearchInput($event)">
         </div>
       </div>
       <div class="controls">
@@ -21,20 +21,20 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
         </button>
-        <button id="exportHistory" class="button" @click="$emit('export')">Export History</button>
-        <button id="importHistory" class="button" @click="$emit('import')">Import History</button>
-        <button id="clearHistory" class="button danger-button" @click="$emit('clear-history')">Clear All History</button>
+        <button id="exportHistory" class="button" @click="handleExport">Export History</button>
+        <button id="importHistory" class="button" @click="handleImport">Import History</button>
+        <button id="clearHistory" class="button danger-button" @click="handleClearHistory">Clear All History</button>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+import { ref, defineProps, defineEmits, onMounted, watch } from 'vue';
 import { Logger } from '../../lib/utils.js';
 
 // Define props
-defineProps({
+const props = defineProps({
   searchQuery: {
     type: String,
     default: ''
@@ -47,10 +47,49 @@ const emit = defineEmits(['update:searchQuery', 'theme-toggle', 'export', 'impor
 // References
 const themeIconSvg = ref(null);
 
+// Component lifecycle hooks
+onMounted(() => {
+  Logger.debug("DashboardHeader", "Component mounted", {
+    initialSearchQuery: props.searchQuery || 'empty'
+  });
+});
+
+// Watch for search query changes
+watch(() => props.searchQuery, (newQuery, oldQuery) => {
+  if (newQuery !== oldQuery) {
+    Logger.debug("DashboardHeader", "Search query changed", {
+      from: oldQuery || 'empty',
+      to: newQuery || 'empty'
+    });
+  }
+});
+
 // Event handlers
 function handleThemeToggle() {
-  Logger.log("Theme toggle button clicked");
+  Logger.log("DashboardHeader", "Theme toggle button clicked");
   emit('theme-toggle', themeIconSvg.value);
+}
+
+// Add handlers for other events
+function handleExport() {
+  Logger.log("DashboardHeader", "Export button clicked");
+  emit('export');
+}
+
+function handleImport() {
+  Logger.log("DashboardHeader", "Import button clicked");
+  emit('import');
+}
+
+function handleClearHistory() {
+  Logger.log("DashboardHeader", "Clear history button clicked");
+  emit('clear-history');
+}
+
+function handleSearchInput(event) {
+  const query = event.target.value;
+  Logger.debug("DashboardHeader", "Search input updated", { query });
+  emit('update:searchQuery', query);
 }
 
 // Expose themeIconSvg for parent component access
