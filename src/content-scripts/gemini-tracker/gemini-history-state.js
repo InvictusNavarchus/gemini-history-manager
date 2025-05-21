@@ -10,6 +10,7 @@
     pendingAccountEmail: null,
     sidebarObserver: null,
     titleObserver: null,
+    isExtensionReady: false, // Tracks whether the extension is fully initialized and sidebar is found
   };
 
   window.GeminiHistory_STATE = STATE;
