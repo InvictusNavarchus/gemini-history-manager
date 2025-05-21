@@ -17,7 +17,7 @@ export const RESERVED_COLORS = [
 ]
 
 // leftover colors for other unspecified models
-export const CHART_COLORS = [
+export const FALLBACK_COLORS = [
   "rgba(239, 83, 80, 0.8)", // Red
   "rgba(171, 71, 188, 0.8)", // Pink
 ];
@@ -46,7 +46,7 @@ export function getModelColor(modelName, fallbackIndex = 0) {
   }
 
   // Otherwise use the fallback color based on the index
-  return CHART_COLORS[fallbackIndex % CHART_COLORS.length];
+  return FALLBACK_COLORS[fallbackIndex % FALLBACK_COLORS.length];
 }
 
 /**
@@ -269,8 +269,8 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
       {
         label: "All Conversations",
         data: combinedData,
-        borderColor: CHART_COLORS[0], // Keep the default color for "All Conversations"
-        backgroundColor: CHART_COLORS[0].replace("0.8", "0.2"),
+        borderColor: FALLBACK_COLORS[0], // Keep the default color for "All Conversations"
+        backgroundColor: FALLBACK_COLORS[0].replace("0.8", "0.2"),
         fill: true,
         tension: 0.2,
         pointRadius: 3,
