@@ -9,8 +9,10 @@
     "preview": "vite preview",
     "lint": "web-ext lint --source-dir ./dist/",
     "package": "vite build && web-ext build --config ./web-ext-config.cjs",
-    "format": "prettier --write \"**/*.{js,vue,json,css,md,html}\"",
-    "format:check": "prettier --check \"**/*.{js,vue,json,css,md,html}\""
+    "format": "pretty-quick --staged",
+    "format:check": "pretty-quick --check --staged",
+    "format:all": "prettier --write \"**/*.{js,vue,json,css,md,html}\"",
+    "format:check:all": "prettier --check \"**/*.{js,vue,json,css,md,html}\""
   },
   "keywords": [
     "gemini",
@@ -27,6 +29,7 @@
     "fs-extra": "^11.1.0",
     "glob": "^11.0.2",
     "prettier": "^3.5.3",
+    "pretty-quick": "^4.1.1",
     "vite": "^6.3.5",
     "web-ext": "^7.6.2"
   },
