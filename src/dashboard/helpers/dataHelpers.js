@@ -362,7 +362,6 @@ export async function importHistoryData(fileContent, currentHistory) {
     Logger.debug("dataHelpers", "Merging new items with existing history");
 
     // Convert currentHistory to plain objects to remove any reactive proxies
-    const plainCurrentHistory = JSON.parse(JSON.stringify(currentHistory));
     updatedHistory = [...plainCurrentHistory, ...newItems];
 
     // Sort the history
