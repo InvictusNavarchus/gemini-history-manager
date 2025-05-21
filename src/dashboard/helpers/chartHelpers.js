@@ -18,8 +18,14 @@ export const RESERVED_COLORS = [
 
 // leftover colors for other unspecified models
 export const FALLBACK_COLORS = [
-  "rgba(239, 83, 80, 0.8)", // Red
-  "rgba(171, 71, 188, 0.8)", // Pink
+  "rgba(156, 204, 101, 0.8)", // Soft green
+  "rgba(187, 143, 206, 0.8)", // Soft lavender
+  "rgba(133, 193, 233, 0.8)", // Soft blue
+  "rgba(241, 196, 15, 0.8)",  // Soft yellow
+  "rgba(230, 176, 170, 0.8)", // Soft salmon
+  "rgba(169, 223, 191, 0.8)", // Soft mint
+  "rgba(210, 180, 140, 0.8)", // Soft tan
+  "rgba(208, 211, 212, 0.8)", // Soft silver
 ];
 
 // Model-specific color mapping for consistent colors across visualizations
