@@ -22,7 +22,7 @@
   "content_scripts": [
     {
       "matches": ["https://gemini.google.com/*"],
-      "js": ["content-scripts/gemini-tracker.js"]
+      "js": ["content-scripts/logger-inject.js", "content-scripts/gemini-tracker.js"]
     }
   ],
   "icons": {

@@ -2,49 +2,8 @@
  * Gemini History Manager - Theme Management
  * Functions for handling light/dark theme preferences and transitions
  */
-import { isLoggingEnabled } from "./logConfig.js";
 
-// Internal Logger implementation to avoid circular dependencies
-// Note: This adapts the Logger in utils.js to work with the centralized logging config
-const Logger = {
-  LOG_PREFIX: "[Gemini History]",
-
-  _log: function (method, context, message, error, ...args) {
-    const logLevel = method.toLowerCase();
-    if (!isLoggingEnabled(context || "ThemeManager", logLevel)) {
-      return;
-    }
-
-    // Always include context in brackets and the message
-    if (error instanceof Error) {
-      console[method](this.LOG_PREFIX, `[${context}]`, message, error, ...args);
-    } else {
-      console[method](
-        this.LOG_PREFIX,
-        `[${context}]`,
-        message,
-        ...(error !== undefined ? [error] : []),
-        ...args
-      );
-    }
-  },
-
-  log: function (context, message, ...args) {
-    this._log("log", context, message, undefined, ...args);
-  },
-
-  warn: function (context, message, ...args) {
-    this._log("warn", context, message, undefined, ...args);
-  },
-
-  error: function (context, message, error, ...args) {
-    this._log("error", context, message, error, ...args);
-  },
-
-  debug: function (context, message, ...args) {
-    this._log("debug", context, message, undefined, ...args);
-  },
-};
+import { Logger } from "./logger.js";
 
 // Theme management
 export const THEME_STORAGE_KEY = "geminiHistoryTheme";

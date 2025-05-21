@@ -5,6 +5,9 @@
 (function () {
   "use strict";
 
+  // Use the injected Logger from logger-inject.js
+  const Logger = window.GeminiHistoryLogger;
+
   /**
    * ==========================================
    * CONFIGURATION AND CONSTANTS
@@ -410,97 +413,6 @@
 
       // Default to true if not explicitly configured
       return true;
-    },
-  };
-
-  /**
-   * ==========================================
-   * LOGGING MODULE
-   * ==========================================
-   */
-  const Logger = {
-    /**
-     * Format object for logging by converting to JSON string
-     * @param {Object} obj - Object to stringify
-     * @returns {string} JSON string representation
-     */
-    formatObject: function (obj) {
-      try {
-        if (typeof obj === "object" && obj !== null) {
-          return JSON.stringify(obj, null, 2);
-        }
-        return obj;
-      } catch (e) {
-        console.error("Error formatting object for logging:", e);
-        return "[Object conversion error]";
-      }
-    },
-
-    /**
-     * Logs an informational message
-     * @param {string} context - Component or module name
-     * @param {string} [message] - Message to log (optional in legacy mode)
-     * @param {...any} args - Additional arguments
-     */
-    log: function (context, message, ...args) {
-      if (!LogConfig.isLoggingEnabled(context, "log")) {
-        return;
-      }
-
-      // Always include context in brackets and the message
-      console.log(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
-    },
-
-    /**
-     * Logs a warning message
-     * @param {string} context - Component or module name
-     * @param {string} [message] - Message to log (optional in legacy mode)
-     * @param {...any} args - Additional arguments
-     */
-    warn: function (context, message, ...args) {
-      if (!LogConfig.isLoggingEnabled(context, "warn")) {
-        return;
-      }
-
-      // Always include context in brackets and the message
-      console.warn(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
-    },
-
-    /**
-     * Logs an error message
-     * @param {string} context - Component or module name
-     * @param {string} [message] - Message to log (optional in legacy mode)
-     * @param {Error} [error] - Error object (optional)
-     * @param {...any} args - Additional arguments
-     */
-    error: function (context, message, error, ...args) {
-      if (!LogConfig.isLoggingEnabled(context, "error")) {
-        return;
-      }
-
-      // Always include context in brackets
-      if (error instanceof Error) {
-        console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
-      } else if (typeof error === "undefined") {
-        console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message);
-      } else {
-        console.error(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
-      }
-    },
-
-    /**
-     * Logs a debug message (only when debug mode is enabled)
-     * @param {string} context - Component or module name
-     * @param {string} [message] - Message to log (optional in legacy mode)
-     * @param {...any} args - Additional arguments
-     */
-    debug: function (context, message, ...args) {
-      if (!LogConfig.isLoggingEnabled(context, "debug")) {
-        return;
-      }
-
-      // Always include context in brackets and the message
-      console.debug(CONFIG.LOG_PREFIX, CONFIG.CONTEXT_PREFIX, `[${context}]`, message, ...args);
     },
   };
 
