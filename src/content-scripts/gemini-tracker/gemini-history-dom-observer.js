@@ -34,12 +34,22 @@
       // Show immediate loading status at the beginning
       StatusIndicator.show("Looking for Gemini sidebar...", "loading", 0);
 
+      // Ensure we're starting in a "not ready" state
+      STATE.isExtensionReady = false;
+
       // First check if the sidebar already exists
       const sidebarSelector = 'conversations-list[data-test-id="all-conversations"]';
       const existingSidebar = document.querySelector(sidebarSelector);
 
       if (existingSidebar) {
         Logger.log("gemini-tracker", "Sidebar already exists in DOM");
+        STATE.isExtensionReady = true;
+        
+        // Enable send button now that sidebar is found
+        if (window.GeminiHistory_ButtonController) {
+          window.GeminiHistory_ButtonController.enableSendButton();
+        }
+        
         callback(existingSidebar);
         return;
       }
@@ -51,6 +61,13 @@
         const sidebar = document.querySelector(sidebarSelector);
         if (sidebar) {
           Logger.log("gemini-tracker", "Sidebar element found in DOM");
+          STATE.isExtensionReady = true;
+          
+          // Enable send button now that sidebar is found
+          if (window.GeminiHistory_ButtonController) {
+            window.GeminiHistory_ButtonController.enableSendButton();
+          }
+          
           obs.disconnect(); // Stop observing once found
           callback(sidebar);
         }
@@ -69,6 +86,13 @@
           if (!sidebar) {
             Logger.warn("gemini-tracker", "Sidebar element not found after timeout");
             StatusIndicator.show("Warning: Gemini sidebar not detected", "warning", 0);
+            // We'll still mark as ready after timeout to avoid permanently disabled buttons
+            STATE.isExtensionReady = true;
+            
+            // Enable send button even after timeout to avoid permanently disabling
+            if (window.GeminiHistory_ButtonController) {
+              window.GeminiHistory_ButtonController.enableSendButton();
+            }
           }
           observer.disconnect();
         }

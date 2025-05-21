@@ -7,6 +7,7 @@
   const DomObserver = window.GeminiHistory_DomObserver;
   const EventHandlers = window.GeminiHistory_EventHandlers;
   const Utils = window.GeminiHistory_Utils;
+  const ButtonController = window.GeminiHistory_ButtonController;
 
   /**
    * Initializes the script.
@@ -17,6 +18,9 @@
 
     // Initialize status indicator
     StatusIndicator.init();
+    
+    // Initialize button controller to handle send button state
+    ButtonController.init();
 
     // Add storage event listener to detect logging config changes from other contexts
     window.addEventListener("storage", (event) => {
@@ -58,6 +62,11 @@
     });
 
     Logger.log("Gemini History Manager initialization complete.");
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+      ButtonController.cleanup();
+    });
   }
 
   // Start the script
