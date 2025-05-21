@@ -95,17 +95,34 @@ export default defineConfig({
             console.log(`Processed HTML: ${relativePath} (updated script reference to ${dirName}.js)`);
           });
 
-          // Copy content scripts directly (without bundling by Vite's main process)
-          const contentScripts = globSync("src/content-scripts/*.js");
-          fs.ensureDirSync(path.resolve(__dirname, "dist/content-scripts"));
-          contentScripts.forEach((script) => {
-            const filename = path.basename(script);
-            fs.copySync(
-              path.resolve(__dirname, script),
-              path.resolve(__dirname, `dist/content-scripts/${filename}`)
-            );
+          // Copy content scripts directly, preserving subdirectory structure
+          const contentScriptSourceBasePath = "src/content-scripts";
+          // Use glob to find all .js files within src/content-scripts and its subdirectories
+          const contentScriptsPaths = globSync(`${contentScriptSourceBasePath}/**/*.js`, { cwd: __dirname });
+
+          if (contentScriptsPaths.length > 0) {
+            fs.ensureDirSync(path.resolve(__dirname, "dist/content-scripts")); // Ensure base dir exists
+          }
+
+          contentScriptsPaths.forEach((scriptPath) => {
+            // scriptPath is like 'src/content-scripts/gemini-tracker/file.js'
+            // Determine the path relative to the contentScriptSourceBasePath
+            // e.g., 'gemini-tracker/file.js'
+            const relativePathToCopy = path.relative(contentScriptSourceBasePath, scriptPath);
+
+            const sourceFullPath = path.resolve(__dirname, scriptPath);
+            const targetFullPath = path.resolve(__dirname, "dist/content-scripts", relativePathToCopy);
+
+            // Ensure the target directory structure exists (e.g., dist/content-scripts/gemini-tracker/)
+            fs.ensureDirSync(path.dirname(targetFullPath));
+
+            fs.copySync(sourceFullPath, targetFullPath);
           });
-          console.log("Copied content scripts");
+          if (contentScriptsPaths.length > 0) {
+            console.log("Copied content scripts, preserving subdirectory structure.");
+          } else {
+            console.log("No content scripts found to copy.");
+          }
 
           // Copy CSS files directly (e.g., dashboard.css, popup.css)
           // These will be linked from their respective HTML files.
