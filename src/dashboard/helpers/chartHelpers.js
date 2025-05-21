@@ -30,6 +30,7 @@ export const MODEL_COLOR_MAP = {
   "2.0 Flash": RESERVED_COLORS[3], // Teal for 2.0 Flash
   "Veo 2": RESERVED_COLORS[4], // Orange for Veo 2
   "Personalization": RESERVED_COLORS[5], // Cyan for Personalization
+  "All Conversations": RESERVED_COLORS[6], // Grey for all models
   "Unknown": RESERVED_COLORS[6], // Gray for unknown models
 };
 
@@ -269,8 +270,8 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
       {
         label: "All Conversations",
         data: combinedData,
-        borderColor: FALLBACK_COLORS[0], // Keep the default color for "All Conversations"
-        backgroundColor: FALLBACK_COLORS[0].replace("0.8", "0.2"),
+        borderColor: MODEL_COLOR_MAP["All Conversations"], 
+        backgroundColor: MODEL_COLOR_MAP["All Conversations"].replace("0.8", "0.2"),
         fill: true,
         tension: 0.2,
         pointRadius: 3,
