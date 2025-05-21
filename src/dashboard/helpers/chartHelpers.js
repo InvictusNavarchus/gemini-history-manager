@@ -11,10 +11,11 @@ export const RESERVED_COLORS = [
    "rgba(30, 100, 200, 0.8)", // Deep blue"
    "rgba(71, 163, 255, 0.8)", // Blue
    "rgba(0, 199, 176, 0.8)", // Teal
+   "rgba(255, 167, 38, 0.8)", // Orange
+   "rgba(0, 255, 255, 0.8)", // Cyan
    "rgba(150, 150, 150, 0.8)", // Gray
 ]
 export const CHART_COLORS = [
-  "rgba(255, 167, 38, 0.8)", // Orange
   "rgba(239, 83, 80, 0.8)", // Red
   "rgba(171, 71, 188, 0.8)", // Pink
 ];
@@ -25,7 +26,9 @@ export const MODEL_COLOR_MAP = {
   "Deep Research": RESERVED_COLORS[1], // Deep blue for Deep Research
   "2.5 Flash": RESERVED_COLORS[2], // Blue for 2.5 Flash
   "2.0 Flash": RESERVED_COLORS[3], // Teal for 2.0 Flash
-  "Unknown": RESERVED_COLORS[4], // Gray for unknown models
+  "Veo 2": RESERVED_COLORS[4], // Orange for Veo 2
+  "Personalization": RESERVED_COLORS[5], // Cyan for Personalization
+  "Unknown": RESERVED_COLORS[6], // Gray for unknown models
 };
 
 /**
