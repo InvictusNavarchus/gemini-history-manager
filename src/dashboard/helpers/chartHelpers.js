@@ -15,6 +15,8 @@ export const RESERVED_COLORS = [
    "rgba(0, 255, 255, 0.8)", // Cyan
    "rgba(150, 150, 150, 0.8)", // Gray
 ]
+
+// leftover colors for other unspecified models
 export const CHART_COLORS = [
   "rgba(239, 83, 80, 0.8)", // Red
   "rgba(171, 71, 188, 0.8)", // Pink
