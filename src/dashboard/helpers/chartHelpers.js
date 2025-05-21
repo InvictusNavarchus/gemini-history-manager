@@ -15,6 +15,29 @@ export const CHART_COLORS = [
   "rgba(171, 71, 188, 0.8)", // Pink
 ];
 
+// Model-specific color mapping for consistent colors across visualizations
+export const MODEL_COLOR_MAP = {
+  "2.5 Pro": CHART_COLORS[0], // Primary purple for 2.5 Pro
+  "Deep Research": "rgba(30, 100, 200, 0.8)", // Deep blue for Deep Research
+  "Unknown": "rgba(150, 150, 150, 0.8)", // Gray for unknown models
+};
+
+/**
+ * Get color for a specific model, ensuring consistency across visualizations
+ * @param {string} modelName - Name of the model
+ * @param {number} fallbackIndex - Fallback index to use if no specific color is defined
+ * @returns {string} Color to use for the model
+ */
+export function getModelColor(modelName, fallbackIndex = 0) {
+  // If we have a specific color defined for this model, use it
+  if (MODEL_COLOR_MAP[modelName]) {
+    return MODEL_COLOR_MAP[modelName];
+  }
+
+  // Otherwise use the fallback color based on the index
+  return CHART_COLORS[fallbackIndex % CHART_COLORS.length];
+}
+
 /**
  * Get theme-specific options for Chart.js
  * @param {string} theme - Current theme ('light' or 'dark')
@@ -67,8 +90,8 @@ export function getModelDistributionChartConfig(historyData, theme) {
         {
           label: "Conversations",
           data,
-          backgroundColor: CHART_COLORS.slice(0, data.length),
-          borderColor: CHART_COLORS.map((color) => color.replace("0.8", "1")),
+          backgroundColor: labels.map((model, index) => getModelColor(model, index)),
+          borderColor: labels.map((model, index) => getModelColor(model, index).replace("0.8", "1")),
           borderWidth: 1,
           maxBarThickness: 50,
         },
@@ -235,7 +258,7 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
       {
         label: "All Conversations",
         data: combinedData,
-        borderColor: CHART_COLORS[0],
+        borderColor: CHART_COLORS[0], // Keep the default color for "All Conversations"
         backgroundColor: CHART_COLORS[0].replace("0.8", "0.2"),
         fill: true,
         tension: 0.2,
@@ -259,12 +282,15 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
         const modelData = finalSortedDates.map((date) => modelDateGroups[model][date] || 0);
         const totalForModel = modelData.reduce((sum, count) => sum + count, 0);
         Logger.debug("chartHelpers", `Dataset for model "${model}" has ${totalForModel} total conversations`);
+        
+        // Get consistent color for this model
+        const modelColor = getModelColor(model, index);
 
         return {
           label: model,
           data: modelData,
-          borderColor: CHART_COLORS[index % CHART_COLORS.length],
-          backgroundColor: CHART_COLORS[index % CHART_COLORS.length].replace("0.8", "0.2"),
+          borderColor: modelColor,
+          backgroundColor: modelColor.replace("0.8", "0.2"),
           fill: false, // multiple datasets look better without fill
           tension: 0.2,
           pointRadius: 3,
@@ -281,12 +307,15 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
       );
       const totalForModel = modelData.reduce((sum, count) => sum + count, 0);
 
+      // Get consistent color for this model
+      const modelColor = getModelColor(selectedModelForChart, 0);
+      
       datasets = [
         {
           label: selectedModelForChart,
           data: modelData,
-          borderColor: CHART_COLORS[0],
-          backgroundColor: CHART_COLORS[0].replace("0.8", "0.2"),
+          borderColor: modelColor,
+          backgroundColor: modelColor.replace("0.8", "0.2"),
           fill: true,
           tension: 0.2,
           pointRadius: 3,
