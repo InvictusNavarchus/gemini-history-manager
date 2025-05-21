@@ -9,11 +9,11 @@ import dayjs from "dayjs";
 export const RESERVED_COLORS = [
    "rgba(110, 65, 226, 0.8)", // Primary purple
    "rgba(30, 100, 200, 0.8)", // Deep blue"
+   "rgba(71, 163, 255, 0.8)", // Blue
+   "rgba(0, 199, 176, 0.8)", // Teal
    "rgba(150, 150, 150, 0.8)", // Gray
 ]
 export const CHART_COLORS = [
-  "rgba(71, 163, 255, 0.8)", // Blue
-  "rgba(0, 199, 176, 0.8)", // Teal
   "rgba(255, 167, 38, 0.8)", // Orange
   "rgba(239, 83, 80, 0.8)", // Red
   "rgba(171, 71, 188, 0.8)", // Pink
@@ -23,7 +23,9 @@ export const CHART_COLORS = [
 export const MODEL_COLOR_MAP = {
   "2.5 Pro": RESERVED_COLORS[0], // Primary purple for 2.5 Pro
   "Deep Research": RESERVED_COLORS[1], // Deep blue for Deep Research
-  "Unknown": RESERVED_COLORS[2], // Gray for unknown models
+  "2.5 Flash": RESERVED_COLORS[2], // Blue for 2.5 Flash
+  "2.0 Flash": RESERVED_COLORS[3], // Teal for 2.0 Flash
+  "Unknown": RESERVED_COLORS[4], // Gray for unknown models
 };
 
 /**
