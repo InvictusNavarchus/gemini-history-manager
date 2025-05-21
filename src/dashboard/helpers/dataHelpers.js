@@ -16,7 +16,7 @@ export const STORAGE_KEY = "geminiChatHistory";
 export async function saveHistoryData(historyData) {
   try {
     // Ensure we're working with clean data without Vue reactive proxies
-    const dataToSave = Array.isArray(historyData) ? historyData : [];
+    const dataToSave = Array.isArray(historyData) ? JSON.parse(JSON.stringify(historyData)) : [];
 
     await browser.storage.local.set({ [STORAGE_KEY]: dataToSave });
     Logger.log("dataHelpers", `Saved ${dataToSave.length} conversations to storage`);
@@ -345,7 +345,9 @@ export async function importHistoryData(fileContent, currentHistory) {
   Logger.log("dataHelpers", `Import file contains ${importedData.length} conversation entries`);
 
   // Filter out entries that already exist in history (by URL)
-  const existingUrls = new Set(currentHistory.map((item) => item.url));
+  // Use a clean copy of currentHistory to avoid reactive proxy issues
+  const plainCurrentHistory = JSON.parse(JSON.stringify(currentHistory));
+  const existingUrls = new Set(plainCurrentHistory.map((item) => item.url));
   Logger.debug("dataHelpers", `Found ${existingUrls.size} existing URLs to check for duplicates`);
 
   const newItems = importedData.filter((item) => item.url && !existingUrls.has(item.url));
@@ -358,7 +360,9 @@ export async function importHistoryData(fileContent, currentHistory) {
   let updatedHistory = currentHistory;
   if (newItems.length > 0) {
     Logger.debug("dataHelpers", "Merging new items with existing history");
-    updatedHistory = [...currentHistory, ...newItems];
+
+    // Convert currentHistory to plain objects to remove any reactive proxies
+    updatedHistory = [...plainCurrentHistory, ...newItems];
 
     // Sort the history
     Logger.debug("dataHelpers", "Sorting merged history by timestamp");
