@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 // Chart colors
 export const RESERVED_COLORS = [
    "rgba(110, 65, 226, 0.8)", // Primary purple
-   "rgba(30, 100, 200, 0.8)", // Deep blue"
+   "rgba(30, 100, 200, 0.8)", // Deep blue
    "rgba(71, 163, 255, 0.8)", // Blue
    "rgba(0, 199, 176, 0.8)", // Teal
    "rgba(255, 167, 38, 0.8)", // Orange
