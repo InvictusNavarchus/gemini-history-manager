@@ -7,21 +7,21 @@ import dayjs from "dayjs";
 
 // Chart colors
 export const RESERVED_COLORS = [
-   "rgba(110, 65, 226, 0.8)", // Primary purple
-   "rgba(30, 100, 200, 0.8)", // Deep blue
-   "rgba(71, 163, 255, 0.8)", // Blue
-   "rgba(0, 199, 176, 0.8)", // Teal
-   "rgba(255, 167, 38, 0.8)", // Orange
-   "rgba(0, 255, 255, 0.8)", // Cyan
-   "rgba(150, 150, 150, 0.8)", // Gray
-]
+  "rgba(110, 65, 226, 0.8)", // Primary purple
+  "rgba(30, 100, 200, 0.8)", // Deep blue
+  "rgba(71, 163, 255, 0.8)", // Blue
+  "rgba(0, 199, 176, 0.8)", // Teal
+  "rgba(255, 167, 38, 0.8)", // Orange
+  "rgba(0, 255, 255, 0.8)", // Cyan
+  "rgba(150, 150, 150, 0.8)", // Gray
+];
 
 // leftover colors for other unspecified models
 export const FALLBACK_COLORS = [
   "rgba(156, 204, 101, 0.8)", // Soft green
   "rgba(187, 143, 206, 0.8)", // Soft lavender
   "rgba(133, 193, 233, 0.8)", // Soft blue
-  "rgba(241, 196, 15, 0.8)",  // Soft yellow
+  "rgba(241, 196, 15, 0.8)", // Soft yellow
   "rgba(230, 176, 170, 0.8)", // Soft salmon
   "rgba(169, 223, 191, 0.8)", // Soft mint
   "rgba(210, 180, 140, 0.8)", // Soft tan
@@ -35,9 +35,9 @@ export const MODEL_COLOR_MAP = {
   "2.5 Flash": RESERVED_COLORS[2], // Blue for 2.5 Flash
   "2.0 Flash": RESERVED_COLORS[3], // Teal for 2.0 Flash
   "Veo 2": RESERVED_COLORS[4], // Orange for Veo 2
-  "Personalization": RESERVED_COLORS[5], // Cyan for Personalization
+  Personalization: RESERVED_COLORS[5], // Cyan for Personalization
   "All Conversations": RESERVED_COLORS[6], // Grey for all models
-  "Unknown": RESERVED_COLORS[6], // Gray for unknown models
+  Unknown: RESERVED_COLORS[6], // Gray for unknown models
 };
 
 /**
@@ -276,7 +276,7 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
       {
         label: "All Conversations",
         data: combinedData,
-        borderColor: MODEL_COLOR_MAP["All Conversations"], 
+        borderColor: MODEL_COLOR_MAP["All Conversations"],
         backgroundColor: MODEL_COLOR_MAP["All Conversations"].replace("0.8", "0.2"),
         fill: true,
         tension: 0.2,
@@ -300,7 +300,7 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
         const modelData = finalSortedDates.map((date) => modelDateGroups[model][date] || 0);
         const totalForModel = modelData.reduce((sum, count) => sum + count, 0);
         Logger.debug("chartHelpers", `Dataset for model "${model}" has ${totalForModel} total conversations`);
-        
+
         // Get consistent color for this model
         const modelColor = getModelColor(model, index);
 
@@ -327,7 +327,7 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
 
       // Get consistent color for this model
       const modelColor = getModelColor(selectedModelForChart, 0);
-      
+
       datasets = [
         {
           label: selectedModelForChart,
