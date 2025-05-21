@@ -6,8 +6,12 @@ import { parseTimestamp, Logger } from "../../lib/utils.js";
 import dayjs from "dayjs";
 
 // Chart colors
+export const RESERVED_COLORS = [
+   "rgba(110, 65, 226, 0.8)", // Primary purple
+   "rgba(30, 100, 200, 0.8)", // Deep blue"
+   "rgba(150, 150, 150, 0.8)", // Gray
+]
 export const CHART_COLORS = [
-  "rgba(110, 65, 226, 0.8)", // Primary purple
   "rgba(71, 163, 255, 0.8)", // Blue
   "rgba(0, 199, 176, 0.8)", // Teal
   "rgba(255, 167, 38, 0.8)", // Orange
@@ -17,9 +21,9 @@ export const CHART_COLORS = [
 
 // Model-specific color mapping for consistent colors across visualizations
 export const MODEL_COLOR_MAP = {
-  "2.5 Pro": CHART_COLORS[0], // Primary purple for 2.5 Pro
-  "Deep Research": "rgba(30, 100, 200, 0.8)", // Deep blue for Deep Research
-  "Unknown": "rgba(150, 150, 150, 0.8)", // Gray for unknown models
+  "2.5 Pro": RESERVED_COLORS[0], // Primary purple for 2.5 Pro
+  "Deep Research": RESERVED_COLORS[1], // Deep blue for Deep Research
+  "Unknown": RESERVED_COLORS[2], // Gray for unknown models
 };
 
 /**
