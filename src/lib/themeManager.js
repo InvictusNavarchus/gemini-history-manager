@@ -3,7 +3,6 @@
  * Functions for handling light/dark theme preferences and transitions
  */
 
-import { isLoggingEnabled } from "./logConfig.js";
 import { Logger } from "./logger.js";
 
 // Theme management
