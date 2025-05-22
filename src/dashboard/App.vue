@@ -170,7 +170,7 @@ import {
   importHistoryData,
 } from "./helpers/dataHelpers.js";
 import { getModelDistributionChartConfig, getActivityOverTimeChartConfig } from "./helpers/chartHelpers.js";
-import { getPlanDistributionChartConfig } from "./helpers/planDistributionChart.js";
+import { getPlanDistributionChartConfig } from "./helpers/chartHelpers.js";
 import {
   createToastManager,
   exportHistoryData,
