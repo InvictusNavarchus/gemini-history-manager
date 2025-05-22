@@ -162,6 +162,9 @@
         accountName: accountInfo.name,
         accountEmail: accountInfo.email,
         geminiPlan: STATE.pendingGeminiPlan,
+        gemId: STATE.pendingGemId,
+        gemName: STATE.pendingGemName,
+        gemUrl: STATE.pendingGemUrl,
       };
     },
 
