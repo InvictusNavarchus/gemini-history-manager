@@ -4,8 +4,13 @@
   const Logger = window.GeminiHistoryLogger;
   const Utils = window.GeminiHistory_Utils;
 
-  // Selector for the container holding the Gem's name.
-  const GEM_NAME_SELECTOR = ".bot-info-card .bot-name-container";
+  // Selectors for the container holding the Gem's name.
+  // Using multiple selectors to adapt to different DOM structures
+  const GEM_NAME_SELECTORS = [
+    ".bot-info-card .bot-name-container",
+    ".bot-info-container .bot-name-container",
+    ".bot-name-and-description .bot-name-container"
+  ];
 
   const GemDetector = {
     /**
@@ -20,7 +25,7 @@
 
     /**
      * Extracts the Gem's name from the given DOM element.
-     * It specifically looks for the first direct text node with content.
+     * It tries multiple approaches to extract the name because the DOM structure might vary.
      *
      * @param {Element} element - The DOM element containing the Gem's name.
      * @returns {string|null} The trimmed Gem name, or null if not found.
@@ -30,26 +35,55 @@
         return null;
       }
 
+      // First try: Get the entire text content of the element
+      const fullText = element.textContent.trim();
+      if (fullText) {
+        Logger.log("gemini-tracker", `Extracted gem name from full text content: "${fullText}"`);
+        return fullText;
+      }
+
+      // Second try: Look for direct text nodes
       for (const node of element.childNodes) {
         // Node.TEXT_NODE is type 3
         if (node.nodeType === Node.TEXT_NODE) {
           const trimmedText = node.textContent.trim();
           if (trimmedText) {
+            Logger.log("gemini-tracker", `Extracted gem name from direct text node: "${trimmedText}"`);
             return trimmedText;
           }
         }
       }
-      return null; // No suitable text node found
+
+      // Third try: Look for any first-level elements with text content
+      for (const child of element.children) {
+        const childText = child.textContent.trim();
+        if (childText) {
+          Logger.log("gemini-tracker", `Extracted gem name from child element: "${childText}"`);
+          return childText;
+        }
+      }
+
+      return null; // No suitable text found
     },
 
     /**
      * Checks for the Gem name element, extracts the name, and logs it.
      * If a Gem name is found, it updates the currentGemName and disconnects the observer.
+     * Tries multiple selectors to adapt to different DOM structures.
      *
      * @returns {boolean} True if a Gem name was found, false otherwise.
      */
     checkForGem: function () {
-      const gemNameElement = document.querySelector(GEM_NAME_SELECTOR);
+      let gemNameElement = null;
+      
+      // Try each selector until we find a matching element
+      for (const selector of GEM_NAME_SELECTORS) {
+        gemNameElement = document.querySelector(selector);
+        if (gemNameElement) {
+          Logger.log("gemini-tracker", `Found gem name element using selector: ${selector}`);
+          break;
+        }
+      }
 
       if (gemNameElement) {
         const detectedName = this.getGemName(gemNameElement);
@@ -69,6 +103,9 @@
             "gemini-tracker",
             "Gem name container found, but the name text could not be extracted as expected."
           );
+          
+          // Log the HTML content to help with debugging
+          Logger.debug("gemini-tracker", `Gem container HTML: ${gemNameElement.innerHTML}`);
         }
       }
       return false; // Gem name not found yet
@@ -140,14 +177,66 @@
       const gemId = Utils.extractGemId(url);
 
       if (gemId) {
-        return {
+        const gemInfo = {
           gemId: gemId,
           gemName: this.currentGemName,
           gemUrl: `https://gemini.google.com/gem/${gemId}`,
         };
+        
+        // Trigger a debug scan if name is not detected yet
+        if (!this.currentGemName) {
+          Logger.log("gemini-tracker", "Gem name not detected yet, performing debug scan");
+          this.debugGemDetection();
+        }
+        
+        return gemInfo;
       }
 
       return null;
+    },
+    
+    /**
+     * Debug function to help diagnose gem detection issues.
+     * Logs detailed information about potential gem name elements.
+     */
+    debugGemDetection: function() {
+      Logger.log("gemini-tracker", "Running gem detection debug scan...");
+      
+      // Try all selectors and log what we find
+      for (const selector of GEM_NAME_SELECTORS) {
+        const element = document.querySelector(selector);
+        if (element) {
+          Logger.log("gemini-tracker", `Found element matching selector: ${selector}`);
+          Logger.log("gemini-tracker", `Element textContent: "${element.textContent.trim()}"`);
+          Logger.log("gemini-tracker", `Element innerHTML: ${element.innerHTML}`);
+          
+          // Manually check for the name using various methods
+          for (const node of element.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE) {
+              const text = node.textContent.trim();
+              if (text) {
+                Logger.log("gemini-tracker", `Direct text node found: "${text}"`);
+              }
+            }
+          }
+          
+          // Try to extract using our method
+          const extractedName = this.getGemName(element);
+          Logger.log("gemini-tracker", `Extraction result: ${extractedName || "No name extracted"}`);
+        } else {
+          Logger.log("gemini-tracker", `No element found for selector: ${selector}`);
+        }
+      }
+      
+      // Look for potential bot name containers with different selectors
+      const potentialContainers = document.querySelectorAll("[class*='bot-name'], [class*='name-container']");
+      Logger.log("gemini-tracker", `Found ${potentialContainers.length} potential name containers with alternative selectors`);
+      
+      for (let i = 0; i < Math.min(potentialContainers.length, 5); i++) {
+        const container = potentialContainers[i];
+        Logger.log("gemini-tracker", `Alternative container ${i+1} class: ${container.className}`);
+        Logger.log("gemini-tracker", `Alternative container ${i+1} text: "${container.textContent.trim()}"`);
+      }
     },
   };
 
