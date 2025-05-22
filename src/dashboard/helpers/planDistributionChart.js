@@ -3,7 +3,7 @@
  * Function for plan distribution visualization in the Dashboard
  */
 import { Logger } from "../../lib/utils.js";
-import { PLAN_COLOR_MAP, FALLBACK_COLORS, getChartJsThemeOptions, getPlanColor } from "./chartHelpers.js";
+import { getChartJsThemeOptions, getPlanColor } from "./chartHelpers.js";
 
 /**
  * Generate configuration for plan distribution chart
