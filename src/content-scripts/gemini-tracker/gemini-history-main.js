@@ -45,12 +45,21 @@
       const currentUrl = window.location.href;
       if (currentUrl !== lastUrl) {
         Logger.log("gemini-tracker", `URL changed: ${lastUrl} -> ${currentUrl}`);
-        lastUrl = currentUrl;
-
-        // Reset Gem detector when URL changes
-        if (GemDetector) {
+        
+        // Special case: If we're transitioning from a Gem homepage to a Gem chat page,
+        // we don't want to reset the Gem detector as we're still in the same Gem context
+        const isTransitionWithinGem = 
+          Utils.isGemHomepageUrl(lastUrl) && 
+          Utils.isGemChatUrl(currentUrl) &&
+          Utils.extractGemId(lastUrl) === Utils.extractGemId(currentUrl);
+          
+        if (isTransitionWithinGem) {
+          Logger.log("gemini-tracker", "URL change is within the same Gem context, maintaining Gem detection");
+        } else if (GemDetector) {
           GemDetector.reset();
         }
+        
+        lastUrl = currentUrl;
       }
     }).observe(document, { subtree: true, childList: true });
 

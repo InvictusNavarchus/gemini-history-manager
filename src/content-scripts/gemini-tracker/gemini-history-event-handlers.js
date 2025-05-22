@@ -107,13 +107,13 @@
         const currentUrl = window.location.href;
         Logger.log("gemini-tracker", `Current URL at time of click: ${currentUrl}`);
 
-        // Check if we are on the main app page (starting a NEW chat)
-        if (Utils.isBaseAppUrl(currentUrl)) {
+        // Check if we are on the main app page or a Gem homepage (starting a NEW chat)
+        if (Utils.isBaseAppUrl(currentUrl) || Utils.isGemHomepageUrl(currentUrl)) {
           this.prepareNewChatTracking();
         } else {
           Logger.log(
             "gemini-tracker",
-            "URL does not match GEMINI_APP_URL. Ignoring click for history tracking."
+            "URL is not a valid starting point for new chats. Ignoring click for history tracking."
           );
         }
       }
