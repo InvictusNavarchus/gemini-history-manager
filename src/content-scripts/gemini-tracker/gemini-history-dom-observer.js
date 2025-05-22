@@ -36,18 +36,113 @@
 
       // Ensure we're starting in a "not ready" state
       STATE.isExtensionReady = false;
+      Logger.log("gemini-tracker", "[DEBUG] Set extension ready state to false for initialization");
 
       // First check if the sidebar already exists
       const sidebarSelector = 'conversations-list[data-test-id="all-conversations"]';
       const existingSidebar = document.querySelector(sidebarSelector);
 
       if (existingSidebar) {
-        Logger.log("gemini-tracker", "Sidebar already exists in DOM");
-        STATE.isExtensionReady = true;
-        
-        // Enable send button now that sidebar is found
-        if (window.GeminiHistory_ButtonController) {
-          window.GeminiHistory_ButtonController.enableSendButton();
+        Logger.log("gemini-tracker", "Sidebar already exists in DOM");          Logger.log("gemini-tracker", "[DEBUG ENHANCE] Setting extension to ready state - sidebar found immediately");
+          STATE.isExtensionReady = true;
+          
+          // Log all Angular components before enabling buttons
+          Logger.log("gemini-tracker", "[DEBUG ENHANCE] Sidebar detection: found sidebar with components:");
+          
+          try {
+            // Analyze the sidebar structure
+            const sidebarComponents = existingSidebar.querySelectorAll('*');
+            Logger.log("gemini-tracker", `[DEBUG ENHANCE] Sidebar has ${sidebarComponents.length} child elements`);
+            
+            // Check for conversation list
+            const conversationList = existingSidebar.querySelector('[data-test-id="all-conversations"]');
+            if (conversationList) {
+              const conversationItems = conversationList.querySelectorAll('conversation-item');
+              Logger.log("gemini-tracker", `[DEBUG ENHANCE] Found ${conversationItems.length} conversation items in sidebar`);
+            }
+          } catch (e) {
+            Logger.warn("gemini-tracker", "[DEBUG ENHANCE] Error analyzing sidebar:", e);
+          }
+          
+          // Look at full DOM state to understand UI readiness
+          const appRootElement = document.querySelector('app-root');
+          if (appRootElement) {
+            Logger.log("gemini-tracker", "[DEBUG ENHANCE] Angular app-root component is present");
+            
+            // Check other important app components
+            const chatWindow = document.querySelector('chat-window');
+            const promptTextarea = document.querySelector('textarea');
+            const mainContentArea = document.querySelector('main-content-area');
+            
+            Logger.log("gemini-tracker", `[DEBUG ENHANCE] Key components present: chatWindow=${!!chatWindow}, promptTextarea=${!!promptTextarea}, mainContentArea=${!!mainContentArea}`);
+          }
+          
+          // Enable send button now that sidebar is found
+          if (window.GeminiHistory_ButtonController) {
+            Logger.log("gemini-tracker", "[DEBUG ENHANCE] Calling enableSendButton from watchForSidebar (immediate)");
+            
+            // Check for send buttons before enabling with expanded diagnostic info
+            const sendButtonSelectors = [
+              'button:has(mat-icon[data-mat-icon-name="send"])', 
+              'button.send-button', 
+              'button[aria-label*="Send"]', 
+              'button[data-test-id="send-button"]'
+            ];
+            const sendButtons = document.querySelectorAll(sendButtonSelectors.join(', '));
+            Logger.log("gemini-tracker", `[DEBUG ENHANCE] Found ${sendButtons.length} send buttons before enabling`);
+            
+            // Count all buttons in the UI
+            const allButtons = document.querySelectorAll('button');
+            Logger.log("gemini-tracker", `[DEBUG ENHANCE] Total buttons in UI: ${allButtons.length}`);
+            
+            // Check for textarea content
+            const textarea = document.querySelector('textarea');
+            const textareaInfo = textarea ? {
+              value: textarea.value ? (textarea.value.length > 20 ? textarea.value.substring(0, 20) + '...' : textarea.value) : '',
+              length: (textarea.value || '').length,
+              visible: textarea.offsetParent !== null
+            } : null;
+            Logger.log("gemini-tracker", `[DEBUG ENHANCE] Textarea state: ${JSON.stringify(textareaInfo)}`);
+            
+            if (sendButtons.length > 0) {
+              let buttonStates = [];
+              sendButtons.forEach((btn, i) => {
+                const computedStyle = window.getComputedStyle(btn);
+                buttonStates.push({
+                  index: i,
+                  ariaDisabled: btn.getAttribute('aria-disabled'),
+                  disabled: btn.disabled,
+                  class: btn.className,
+                  computedOpacity: computedStyle.opacity,
+                  computedDisplay: computedStyle.display,
+                  computedVisibility: computedStyle.visibility,
+                  computedPointerEvents: computedStyle.pointerEvents,
+                  visible: btn.offsetParent !== null,
+                  hasIcon: !!btn.querySelector('mat-icon')
+                });
+              });
+              Logger.log("gemini-tracker", "[DEBUG ENHANCE] Detailed button states before enabling:", JSON.stringify(buttonStates));
+            }
+            
+            window.GeminiHistory_ButtonController.enableSendButton();
+          
+          // Check button states after enabling
+          setTimeout(() => {
+            const afterButtons = document.querySelectorAll(sendButtonSelectors.join(', '));
+            if (afterButtons.length > 0) {
+              let afterStates = [];
+              afterButtons.forEach((btn, i) => {
+                afterStates.push({
+                  index: i,
+                  ariaDisabled: btn.getAttribute('aria-disabled'),
+                  class: btn.className
+                });
+              });
+              Logger.log("gemini-tracker", "[DEBUG] Button states after enabling:", JSON.stringify(afterStates));
+            }
+          }, 100);
+        } else {
+          Logger.warn("gemini-tracker", "[DEBUG] ButtonController not available yet");
         }
         
         callback(existingSidebar);
@@ -58,14 +153,101 @@
       Logger.log("gemini-tracker", "Sidebar not found. Setting up observer to watch for it...");
 
       const observer = new MutationObserver((mutations, obs) => {
+        Logger.log("gemini-tracker", `[DEBUG ENHANCE] Checking for sidebar in ${mutations.length} mutations`);
+        
+        // Log details of significant mutations
+        let significantChanges = 0;
+        for (const mutation of mutations) {
+          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            for (const node of mutation.addedNodes) {
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                // Only log if it seems like an important element
+                if (node.tagName.toLowerCase().includes('app') || 
+                    node.tagName.toLowerCase().includes('chat') ||
+                    node.querySelector && node.querySelector('button, mat-icon, textarea')) {
+                  significantChanges++;
+                  Logger.log("gemini-tracker", `[DEBUG ENHANCE] Significant node added: ${node.tagName}, id=${node.id}, class=${node.className.slice(0, 50)}`);
+                  if (significantChanges >= 3) break; // Limit logging
+                }
+              }
+            }
+          }
+        }
+        
         const sidebar = document.querySelector(sidebarSelector);
         if (sidebar) {
-          Logger.log("gemini-tracker", "Sidebar element found in DOM");
+          Logger.log("gemini-tracker", "[DEBUG ENHANCE] Sidebar element found in DOM via observer");
+          
+          // Log additional context about what else has loaded
+          const appComponents = {
+            conversationList: !!sidebar.querySelector('[data-test-id="all-conversations"]'),
+            textarea: !!document.querySelector('textarea'),
+            chatWindow: !!document.querySelector('chat-window'),
+            sendButton: !!document.querySelector('button:has(mat-icon[data-mat-icon-name="send"])')
+          };
+          
+          Logger.log("gemini-tracker", `[DEBUG ENHANCE] UI components ready status: ${JSON.stringify(appComponents)}`);
+          Logger.log("gemini-tracker", "[DEBUG ENHANCE] Setting extension to ready state - sidebar found via observer");
           STATE.isExtensionReady = true;
           
           // Enable send button now that sidebar is found
           if (window.GeminiHistory_ButtonController) {
+            Logger.log("gemini-tracker", "[DEBUG ENHANCE] Calling enableSendButton from watchForSidebar (observer)");
+            
+            // Check for send buttons before enabling
+            const sendButtonSelectors = [
+              'button:has(mat-icon[data-mat-icon-name="send"])', 
+              'button.send-button', 
+              'button[aria-label*="Send"]', 
+              'button[data-test-id="send-button"]'
+            ];
+            const sendButtons = document.querySelectorAll(sendButtonSelectors.join(', '));
+            Logger.log("gemini-tracker", `[DEBUG ENHANCE] Found ${sendButtons.length} send buttons before enabling (observer)`);
+            
+            if (sendButtons.length > 0) {
+              let buttonStates = [];
+              sendButtons.forEach((btn, i) => {
+                buttonStates.push({
+                  index: i,
+                  ariaDisabled: btn.getAttribute('aria-disabled'),
+                  class: btn.className
+                });
+              });
+              Logger.log("gemini-tracker", "[DEBUG] Button states before enabling (observer):", JSON.stringify(buttonStates));
+            }
+            
+            // Try enabling multiple times with increasing delays to ensure it works
             window.GeminiHistory_ButtonController.enableSendButton();
+            
+            // Try again after a short delay in case Angular's update cycle hasn't completed
+            setTimeout(() => {
+              Logger.log("gemini-tracker", "[DEBUG] Second attempt to enable buttons after short delay");
+              window.GeminiHistory_ButtonController.enableSendButton();
+              
+              // And schedule one more attempt with a longer delay
+              setTimeout(() => {
+                Logger.log("gemini-tracker", "[DEBUG] Third attempt to enable buttons after longer delay");
+                window.GeminiHistory_ButtonController.enableSendButton();
+                
+                // Final check after all attempts
+                setTimeout(() => {
+                  const finalButtons = document.querySelectorAll(sendButtonSelectors.join(', '));
+                  if (finalButtons.length > 0) {
+                    let finalStates = [];
+                    finalButtons.forEach((btn, i) => {
+                      finalStates.push({
+                        index: i,
+                        ariaDisabled: btn.getAttribute('aria-disabled'),
+                        class: btn.className
+                      });
+                    });
+                    Logger.log("gemini-tracker", "[DEBUG] Button states after all enable attempts:", JSON.stringify(finalStates));
+                  }
+                }, 200);
+              }, 500);
+            }, 100);
+          } else {
+            Logger.warn("gemini-tracker", "[DEBUG] ButtonController not available in observer callback");
           }
           
           obs.disconnect(); // Stop observing once found
@@ -84,14 +266,66 @@
         if (observer) {
           const sidebar = document.querySelector(sidebarSelector);
           if (!sidebar) {
-            Logger.warn("gemini-tracker", "Sidebar element not found after timeout");
+            Logger.warn("gemini-tracker", "[DEBUG ENHANCE] Sidebar element not found after timeout - fallback enabling");
             StatusIndicator.show("Warning: Gemini sidebar not detected", "warning", 0);
+            
+            // Log comprehensive DOM state to understand why sidebar isn't appearing
+            try {
+              // Look at major DOM structure
+              const appRoot = document.querySelector('app-root');
+              const body = document.body;
+              
+              Logger.log("gemini-tracker", `[DEBUG ENHANCE] DOM structure: appRoot=${!!appRoot}, bodyChildCount=${body.childElementCount}`);
+              
+              // Check for any Angular components
+              const angularElements = document.querySelectorAll('[ng-version], [_nghost], [_ngcontent]');
+              Logger.log("gemini-tracker", `[DEBUG ENHANCE] Found ${angularElements.length} Angular elements in DOM`);
+              
+              // Check for common Gemini UI elements
+              const textArea = document.querySelector('textarea');
+              const matIcons = document.querySelectorAll('mat-icon');
+              const mainContent = document.querySelector('main-content-area');
+              const chatElements = document.querySelectorAll('chat-window, chat-message, chat-container');
+              
+              Logger.log("gemini-tracker", `[DEBUG ENHANCE] UI state: textarea=${!!textArea}, matIcons=${matIcons.length}, mainContent=${!!mainContent}, chatElements=${chatElements.length}`);
+              
+              // Look for any buttons that might be the send button
+              const allButtons = document.querySelectorAll('button');
+              Logger.log("gemini-tracker", `[DEBUG ENHANCE] Found ${allButtons.length} buttons in DOM`);
+              
+              if (allButtons.length > 0) {
+                const buttonDetails = Array.from(allButtons)
+                  .filter(btn => btn.offsetParent !== null) // Only visible buttons
+                  .map((btn, i) => ({
+                    index: i,
+                    ariaLabel: btn.getAttribute('aria-label') || '',
+                    classes: btn.className,
+                    disabled: btn.getAttribute('aria-disabled') === 'true',
+                    hasIcon: !!btn.querySelector('mat-icon, svg, img')
+                  }))
+                  .slice(0, 5); // Limit to first 5 for readability
+                
+                Logger.log("gemini-tracker", `[DEBUG ENHANCE] Visible buttons sample: ${JSON.stringify(buttonDetails)}`);
+              }
+            } catch (e) {
+              Logger.warn("gemini-tracker", "[DEBUG ENHANCE] Error during fallback DOM analysis:", e);
+            }
+            
             // We'll still mark as ready after timeout to avoid permanently disabled buttons
             STATE.isExtensionReady = true;
             
             // Enable send button even after timeout to avoid permanently disabling
             if (window.GeminiHistory_ButtonController) {
+              Logger.log("gemini-tracker", "[DEBUG ENHANCE] Calling enableSendButton after timeout (fallback)");
               window.GeminiHistory_ButtonController.enableSendButton();
+              
+              // Schedule a second attempt with delay, as UI might still be loading
+              setTimeout(() => {
+                Logger.log("gemini-tracker", "[DEBUG ENHANCE] Second fallback attempt to enable buttons");
+                if (window.GeminiHistory_ButtonController) {
+                  window.GeminiHistory_ButtonController.enableSendButton();
+                }
+              }, 2000); // Try again after 2 seconds
             }
           }
           observer.disconnect();
