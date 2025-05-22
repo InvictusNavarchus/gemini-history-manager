@@ -11,6 +11,13 @@
       </button>
       <button
         class="viz-tab"
+        :class="{ active: activeVizTab === 'planDistribution' }"
+        @click="setActiveVizTab('planDistribution')"
+      >
+        Plan Distribution
+      </button>
+      <button
+        class="viz-tab"
         :class="{ active: activeVizTab === 'activityOverTime' }"
         @click="setActiveVizTab('activityOverTime')"
       >

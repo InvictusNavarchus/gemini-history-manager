@@ -114,6 +114,19 @@ export function filterAndSortHistory(history, filters) {
       `Model filter reduced items from ${originalCount} to ${items.length} (removed ${originalCount - items.length})`
     );
   }
+  
+  // Apply plan filter
+  if (filters.planFilter) {
+    Logger.log("dataHelpers", `Applying plan filter: "${filters.planFilter}"`);
+
+    const originalCount = items.length;
+    items = items.filter((item) => item.geminiPlan === filters.planFilter);
+
+    Logger.debug(
+      "dataHelpers",
+      `Plan filter reduced items from ${originalCount} to ${items.length} (removed ${originalCount - items.length})`
+    );
+  }
 
   // Apply date filter
   const now = dayjs();
@@ -191,6 +204,21 @@ export function filterAndSortHistory(history, filters) {
       Logger.debug("dataHelpers", "Sorting by model name");
       items.sort((a, b) => (a.model || "").localeCompare(b.model || ""));
       break;
+    case "plan":
+      Logger.debug("dataHelpers", "Sorting by Gemini plan");
+      items.sort((a, b) => {
+        // First sort by whether they have a plan (items with plans come first)
+        if (a.geminiPlan && !b.geminiPlan) return -1;
+        if (!a.geminiPlan && b.geminiPlan) return 1;
+        
+        // Then sort by plan name (Pro first, then Free, then others)
+        const planOrder = { "Pro": 1, "Free": 2 };
+        const aPlanValue = a.geminiPlan ? (planOrder[a.geminiPlan] || 3) : 4;
+        const bPlanValue = b.geminiPlan ? (planOrder[b.geminiPlan] || 3) : 4;
+        
+        return aPlanValue - bPlanValue;
+      });
+      break;
     default:
       Logger.debug("dataHelpers", "Using default sort order (date descending)");
       items.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
@@ -215,6 +243,8 @@ export function generateDashboardStats(historyData) {
     totalConversations: 0,
     mostUsedModel: "",
     mostUsedModelCount: 0,
+    mostUsedPlan: "",
+    mostUsedPlanCount: 0,
     avgTitleLength: 0,
     firstConversationTime: "",
     lastConversationTime: "",
@@ -241,6 +271,20 @@ export function generateDashboardStats(historyData) {
   const mostUsed = Object.entries(modelCounts).sort((a, b) => b[1] - a[1])[0];
   stats.mostUsedModel = mostUsed ? mostUsed[0] : "-";
   stats.mostUsedModelCount = mostUsed ? `(${mostUsed[1]} chats)` : "";
+  
+  // Calculate most used plan
+  Logger.debug("dataHelpers", "Calculating plan usage statistics");
+  const planCounts = historyData.reduce((acc, entry) => {
+    const plan = entry.geminiPlan || "Unknown";
+    acc[plan] = (acc[plan] || 0) + 1;
+    return acc;
+  }, {});
+
+  Logger.debug("dataHelpers", `Plan distribution: ${JSON.stringify(planCounts)}`);
+
+  const mostUsedPlan = Object.entries(planCounts).sort((a, b) => b[1] - a[1])[0];
+  stats.mostUsedPlan = mostUsedPlan ? mostUsedPlan[0] : "-";
+  stats.mostUsedPlanCount = mostUsedPlan ? `(${mostUsedPlan[1]} chats)` : "";
 
   Logger.debug("dataHelpers", `Most used model: ${stats.mostUsedModel} ${stats.mostUsedModelCount}`);
 
@@ -313,6 +357,35 @@ export function getAvailableModels(historyData) {
 
   Logger.debug("dataHelpers", `Found ${sortedModels.length} unique models: ${sortedModels.join(", ")}`);
   return sortedModels;
+}
+
+/**
+ * Extract all available Gemini plans from history data
+ * @param {Array} historyData - The history data array
+ * @returns {Array} Array of unique plan names
+ */
+export function getAvailablePlans(historyData) {
+  Logger.log("dataHelpers", `Extracting available Gemini plans from ${historyData.length} history items`);
+
+  // Get unique set of plan names, filter out undefined/null plans
+  const plansSet = new Set();
+  historyData.forEach(item => {
+    if (item.geminiPlan) {
+      plansSet.add(item.geminiPlan);
+    }
+  });
+  
+  // Sort plans with Pro first, then Free, then others alphabetically
+  const sortedPlans = Array.from(plansSet).sort((a, b) => {
+    if (a === "Pro" && b !== "Pro") return -1;
+    if (a !== "Pro" && b === "Pro") return 1;
+    if (a === "Free" && b !== "Free") return -1;
+    if (a !== "Free" && b === "Free") return 1;
+    return a.localeCompare(b);
+  });
+
+  Logger.debug("dataHelpers", `Found ${sortedPlans.length} unique plans: ${sortedPlans.join(", ")}`);
+  return sortedPlans;
 }
 
 /**

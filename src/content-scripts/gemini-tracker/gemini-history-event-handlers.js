@@ -54,11 +54,15 @@
       STATE.pendingAccountName = accountInfo.name;
       STATE.pendingAccountEmail = accountInfo.email;
 
+      // Capture the Gemini plan (Pro, Free, etc.)
+      STATE.pendingGeminiPlan = ModelDetector.detectGeminiPlan();
+      
       Logger.log("gemini-tracker", `Captured pending model name: "${STATE.pendingModelName}"`);
       Logger.log("gemini-tracker", `Captured pending prompt: "${STATE.pendingPrompt}"`);
       Logger.log("gemini-tracker", `Captured pending files:`, STATE.pendingAttachedFiles);
       Logger.log("gemini-tracker", `Captured account name: "${STATE.pendingAccountName}"`);
       Logger.log("gemini-tracker", `Captured account email: "${STATE.pendingAccountEmail}"`);
+      Logger.log("gemini-tracker", `Captured Gemini plan: "${STATE.pendingGeminiPlan}"`);
 
       StatusIndicator.update(`Capturing chat with ${STATE.pendingModelName}...`, "info");
 

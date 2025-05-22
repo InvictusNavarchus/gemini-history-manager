@@ -80,6 +80,7 @@
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
      * @param {string} accountEmail - Email of the user account
+     * @param {string|null} geminiPlan - The Gemini plan (Pro, Free, etc.) or null if unknown
      * @returns {Promise<boolean>} - Promise resolving to true if entry was added, false if validation failed or duplicate detected
      */
     addHistoryEntry: async function (
@@ -90,7 +91,8 @@
       prompt,
       attachedFiles,
       accountName,
-      accountEmail
+      accountEmail,
+      geminiPlan
     ) {
       const entryData = {
         timestamp,
@@ -101,6 +103,7 @@
         attachedFiles,
         accountName,
         accountEmail,
+        geminiPlan,
       };
       Logger.log("gemini-tracker", "Attempting to add history entry:", entryData);
 

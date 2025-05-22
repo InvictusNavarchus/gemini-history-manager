@@ -9,6 +9,13 @@
       </select>
     </div>
     <div class="filter-group">
+      <label for="planFilter">Gemini Plan</label>
+      <select id="planFilter" :value="selectedPlanFilter" @change="handlePlanFilterChange($event)">
+        <option value="">All Plans</option>
+        <option v-for="plan in availablePlans" :key="plan" :value="plan">{{ plan }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
       <label for="dateFilter">Date Range</label>
       <select
         id="dateFilter"
@@ -66,6 +73,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  selectedPlanFilter: {
+    type: String,
+    default: "",
+  },
   selectedDateFilter: {
     type: String,
     default: "all",
@@ -86,11 +97,16 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  availablePlans: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 // Define emits
 const emit = defineEmits([
   "update:selectedModelFilter",
+  "update:selectedPlanFilter",
   "update:selectedDateFilter",
   "update:customStartDate",
   "update:customEndDate",
@@ -124,6 +140,7 @@ watch(
 const hasActiveFilters = computed(() => {
   return (
     props.selectedModelFilter !== "" ||
+    props.selectedPlanFilter !== "" ||
     props.selectedDateFilter !== "all" ||
     props.currentSortBy !== "date-desc"
   );
@@ -157,6 +174,18 @@ function handleModelFilterChange(event) {
   });
 
   emit("update:selectedModelFilter", newValue);
+  emit("filter-change");
+}
+
+// Handle plan filter changes
+function handlePlanFilterChange(event) {
+  const newValue = event.target.value;
+  Logger.log("Filters", "Plan filter changed by user", {
+    from: props.selectedPlanFilter,
+    to: newValue,
+  });
+
+  emit("update:selectedPlanFilter", newValue);
   emit("filter-change");
 }
 

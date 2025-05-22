@@ -12,6 +12,11 @@
         <div class="stat-subtext">{{ stats.mostUsedModelCount }}</div>
       </div>
       <div class="stat-card">
+        <h3>Most Used Plan</h3>
+        <div class="stat-value">{{ stats.mostUsedPlan }}</div>
+        <div class="stat-subtext">{{ stats.mostUsedPlanCount }}</div>
+      </div>
+      <div class="stat-card">
         <h3>First Conversation</h3>
         <div class="stat-value">{{ stats.firstConversationTime }}</div>
       </div>
@@ -41,6 +46,8 @@ defineProps({
       totalConversations: 0,
       mostUsedModel: "-",
       mostUsedModelCount: "",
+      mostUsedPlan: "-",
+      mostUsedPlanCount: "",
       firstConversationTime: "-",
       lastConversationTime: "-",
       avgTitleLength: "-",

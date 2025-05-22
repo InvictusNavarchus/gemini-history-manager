@@ -161,6 +161,7 @@
         attachedFiles: STATE.pendingAttachedFiles,
         accountName: accountInfo.name,
         accountEmail: accountInfo.email,
+        geminiPlan: STATE.pendingGeminiPlan,
       };
     },
 
@@ -302,6 +303,10 @@
         Logger.log("gemini-tracker", `Title found for ${expectedUrl}! Attempting to add history entry.`);
         StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
         STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
+        
+        // Get the Gemini Plan from the state
+        const geminiPlan = STATE.pendingGeminiPlan;
+        Logger.log("gemini-tracker", `Using Gemini plan: ${geminiPlan || "Unknown"}`);
 
         const success = await HistoryManager.addHistoryEntry(
           timestamp,
@@ -311,7 +316,8 @@
           prompt,
           attachedFiles,
           accountName,
-          accountEmail
+          accountEmail,
+          geminiPlan
         );
 
         if (!success) {
@@ -355,6 +361,7 @@
 
       // Extract title and process if found
       const title = this.extractTitleFromSidebarItem(conversationItem);
+      const geminiPlan = STATE.pendingGeminiPlan;
       if (
         await this.processTitleAndAddHistory(
           title,
@@ -364,7 +371,8 @@
           prompt,
           attachedFiles,
           accountName,
-          accountEmail
+          accountEmail,
+          geminiPlan
         )
       ) {
         return true;
@@ -471,6 +479,10 @@
       const title = this.extractTitleFromSidebarItem(item);
       Logger.log("gemini-tracker", `TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
 
+      // Get the Gemini Plan from the state
+      const geminiPlan = STATE.pendingGeminiPlan;
+      Logger.log("gemini-tracker", `Using Gemini plan: ${geminiPlan || "Unknown"}`);
+
       return await this.processTitleAndAddHistory(
         title,
         expectedUrl,
@@ -479,7 +491,8 @@
         prompt,
         attachedFiles,
         accountName,
-        accountEmail
+        accountEmail,
+        geminiPlan
       );
     },
   };
