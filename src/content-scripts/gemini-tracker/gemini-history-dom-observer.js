@@ -479,6 +479,10 @@
       const title = this.extractTitleFromSidebarItem(item);
       Logger.log("gemini-tracker", `TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
 
+      // Get the Gemini Plan from the state
+      const geminiPlan = STATE.pendingGeminiPlan;
+      Logger.log("gemini-tracker", `Using Gemini plan: ${geminiPlan || "Unknown"}`);
+
       return await this.processTitleAndAddHistory(
         title,
         expectedUrl,
@@ -487,7 +491,8 @@
         prompt,
         attachedFiles,
         accountName,
-        accountEmail
+        accountEmail,
+        geminiPlan
       );
     },
   };
