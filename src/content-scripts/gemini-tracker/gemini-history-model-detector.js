@@ -14,51 +14,52 @@
      * @param {Document} doc The document object to search within (defaults to the current document).
      * @returns {string|null} "Gemini Pro", "Gemini Free", or null if the plan cannot be determined.
      */
-    detectGeminiPlan: function(doc = document) {
-        // --- 1. Detect "Gemini Pro" (Preferred method) ---
-        // Selector for the pillbox button that usually displays the current plan (e.g., "PRO").
-        const proPillButtonSelector = 'div.icon-buttons-container.pillbox button.gds-pillbox-button';
-        const pillButtons = doc.querySelectorAll(proPillButtonSelector);
+    detectGeminiPlan: function (doc = document) {
+      // --- 1. Detect "Gemini Pro" (Preferred method) ---
+      // Selector for the pillbox button that usually displays the current plan (e.g., "PRO").
+      const proPillButtonSelector = "div.icon-buttons-container.pillbox button.gds-pillbox-button";
+      const pillButtons = doc.querySelectorAll(proPillButtonSelector);
 
-        for (const button of pillButtons) {
-            const buttonTextContent = button.textContent;
-            if (buttonTextContent) {
-                const normalizedText = buttonTextContent.trim().toUpperCase();
-                if (normalizedText === 'PRO') {
-                    // Active "PRO" plan button is typically disabled.
-                    const isDisabled = button.hasAttribute('disabled') || button.classList.contains('mat-mdc-button-disabled');
-                    if (isDisabled) {
-                        return 'Pro';
-                    }
-                }
-                // Potentially add "ULTRA" detection here in the future if a similar pillbox exists.
+      for (const button of pillButtons) {
+        const buttonTextContent = button.textContent;
+        if (buttonTextContent) {
+          const normalizedText = buttonTextContent.trim().toUpperCase();
+          if (normalizedText === "PRO") {
+            // Active "PRO" plan button is typically disabled.
+            const isDisabled =
+              button.hasAttribute("disabled") || button.classList.contains("mat-mdc-button-disabled");
+            if (isDisabled) {
+              return "Pro";
             }
+          }
+          // Potentially add "ULTRA" detection here in the future if a similar pillbox exists.
         }
+      }
 
-        // --- 2. Detect "Gemini Free" (If "Pro" was not detected) ---
-        // Selector for the "Upgrade" button, often present for free users.
-        // Looking for the button within an 'upsell-button' component and checking its aria-label or text.
-        const upgradeButtonSelector = 'upsell-button button[data-test-id="bard-upsell-menu-button"]';
-        const upgradeButton = doc.querySelector(upgradeButtonSelector);
+      // --- 2. Detect "Gemini Free" (If "Pro" was not detected) ---
+      // Selector for the "Upgrade" button, often present for free users.
+      // Looking for the button within an 'upsell-button' component and checking its aria-label or text.
+      const upgradeButtonSelector = 'upsell-button button[data-test-id="bard-upsell-menu-button"]';
+      const upgradeButton = doc.querySelector(upgradeButtonSelector);
 
-        if (upgradeButton) {
-            const ariaLabel = upgradeButton.getAttribute('aria-label');
-            const textContent = upgradeButton.textContent;
+      if (upgradeButton) {
+        const ariaLabel = upgradeButton.getAttribute("aria-label");
+        const textContent = upgradeButton.textContent;
 
-            const hasUpgradeText = (ariaLabel?.toLowerCase().includes('upgrade')) ||
-                                (textContent?.toLowerCase().includes('upgrade'));
+        const hasUpgradeText =
+          ariaLabel?.toLowerCase().includes("upgrade") || textContent?.toLowerCase().includes("upgrade");
 
-            if (hasUpgradeText) {
-                // If an "Upgrade" button is present and "Gemini Pro" was not detected,
-                // it's a strong indicator of the "Gemini Free" plan.
-                return 'Free';
-            }
+        if (hasUpgradeText) {
+          // If an "Upgrade" button is present and "Gemini Pro" was not detected,
+          // it's a strong indicator of the "Gemini Free" plan.
+          return "Free";
         }
+      }
 
-        // --- 3. Fallback ---
-        // If neither "Gemini Pro" (via pillbox) nor "Gemini Free" (via upgrade button)
-        // specific indicators are found.
-        return null; // Or "Unknown"
+      // --- 3. Fallback ---
+      // If neither "Gemini Pro" (via pillbox) nor "Gemini Free" (via upgrade button)
+      // specific indicators are found.
+      return null; // Or "Unknown"
     },
 
     /**

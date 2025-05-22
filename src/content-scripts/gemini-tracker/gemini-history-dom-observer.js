@@ -303,7 +303,7 @@
         Logger.log("gemini-tracker", `Title found for ${expectedUrl}! Attempting to add history entry.`);
         StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
         STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
-        
+
         // Get the Gemini Plan from the state
         const geminiPlan = STATE.pendingGeminiPlan;
         Logger.log("gemini-tracker", `Using Gemini plan: ${geminiPlan || "Unknown"}`);
