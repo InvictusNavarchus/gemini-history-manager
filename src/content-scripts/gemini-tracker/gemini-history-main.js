@@ -18,7 +18,7 @@
 
     // Initialize status indicator
     StatusIndicator.init();
-    
+
     // Initialize button controller to handle send button state
     ButtonController.init();
 
@@ -62,9 +62,9 @@
     });
 
     Logger.log("Gemini History Manager initialization complete.");
-    
+
     // Clean up on page unload
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       ButtonController.cleanup();
     });
   }
