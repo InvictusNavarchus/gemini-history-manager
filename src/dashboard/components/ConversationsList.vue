@@ -16,6 +16,7 @@
           <option value="title-asc">Title (A-Z)</option>
           <option value="title-desc">Title (Z-A)</option>
           <option value="model">Model</option>
+          <option value="plan">Plan</option>
         </select>
       </div>
     </div>
@@ -49,6 +50,9 @@
             <div class="meta-left">
               <span>{{ formatDate(entry.timestamp) }}</span>
               <span class="conversation-model">{{ entry.model || "Unknown" }}</span>
+              <span v-if="entry.geminiPlan" class="conversation-plan" :class="entry.geminiPlan.toLowerCase()">
+                {{ entry.geminiPlan }}
+              </span>
             </div>
             <div class="meta-right">
               <span v-if="entry.accountName && entry.accountName !== 'Unknown'" class="conversation-account">

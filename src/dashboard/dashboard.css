@@ -485,6 +485,35 @@ main {
   font-weight: 500;
 }
 
+.conversation-plan {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.conversation-plan.pro {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+.conversation-plan.free {
+  background-color: #fff8e1;
+  color: #f9a825;
+}
+
+/* Dark mode styles for plan badges */
+html[data-theme="dark"] .conversation-plan.pro {
+  background-color: rgba(19, 115, 51, 0.2);
+  color: #81c995;
+}
+
+html[data-theme="dark"] .conversation-plan.free {
+  background-color: rgba(249, 168, 37, 0.15);
+  color: #ffcc80;
+}
+
 .conversation-account {
   color: var(--text-lighter);
   font-size: 12px;
@@ -820,6 +849,10 @@ main {
   color: var(--text-color);
   line-height: 1.5;
   word-break: break-word;
+}
+
+.detail-group .conversation-plan {
+  display: inline-block;
 }
 
 .detail-group ul {
