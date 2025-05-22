@@ -8,6 +8,7 @@
     pendingAttachedFiles: [],
     pendingAccountName: null,
     pendingAccountEmail: null,
+    pendingGeminiPlan: null,
     sidebarObserver: null,
     titleObserver: null,
   };
