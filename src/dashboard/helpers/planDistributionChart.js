@@ -3,23 +3,7 @@
  * Function for plan distribution visualization in the Dashboard
  */
 import { Logger } from "../../lib/utils.js";
-import { PLAN_COLOR_MAP, FALLBACK_COLORS, getChartJsThemeOptions } from "./chartHelpers.js";
-
-/**
- * Get color for a specific plan, ensuring consistency across visualizations
- * @param {string} planName - Name of the plan
- * @param {number} fallbackIndex - Fallback index to use if no specific color is defined
- * @returns {string} Color to use for the plan
- */
-function getPlanColor(planName, fallbackIndex = 0) {
-  // If we have a specific color defined for this plan, use it
-  if (PLAN_COLOR_MAP[planName]) {
-    return PLAN_COLOR_MAP[planName];
-  }
-
-  // Otherwise use the fallback color based on the index
-  return FALLBACK_COLORS[fallbackIndex % FALLBACK_COLORS.length];
-}
+import { PLAN_COLOR_MAP, FALLBACK_COLORS, getChartJsThemeOptions, getPlanColor } from "./chartHelpers.js";
 
 /**
  * Generate configuration for plan distribution chart
