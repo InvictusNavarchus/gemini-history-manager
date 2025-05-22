@@ -45,8 +45,8 @@
             const ariaLabel = upgradeButton.getAttribute('aria-label');
             const textContent = upgradeButton.textContent;
 
-            const hasUpgradeText = (ariaLabel && ariaLabel.toLowerCase().includes('upgrade')) ||
-                                (textContent && textContent.toLowerCase().includes('upgrade'));
+            const hasUpgradeText = (ariaLabel?.toLowerCase().includes('upgrade')) ||
+                                (textContent?.toLowerCase().includes('upgrade'));
 
             if (hasUpgradeText) {
                 // If an "Upgrade" button is present and "Gemini Pro" was not detected,
