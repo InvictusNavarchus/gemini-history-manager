@@ -81,6 +81,9 @@
      * @param {string} accountName - Name of the user account
      * @param {string} accountEmail - Email of the user account
      * @param {string|null} geminiPlan - The Gemini plan (Pro, Free, etc.) or null if unknown
+     * @param {string|null} gemId - ID of the Gem being used (if any)
+     * @param {string|null} gemName - Name of the Gem being used (if any)
+     * @param {string|null} gemUrl - URL of the Gem (if any)
      * @returns {Promise<boolean>} - Promise resolving to true if entry was added, false if validation failed or duplicate detected
      */
     addHistoryEntry: async function (
@@ -92,7 +95,10 @@
       attachedFiles,
       accountName,
       accountEmail,
-      geminiPlan
+      geminiPlan,
+      gemId = null,
+      gemName = null,
+      gemUrl = null
     ) {
       const entryData = {
         timestamp,
@@ -104,6 +110,9 @@
         accountName,
         accountEmail,
         geminiPlan,
+        gemId,
+        gemName,
+        gemUrl,
       };
       Logger.log("gemini-tracker", "Attempting to add history entry:", entryData);
 
