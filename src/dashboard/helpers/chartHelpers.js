@@ -438,7 +438,7 @@ export function getPlanDistributionChartConfig(historyData, theme) {
   );
 
   const planCounts = historyData.reduce((acc, entry) => {
-    const plan = entry.plan || "Unknown";
+    const plan = entry.geminiPlan || "Unknown";
     acc[plan] = (acc[plan] || 0) + 1;
     return acc;
   }, {});
