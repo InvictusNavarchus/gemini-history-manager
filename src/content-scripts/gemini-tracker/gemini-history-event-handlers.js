@@ -56,7 +56,7 @@
 
       // Capture the Gemini plan (Pro, Free, etc.)
       STATE.pendingGeminiPlan = ModelDetector.detectGeminiPlan();
-      
+
       Logger.log("gemini-tracker", `Captured pending model name: "${STATE.pendingModelName}"`);
       Logger.log("gemini-tracker", `Captured pending prompt: "${STATE.pendingPrompt}"`);
       Logger.log("gemini-tracker", `Captured pending files:`, STATE.pendingAttachedFiles);

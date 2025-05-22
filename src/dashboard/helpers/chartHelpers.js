@@ -30,9 +30,9 @@ export const FALLBACK_COLORS = [
 
 // Plan-specific color mapping for consistent colors across visualizations
 export const PLAN_COLOR_MAP = {
-  "Pro": "rgba(110, 65, 226, 0.8)", // Primary purple for Pro
-  "Free": "rgba(71, 163, 255, 0.8)", // Blue for Free
-  "Unknown": "rgba(150, 150, 150, 0.8)", // Gray for unknown plans
+  Pro: "rgba(110, 65, 226, 0.8)", // Primary purple for Pro
+  Free: "rgba(71, 163, 255, 0.8)", // Blue for Free
+  Unknown: "rgba(150, 150, 150, 0.8)", // Gray for unknown plans
 };
 
 // Model-specific color mapping for consistent colors across visualizations
@@ -462,7 +462,9 @@ export function getPlanDistributionChartConfig(historyData, theme) {
           label: "Conversations",
           data,
           backgroundColor: labels.map((plan, index) => PLAN_COLOR_MAP[plan] || FALLBACK_COLORS[index]),
-          borderColor: labels.map((plan, index) => (PLAN_COLOR_MAP[plan] || FALLBACK_COLORS[index]).replace("0.8", "1")),
+          borderColor: labels.map((plan, index) =>
+            (PLAN_COLOR_MAP[plan] || FALLBACK_COLORS[index]).replace("0.8", "1")
+          ),
           borderWidth: 1,
           maxBarThickness: 50,
         },

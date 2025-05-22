@@ -21,7 +21,11 @@
         <div class="detail-group">
           <h3>Gemini Plan</h3>
           <p>
-            <span v-if="conversation.geminiPlan" class="conversation-plan" :class="conversation.geminiPlan.toLowerCase()">
+            <span
+              v-if="conversation.geminiPlan"
+              class="conversation-plan"
+              :class="conversation.geminiPlan.toLowerCase()"
+            >
               {{ conversation.geminiPlan }}
             </span>
             <span v-else>Unknown</span>

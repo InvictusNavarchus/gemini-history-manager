@@ -114,7 +114,7 @@ export function filterAndSortHistory(history, filters) {
       `Model filter reduced items from ${originalCount} to ${items.length} (removed ${originalCount - items.length})`
     );
   }
-  
+
   // Apply plan filter
   if (filters.planFilter) {
     Logger.log("dataHelpers", `Applying plan filter: "${filters.planFilter}"`);
@@ -210,12 +210,12 @@ export function filterAndSortHistory(history, filters) {
         // First sort by whether they have a plan (items with plans come first)
         if (a.geminiPlan && !b.geminiPlan) return -1;
         if (!a.geminiPlan && b.geminiPlan) return 1;
-        
+
         // Then sort by plan name (Pro first, then Free, then others)
-        const planOrder = { "Pro": 1, "Free": 2 };
-        const aPlanValue = a.geminiPlan ? (planOrder[a.geminiPlan] || 3) : 4;
-        const bPlanValue = b.geminiPlan ? (planOrder[b.geminiPlan] || 3) : 4;
-        
+        const planOrder = { Pro: 1, Free: 2 };
+        const aPlanValue = a.geminiPlan ? planOrder[a.geminiPlan] || 3 : 4;
+        const bPlanValue = b.geminiPlan ? planOrder[b.geminiPlan] || 3 : 4;
+
         return aPlanValue - bPlanValue;
       });
       break;
@@ -271,7 +271,7 @@ export function generateDashboardStats(historyData) {
   const mostUsed = Object.entries(modelCounts).sort((a, b) => b[1] - a[1])[0];
   stats.mostUsedModel = mostUsed ? mostUsed[0] : "-";
   stats.mostUsedModelCount = mostUsed ? `(${mostUsed[1]} chats)` : "";
-  
+
   // Calculate most used plan
   Logger.debug("dataHelpers", "Calculating plan usage statistics");
   const planCounts = historyData.reduce((acc, entry) => {
@@ -369,12 +369,12 @@ export function getAvailablePlans(historyData) {
 
   // Get unique set of plan names, filter out undefined/null plans
   const plansSet = new Set();
-  historyData.forEach(item => {
+  historyData.forEach((item) => {
     if (item.geminiPlan) {
       plansSet.add(item.geminiPlan);
     }
   });
-  
+
   // Sort plans with Pro first, then Free, then others alphabetically
   const sortedPlans = Array.from(plansSet).sort((a, b) => {
     if (a === "Pro" && b !== "Pro") return -1;
