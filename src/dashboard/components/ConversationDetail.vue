@@ -41,6 +41,14 @@
             }}
           </p>
         </div>
+        <div class="detail-group" v-if="conversation.gemName || conversation.gemId">
+          <h3>Gem</h3>
+          <p v-if="conversation.gemName">{{ conversation.gemName }}</p>
+          <p v-if="conversation.gemId && !conversation.gemName">ID: {{ conversation.gemId }}</p>
+          <p v-if="conversation.gemUrl">
+            <a :href="conversation.gemUrl" target="_blank" class="gem-link">View Gem</a>
+          </p>
+        </div>
         <div class="detail-group">
           <h3>Prompt</h3>
           <p>{{ conversation.prompt || "No prompt data available" }}</p>

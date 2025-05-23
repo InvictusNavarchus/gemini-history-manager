@@ -31,12 +31,14 @@
               <Filters
                 v-model:selectedModelFilter="selectedModelFilter"
                 v-model:selectedPlanFilter="selectedPlanFilter"
+                v-model:selectedGemFilter="selectedGemFilter"
                 v-model:selectedDateFilter="selectedDateFilter"
                 v-model:customStartDate="customStartDate"
                 v-model:customEndDate="customEndDate"
                 v-model:currentSortBy="currentSortBy"
                 :availableModels="availableModels"
                 :availablePlans="availablePlans"
+                :availableGems="availableGems"
                 @filter-change="handleFilterChange"
                 @reset-filters="resetAllFilters"
               />
@@ -167,6 +169,7 @@ import {
   generateDashboardStats,
   getAvailableModels,
   getAvailablePlans,
+  getAvailableGems,
   importHistoryData,
 } from "./helpers/dataHelpers.js";
 import { getModelDistributionChartConfig, getActivityOverTimeChartConfig } from "./helpers/chartHelpers.js";
@@ -207,6 +210,7 @@ const searchFilterQuery = ref("");
 const activeSettingsTab = ref("logging");
 const selectedModelFilter = ref("");
 const selectedPlanFilter = ref("");
+const selectedGemFilter = ref("");
 const selectedDateFilter = ref("all");
 const customStartDate = ref(dayjs().subtract(30, "days").format("YYYY-MM-DD"));
 const customEndDate = ref(dayjs().format("YYYY-MM-DD"));
@@ -245,6 +249,7 @@ const activeToasts = computed(() => toastManager.getActiveToasts());
 // --- Computed Properties ---
 const availableModels = computed(() => getAvailableModels(allHistory.value));
 const availablePlans = computed(() => getAvailablePlans(allHistory.value));
+const availableGems = computed(() => getAvailableGems(allHistory.value));
 
 const filteredHistory = computed(() => {
   Logger.log("App.vue", "Re-calculating filtered history...");
@@ -252,6 +257,7 @@ const filteredHistory = computed(() => {
     searchQuery: searchFilterQuery.value,
     modelFilter: selectedModelFilter.value,
     planFilter: selectedPlanFilter.value,
+    gemFilter: selectedGemFilter.value,
     dateFilter: selectedDateFilter.value,
     customStartDate: customStartDate.value,
     customEndDate: customEndDate.value,
@@ -347,6 +353,7 @@ function resetAllFilters() {
   searchFilterQuery.value = "";
   selectedModelFilter.value = "";
   selectedPlanFilter.value = "";
+  selectedGemFilter.value = "";
   selectedDateFilter.value = "all";
   customStartDate.value = dayjs().subtract(30, "days").format("YYYY-MM-DD");
   customEndDate.value = dayjs().format("YYYY-MM-DD");
