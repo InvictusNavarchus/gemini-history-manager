@@ -172,8 +172,12 @@ import {
   getAvailableGems,
   importHistoryData,
 } from "./helpers/dataHelpers.js";
-import { getModelDistributionChartConfig, getActivityOverTimeChartConfig } from "./helpers/chartHelpers.js";
-import { getPlanDistributionChartConfig } from "./helpers/chartHelpers.js";
+import { 
+  getModelDistributionChartConfig, 
+  getActivityOverTimeChartConfig,
+  getPlanDistributionChartConfig,
+  getGemDistributionChartConfig
+} from "./helpers/chartHelpers.js";
 import {
   createToastManager,
   exportHistoryData,
@@ -537,6 +541,9 @@ function renderCurrentVisualization() {
   } else if (activeVizTab.value === "planDistribution") {
     Logger.log("App.vue", "Generating plan distribution chart config");
     chartConfig = getPlanDistributionChartConfig(allHistory.value, currentTheme.value);
+  } else if (activeVizTab.value === "gemDistribution") {
+    Logger.log("App.vue", "Generating gem distribution chart config");
+    chartConfig = getGemDistributionChartConfig(allHistory.value, currentTheme.value);
   } else if (activeVizTab.value === "activityOverTime") {
     Logger.log("App.vue", "Generating activity over time chart config");
     chartConfig = getActivityOverTimeChartConfig(
