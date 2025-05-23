@@ -73,6 +73,16 @@
         >
           Open in Gemini
         </button>
+        <button
+          v-if="conversation.url"
+          class="button secondary-button copy-url-button"
+          :class="{ copied: isCopied }"
+          @click="copyUrlToClipboard"
+          title="Copy conversation URL to clipboard"
+        >
+          <span v-if="isCopied">✓</span>
+          <span v-else>Copy URL</span>
+        </button>
         <button class="button danger-button" @click="deleteConversation">Delete</button>
       </div>
     </div>
@@ -80,7 +90,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, onMounted, onUnmounted } from "vue";
+import { defineProps, defineEmits, onMounted, onUnmounted, ref } from "vue";
 import { parseTimestamp, Logger } from "../../lib/utils.js";
 
 // Define props
@@ -96,7 +106,10 @@ const props = defineProps({
 });
 
 // Define emits
-const emit = defineEmits(["close", "delete"]);
+const emit = defineEmits(["close", "delete", "copy-url"]);
+
+// Reactive state
+const isCopied = ref(false);
 
 // Component lifecycle hooks
 onMounted(() => {
@@ -136,4 +149,64 @@ function deleteConversation() {
 
   Logger.debug("ConversationDetail", "Delete event emitted");
 }
+
+function copyUrlToClipboard() {
+  if (!props.conversation.url) {
+    Logger.warn("ConversationDetail", "Attempted to copy URL but none available");
+    return;
+  }
+
+  Logger.log("ConversationDetail", "Copying URL to clipboard", {
+    url: props.conversation.url,
+    conversationId: props.conversation.id,
+  });
+
+  navigator.clipboard
+    .writeText(props.conversation.url)
+    .then(() => {
+      Logger.debug("ConversationDetail", "URL copied to clipboard successfully");
+      emit("copy-url", props.conversation.url);
+
+      // Set the copied state to true
+      isCopied.value = true;
+
+      // Reset the state after 1.5 seconds
+      const timerId = setTimeout(() => {
+        isCopied.value = false;
+      }, 1500);
+
+      onUnmounted(() => {
+        clearTimeout(timerId);
+      });
+    })
+    .catch((error) => {
+      Logger.error("ConversationDetail", "Failed to copy URL to clipboard", { error });
+    });
+}
 </script>
+
+<style scoped>
+.copy-url-button {
+  position: relative;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.copy-url-button.copied {
+  background-color: #4caf50; /* Green color */
+  color: white;
+  border-color: #4caf50;
+}
+
+.copy-url-button span {
+  display: inline-block;
+  transition:
+    transform 0.3s ease,
+    opacity 0.2s ease;
+}
+
+.copy-url-button.copied span {
+  transform: scale(1.2);
+}
+</style>
