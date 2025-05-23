@@ -162,6 +162,9 @@
         accountName: accountInfo.name,
         accountEmail: accountInfo.email,
         geminiPlan: STATE.pendingGeminiPlan,
+        gemId: STATE.pendingGemId,
+        gemName: STATE.pendingGemName,
+        gemUrl: STATE.pendingGemUrl,
       };
     },
 
@@ -214,6 +217,7 @@
         STATE.pendingAttachedFiles = [];
         STATE.pendingAccountName = null;
         STATE.pendingAccountEmail = null;
+        // We don't clear Gem-related state here since we still need it for the history entry
         Logger.log(
           "gemini-tracker",
           `Cleared pending flags. Waiting for title associated with URL: ${context.url}`
@@ -255,6 +259,9 @@
         STATE.pendingAttachedFiles = [];
         STATE.pendingAccountName = null;
         STATE.pendingAccountEmail = null;
+        STATE.pendingGemId = null;
+        STATE.pendingGemName = null;
+        STATE.pendingGemUrl = null;
         return;
       }
 
@@ -307,6 +314,15 @@
         // Get the Gemini Plan from the state
         const geminiPlan = STATE.pendingGeminiPlan;
         Logger.log("gemini-tracker", `Using Gemini plan: ${geminiPlan || "Unknown"}`);
+        
+        // Get Gem information from the state
+        const gemId = STATE.pendingGemId;
+        const gemName = STATE.pendingGemName;
+        const gemUrl = STATE.pendingGemUrl;
+        
+        if (gemId) {
+          Logger.log("gemini-tracker", `Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`);
+        }
 
         const success = await HistoryManager.addHistoryEntry(
           timestamp,
@@ -317,7 +333,10 @@
           attachedFiles,
           accountName,
           accountEmail,
-          geminiPlan
+          geminiPlan,
+          gemId,
+          gemName,
+          gemUrl
         );
 
         if (!success) {
@@ -491,8 +510,7 @@
         prompt,
         attachedFiles,
         accountName,
-        accountEmail,
-        geminiPlan
+        accountEmail
       );
     },
   };

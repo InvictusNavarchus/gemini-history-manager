@@ -29,6 +29,40 @@
     // Show immediate status message that persists until sidebar is found (or timeout)
     StatusIndicator.show("Waiting for Gemini sidebar to appear...", "loading", 0);
 
+    // Initialize GemDetector and check for Gem information
+    const GemDetector = window.GeminiHistory_GemDetector;
+    if (GemDetector) {
+      const url = window.location.href;
+      if (Utils.isGemHomepageUrl(url) || Utils.isGemChatUrl(url)) {
+        Logger.log("gemini-tracker", "Detected Gem URL. Starting Gem detection...");
+        GemDetector.reset();
+      }
+    }
+
+    // Monitor URL changes to detect navigation to/from Gem pages
+    let lastUrl = window.location.href;
+    new MutationObserver(() => {
+      const currentUrl = window.location.href;
+      if (currentUrl !== lastUrl) {
+        Logger.log("gemini-tracker", `URL changed: ${lastUrl} -> ${currentUrl}`);
+        
+        // Special case: If we're transitioning from a Gem homepage to a Gem chat page,
+        // we don't want to reset the Gem detector as we're still in the same Gem context
+        const isTransitionWithinGem = 
+          Utils.isGemHomepageUrl(lastUrl) && 
+          Utils.isGemChatUrl(currentUrl) &&
+          Utils.extractGemId(lastUrl) === Utils.extractGemId(currentUrl);
+          
+        if (isTransitionWithinGem) {
+          Logger.log("gemini-tracker", "URL change is within the same Gem context, maintaining Gem detection");
+        } else if (GemDetector) {
+          GemDetector.reset();
+        }
+        
+        lastUrl = currentUrl;
+      }
+    }).observe(document, { subtree: true, childList: true });
+
     // Watch for sidebar to appear before showing ready status
     DomObserver.watchForSidebar((sidebar) => {
       Logger.log("gemini-tracker", "Sidebar confirmed available. Manager fully active.");
@@ -43,9 +77,19 @@
     browser.runtime.onMessage.addListener((message) => {
       if (message.action === "getPageInfo") {
         const url = window.location.href;
+        const isGeminiChat = Utils.isValidChatUrl(url);
+        const isGem = Utils.isGemHomepageUrl(url) || Utils.isGemChatUrl(url);
+
+        const gemInfo =
+          isGem && window.GeminiHistory_GemDetector
+            ? window.GeminiHistory_GemDetector.getCurrentGemInfo()
+            : null;
+
         return Promise.resolve({
           url: url,
-          isGeminiChat: Utils.isValidChatUrl(url),
+          isGeminiChat: isGeminiChat,
+          isGem: isGem,
+          gemInfo: gemInfo,
         });
       }
 

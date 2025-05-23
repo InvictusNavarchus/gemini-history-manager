@@ -38,7 +38,11 @@
      * Captures necessary information before the chat is created.
      */
     prepareNewChatTracking: function () {
-      Logger.log("gemini-tracker", "URL matches GEMINI_APP_URL. This is potentially a new chat.");
+      const url = window.location.href;
+      Logger.log(
+        "gemini-tracker",
+        "URL " + url + " matches valid Gemini pattern. This is potentially a new chat."
+      );
       STATE.isNewChatPending = true;
       Logger.log("Set isNewChatPending = true");
 
@@ -48,6 +52,21 @@
       STATE.pendingModelName = ModelDetector.getCurrentModelName();
       STATE.pendingPrompt = InputExtractor.getPromptText();
       STATE.pendingAttachedFiles = InputExtractor.getAttachedFiles();
+
+      // Capture Gem information if applicable
+      const GemDetector = window.GeminiHistory_GemDetector;
+      if (GemDetector && (Utils.isGemHomepageUrl(url) || Utils.isGemChatUrl(url))) {
+        const gemInfo = GemDetector.getCurrentGemInfo();
+        if (gemInfo) {
+          STATE.pendingGemId = gemInfo.gemId;
+          STATE.pendingGemName = gemInfo.gemName;
+          STATE.pendingGemUrl = gemInfo.gemUrl;
+          Logger.log(
+            "gemini-tracker",
+            `Captured Gem information: ID=${gemInfo.gemId}, Name=${gemInfo.gemName || "Not detected yet"}`
+          );
+        }
+      }
 
       // Capture account information
       const accountInfo = InputExtractor.getAccountInfo();
@@ -88,13 +107,13 @@
         const currentUrl = window.location.href;
         Logger.log("gemini-tracker", `Current URL at time of click: ${currentUrl}`);
 
-        // Check if we are on the main app page (starting a NEW chat)
-        if (Utils.isBaseAppUrl(currentUrl)) {
+        // Check if we are on the main app page or a Gem homepage (starting a NEW chat)
+        if (Utils.isBaseAppUrl(currentUrl) || Utils.isGemHomepageUrl(currentUrl)) {
           this.prepareNewChatTracking();
         } else {
           Logger.log(
             "gemini-tracker",
-            "URL does not match GEMINI_APP_URL. Ignoring click for history tracking."
+            "URL is not a valid starting point for new chats. Ignoring click for history tracking."
           );
         }
       }

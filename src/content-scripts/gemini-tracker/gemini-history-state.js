@@ -9,6 +9,9 @@
     pendingAccountName: null,
     pendingAccountEmail: null,
     pendingGeminiPlan: null,
+    pendingGemId: null,
+    pendingGemName: null,
+    pendingGemUrl: null,
     sidebarObserver: null,
     titleObserver: null,
   };

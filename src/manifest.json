@@ -33,6 +33,7 @@
         "content-scripts/gemini-tracker/gemini-history-input-extractor.js",
         "content-scripts/gemini-tracker/gemini-history-history-manager.js",
         "content-scripts/gemini-tracker/gemini-history-dom-observer.js",
+        "content-scripts/gemini-tracker/gemini-history-gem-detector.js",
         "content-scripts/gemini-tracker/gemini-history-event-handlers.js",
         "content-scripts/gemini-tracker/gemini-history-main.js"
       ]
