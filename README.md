@@ -8,15 +8,27 @@
 Gemini History Manager is a browser extension designed to automatically track, manage, and help you visualize your Google Gemini chat history. It offers tools for organizing, searching, and deriving insights from your interactions with Gemini.
 
 ---
+## 📸 Screenshots
+
+### Browser Popup Interface
+![Popup Interface](screenshots/popup-dark.png)
+*Quick overview with recent conversations and key statistics*
+
+### Full Dashboard - History View
+![Dashboard History](screenshots/dashboard-conversation-list-dark-2.png)
+*Comprehensive list view with search, filtering, and sorting capabilities*
+
+### Dashboard - Visualizations
+![Dashboard Visualizations](screenshots/dashboard-visualization-all-time-dark.png)
+*Interactive charts showing model usage and activity over time*
+---
 
 ## 🚀 Features
-
-<details>
-<summary><strong>Click to expand/collapse full feature list</strong></summary>
 
 - **🤖 Automatic Chat Tracking**:
   - Captures chat URL, title, and an ISO 8601 UTC timestamp.
   - Identifies the Gemini model used (e.g., "2.5 Pro", "2.0 Flash", "Deep Research", "Veo 2").
+  - **Custom Gem Detection**: Identifies chats occurring within a custom Gem environment, capturing the Gem's name and ID when available.
   - Records the initial prompt and a list of any attached filenames.
   - Attempts to extract the Google account name and email associated with the chat.
   - Prevents duplicate entries based on chat URL.
@@ -29,12 +41,15 @@ Gemini History Manager is a browser extension designed to automatically track, m
   - Features a theme toggle (Light/Dark).
 - **📊 Full Dashboard Page (Vue-powered)**:
   - **Comprehensive List View**: Displays all saved conversations.
+    - Indicates if a conversation involved a custom Gem directly in the list (e.g., "Gem: <Gem Name>").
   - **Search & Filtering**:
     - Search by chat title and prompt content.
     - Filter by Gemini model.
     - Filter by date range (All Time, Today, This Week, This Month, Custom Range).
   - **Sorting**: Sort conversations by date (newest/oldest), title, or model.
   - **Detailed View**: Click on a conversation to view full details (title, date, model, account, prompt, attached files) in a modal.
+    - Displays the name and ID (if available) of any custom Gem used in the conversation.
+    - Provides a direct link to view the original Gem page if a Gem was involved.
   - **Data Statistics**:
     - Total conversations.
     - Most used model and its count.
@@ -51,8 +66,6 @@ Gemini History Manager is a browser extension designed to automatically track, m
   - **Theme Toggling**: Switch between Light and Dark themes.
   - **Toast Notifications**: Provides feedback for actions like saving, deleting, importing, or exporting data.
 
-</details>
-
 ---
 
 ## 🔧 How it Works
@@ -62,9 +75,11 @@ The extension operates through several key components:
 1.  **Content Script (`content-scripts/gemini-tracker.js`)**:
     - Injects into `https://gemini.google.com/*` pages.
     - Monitors user interactions, specifically clicks on the "Send" button when initiating a new chat.
+    - Distinguishes between regular Gemini chats (on `gemini.google.com/app`) and interactions with custom Gems (on `gemini.google.com/gem`) to apply specific tracking logic.
+    - Recognizes and handles URLs with the `/u/[n]/` multi-account structure for accurate tracking across multiple Google accounts.
     - Captures the current model, prompt text, and any attached filenames.
     - Utilizes `MutationObserver` to detect the newly created conversation item and its generated title in the sidebar.
-    - Saves the complete chat entry (timestamp, URL, title, model, prompt, files, account info) to `browser.storage.local`.
+    - Saves the complete chat entry (timestamp, URL, title, model, prompt, files, account info, and Gem details if applicable) to `browser.storage.local`.
     - Displays a status indicator for user feedback.
 2.  **Background Script (`background.js`)**:
     - Updates the browser action badge with the total number of saved conversations.
@@ -85,26 +100,13 @@ The extension operates through several key components:
 
 ## 📥 Installation
 
-> [!IMPORTANT] > **Web Store Availability**: This extension is not yet available on the Chrome Web Store or Firefox Add-ons. Links will be provided here once published.
+> [!IMPORTANT] > **Web Store Availability**: This extension is not yet available on the Chrome Web Store (as Chrome is not currently supported) or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
 
 ### Manual Installation (Developer Mode)
 
 #### For Google Chrome/Chromium-based browsers:
 
-1.  Clone this repository or download and extract the ZIP file:
-    ```bash
-    git clone [https://github.com/InvictusNavarchus/gemini-history-manager.git](https://github.com/InvictusNavarchus/gemini-history-manager.git)
-    ```
-2.  Build the project (this will create a `dist` directory):
-    ```bash
-    cd gemini-history-manager
-    pnpm install
-    pnpm run build
-    ```
-3.  Open Chrome and navigate to `chrome://extensions/`.
-4.  Enable **Developer mode** using the toggle in the top-right corner.
-5.  Click on **Load unpacked**.
-6.  Select the `dist` directory from the cloned/extracted project.
+Google Chrome is not officially supported at this time. We plan to work on Chrome compatibility in the future.
 
 #### For Mozilla Firefox:
 
@@ -200,6 +202,8 @@ The extension icon should now appear in your browser's toolbar.
 ---
 
 ## 🧑‍💻 Development
+
+Note: The primary development and testing workflow for this extension is centered around Mozilla Firefox, utilizing `web-ext` for streamlined development.
 
 ### Prerequisites
 
