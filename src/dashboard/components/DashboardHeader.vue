@@ -130,3 +130,157 @@ function handleSearchInput(event) {
 // Expose themeIconSvg for parent component access
 defineExpose({ themeIconSvg });
 </script>
+
+<style scoped>
+/* Header styling */
+header {
+  background-color: var(--card-bg);
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-grow: 1;
+}
+
+h1 {
+  font-size: 18px;
+  color: var(--primary-color);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.search-container {
+  flex-grow: 1;
+  max-width: 400px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-lighter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 14px;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  transition: all var(--animation-speed);
+}
+
+#searchFilter {
+  /* This ID is within the component, so it's fine */
+  background-color: var(--input-bg);
+}
+
+.search-container input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(110, 65, 226, 0.2);
+}
+
+.search-container input::placeholder {
+  color: var(--text-lighter);
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  margin-right: 8px;
+}
+
+.theme-toggle:hover {
+  background-color: var(--hover-bg);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Dark theme specific adjustments for search input */
+/* :deep() is used to target global html attribute from within scoped style */
+:deep(html[data-theme="dark"]) .search-container input,
+:deep(html[data-theme="dark"]) #searchFilter {
+  /* Also target #searchFilter for dark mode */
+  background-color: rgba(255, 255, 255, 0.05);
+  /* color and border-color will be inherited from var(--text-color) and var(--border-color) 
+     which are updated in the dark theme an already applied to .search-container input */
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .header-left {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .search-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  .controls {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Allow buttons to wrap if not enough space */
+    gap: 8px;
+  }
+  /* Styling for .button within .controls under this media query */
+  /* This assumes .button class is available globally or defined in this component if needed */
+  /* If .button is globally styled, these specific overrides for padding/font-size will apply in this context */
+  .controls .button {
+    /* This will style .button elements that are children of .controls */
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+</style>

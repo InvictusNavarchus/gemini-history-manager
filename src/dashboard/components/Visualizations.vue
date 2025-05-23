@@ -34,7 +34,11 @@
     <div class="viz-container">
       <canvas ref="vizChartCanvas"></canvas>
     </div>
-    <div v-show="activeVizTab === 'activityOverTime'" style="margin-top: 15px; min-height: 84px">
+    <div
+      id="vizOptions"
+      v-show="activeVizTab === 'activityOverTime'"
+      style="margin-top: 15px; min-height: 84px"
+    >
       <div class="viz-options-panel">
         <div class="viz-option-group">
           <label>Display Mode:</label>
@@ -186,3 +190,146 @@ function updateSelectedModel(model) {
 // Expose canvas ref to parent component
 defineExpose({ vizChartCanvas });
 </script>
+
+<style scoped>
+/* Styles for the visualization section, now scoped to Visualizations.vue */
+.visualization-section {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 15px;
+  flex-grow: 1; /* Allow it to take available space */
+  display: flex;
+  flex-direction: column;
+}
+
+.visualization-section h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: var(--text-color);
+}
+
+.viz-tabs {
+  display: flex;
+  margin-bottom: 0; /* Remove the margin to eliminate the gap */
+  border-bottom: 1px solid var(--border-color);
+}
+
+.viz-tab {
+  padding: 8px 12px;
+  font-size: 13px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-light);
+  position: relative;
+}
+
+.viz-tab.active {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.viz-tab.active:after {
+  content: "";
+  position: absolute;
+  bottom: -1px; /* Should align with the border-bottom of .viz-tabs */
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+}
+
+/* Styles for #vizOptions container and its panel */
+#vizOptions {
+  min-height: 84px;
+  transition:
+    opacity 0.2s ease-in-out,
+    visibility 0.2s ease-in-out;
+}
+
+.viz-options-panel {
+  padding: 10px 15px;
+  background-color: var(--bg-color);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  /* Fixed height to accommodate both the display mode row and model selector row */
+  height: 84px;
+}
+
+.viz-option-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  transition:
+    visibility 0.2s,
+    opacity 0.2s ease-in-out;
+}
+
+.viz-option-group:last-child {
+  margin-bottom: 0;
+}
+
+.viz-option-group label {
+  /* General label styling within an option group */
+  font-size: 13px;
+  color: var(--text-color);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.viz-radio-buttons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.viz-radio-label {
+  /* Specific styling for labels of radio buttons */
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-color); /* Ensure this is var(--text-color) not text-light */
+  gap: 5px;
+  cursor: pointer;
+  font-weight: normal; /* Radio labels are typically normal weight */
+}
+
+.viz-radio-label input {
+  /* Styling for the radio input itself */
+  cursor: pointer;
+}
+
+/* Styles for #activityModelFilter, now #modelForChart */
+#modelForChart {
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 13px;
+}
+
+.viz-container {
+  height: 300px; /* Base height for chart when options are shown */
+  min-height: 300px; /* Ensure consistent min-height */
+  flex-grow: 1; /* Allow canvas container to grow */
+  transition: height 0.3s ease-in-out; /* Smooth transition if height changes */
+  margin-top: 15px; /* Add space between tabs and chart */
+}
+
+/* Targeting the canvas element via its ref or a class would be more robust */
+/* For now, assuming canvas might get an ID or class that #vizChart was targeting */
+.viz-container > canvas {
+  /* More direct targeting of the canvas if #vizChart is problematic */
+  max-height: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .viz-container {
+    height: 250px; /* Adjust chart height */
+  }
+}
+</style>

@@ -56,3 +56,65 @@ defineProps({
   },
 });
 </script>
+
+<style scoped>
+/* Styles for the stats section, now scoped to StatsOverview.vue */
+.stats-section {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 15px;
+  /* Removed margin-bottom as component placement will determine spacing */
+}
+
+.stats-section h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: var(--text-color);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* More responsive */
+  gap: 12px;
+}
+
+.stat-card {
+  padding: 10px;
+  background-color: var(--bg-color); /* This uses --bg-color, not --card-bg */
+  border-radius: 6px;
+  text-align: center;
+}
+
+.stat-card h3 {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.stat-subtext {
+  font-size: 11px;
+  color: var(--text-lighter);
+  margin-top: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Adjust for smaller screens */
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+</style>
