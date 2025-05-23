@@ -1,6 +1,7 @@
 # Build directories
 dist/
 dist-zip/
+dist-stable/
 
 # Node.js dependencies
 node_modules/
