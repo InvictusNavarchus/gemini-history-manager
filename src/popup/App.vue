@@ -386,3 +386,27 @@ function handleFileImported(event) {
 // --- Utility Functions (already imported but good to remember their usage) ---
 // parseTimestamp, formatDateForDisplay, initializeTheme, applyTheme, toggleTheme are used directly.
 </script>
+
+<style scoped>
+.popup-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* CRITICAL: Make .popup-container expand to fill #app's available height */
+  min-height: 0; /* Important for nested flex layouts */
+  /* REMOVE height: 100vh; */
+}
+
+main { /* This is already correct with flex-grow: 1 */
+  padding: 16px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+footer {
+  font-size: 11px;
+  color: var(--text-light);
+  text-align: center;
+  padding: 8px;
+  border-top: 1px solid var(--border-color);
+}
+</style>
