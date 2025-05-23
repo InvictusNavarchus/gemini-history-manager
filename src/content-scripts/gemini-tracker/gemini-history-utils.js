@@ -23,38 +23,44 @@
      * Determines if a URL is a valid Gemini chat URL.
      * Valid URLs follow the pattern: https://gemini.google.com/app/[hexadecimal-id]
      * or https://gemini.google.com/gem/[gem_id]/[hexadecimal-id]
+     * or https://gemini.google.com/u/[n]/app/[hexadecimal-id]
+     * or https://gemini.google.com/u/[n]/gem/[gem_id]/[hexadecimal-id]
      * and may optionally include query parameters.
      *
      * @param {string} url - The URL to check
      * @returns {boolean} - True if the URL matches the expected pattern for a Gemini chat
      */
     isValidChatUrl: function (url) {
-      const regularChatUrlPattern = /^https:\/\/gemini\.google\.com\/app\/[a-f0-9]+(\?.*)?$/;
-      const gemChatUrlPattern = /^https:\/\/gemini\.google\.com\/gem\/[a-f0-9]+\/[a-f0-9]+(\?.*)?$/;
+      const regularChatUrlPattern = /^https:\/\/gemini\.google\.com(\/u\/\d+)?\/app\/[a-f0-9]+(\?.*)?$/;
+      const gemChatUrlPattern =
+        /^https:\/\/gemini\.google\.com(\/u\/\d+)?\/gem\/[a-f0-9]+\/[a-f0-9]+(\?.*)?$/;
       return regularChatUrlPattern.test(url) || gemChatUrlPattern.test(url);
     },
 
     /**
      * Determines if a URL is a Gem chat URL.
      * Valid Gem chat URLs follow the pattern: https://gemini.google.com/gem/[gem_id]/[hexadecimal-id]
+     * or https://gemini.google.com/u/[n]/gem/[gem_id]/[hexadecimal-id]
      *
      * @param {string} url - The URL to check
      * @returns {boolean} - True if the URL matches the expected pattern for a Gem chat
      */
     isGemChatUrl: function (url) {
-      const gemChatUrlPattern = /^https:\/\/gemini\.google\.com\/gem\/[a-f0-9]+\/[a-f0-9]+(\?.*)?$/;
+      const gemChatUrlPattern =
+        /^https:\/\/gemini\.google\.com(\/u\/\d+)?\/gem\/[a-f0-9]+\/[a-f0-9]+(\?.*)?$/;
       return gemChatUrlPattern.test(url);
     },
 
     /**
      * Determines if a URL is a Gem homepage URL.
      * Valid Gem homepage URLs follow the pattern: https://gemini.google.com/gem/[gem_id]
+     * or https://gemini.google.com/u/[n]/gem/[gem_id]
      *
      * @param {string} url - The URL to check
      * @returns {boolean} - True if the URL matches the expected pattern for a Gem homepage
      */
     isGemHomepageUrl: function (url) {
-      const gemHomepagePattern = /^https:\/\/gemini\.google\.com\/gem\/[a-f0-9]+(\?.*)?$/;
+      const gemHomepagePattern = /^https:\/\/gemini\.google\.com(\/u\/\d+)?\/gem\/[a-f0-9]+(\?.*)?$/;
       return gemHomepagePattern.test(url);
     },
 
@@ -67,11 +73,11 @@
     extractGemId: function (url) {
       if (!url) return null;
 
-      const gemUrlRegex = /^https:\/\/gemini\.google\.com\/gem\/([a-f0-9]+)/;
+      const gemUrlRegex = /^https:\/\/gemini\.google\.com(\/u\/\d+)?\/gem\/([a-f0-9]+)/;
       const match = url.match(gemUrlRegex);
 
-      if (match && match[1]) {
-        return match[1];
+      if (match && match[2]) {
+        return match[2];
       }
 
       return null;
@@ -80,13 +86,21 @@
     /**
      * Determines if a URL is the base Gemini app URL (with potential parameters).
      * The base URL is used for starting new chats.
+     * Also supports the /u/[n]/ pattern for multiple Google accounts.
      *
      * @param {string} url - The URL to check
      * @returns {boolean} - True if the URL is the base app URL (with or without parameters)
      */
     isBaseAppUrl: function (url) {
-      // Check if URL starts with base URL, followed by end of string or a question mark (for parameters)
-      return url === CONFIG.BASE_URL || url.startsWith(CONFIG.BASE_URL + "?");
+      // Check if URL is the base URL (with or without user account number)
+      if (url === CONFIG.BASE_URL) return true;
+
+      // Check if URL starts with base URL followed by a question mark (for parameters)
+      if (url.startsWith(CONFIG.BASE_URL + "?")) return true;
+
+      // Check for /u/[n]/ pattern
+      const userAccountPattern = /^https:\/\/gemini\.google\.com\/u\/\d+\/app(\?.*)?$/;
+      return userAccountPattern.test(url);
     },
   };
 
