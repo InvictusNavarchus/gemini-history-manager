@@ -260,3 +260,69 @@ function resetAllFilters() {
   emit("reset-filters");
 }
 </script>
+
+<style scoped>
+/* Filters section styling, assuming the root div of this component has class="filters-section" */
+.filters-section {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 15px;
+  /* Removed margin-bottom as sidebar handles spacing if this component is placed in a sidebar */
+}
+
+/* Styling for the h2 tag within this component */
+h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: var(--text-color);
+}
+
+.filter-group {
+  margin-bottom: 12px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 5px;
+  color: var(--text-light);
+}
+
+.filter-group select,
+.filter-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.date-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Additional styling for the reset button if needed, assuming .button is global */
+.reset-button {
+  width: 100%;
+  margin-top: 5px; /* Add some space above the reset button */
+  background-color: var(--hover-bg); /* Slightly different background */
+  border-color: var(--border-color);
+  color: var(--text-light);
+}
+
+.reset-button:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+</style>

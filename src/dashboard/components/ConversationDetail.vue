@@ -209,4 +209,127 @@ function copyUrlToClipboard() {
 .copy-url-button.copied span {
   transform: scale(1.2);
 }
+
+/* Styles for detail groups, moved from dashboard.css */
+.detail-group {
+  margin-bottom: 15px;
+}
+
+.detail-group h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 5px;
+}
+
+.detail-group p {
+  font-size: 15px;
+  color: var(--text-color);
+  line-height: 1.5;
+  word-break: break-word; /* Ensure long words or IDs don't break layout */
+}
+
+.detail-group .conversation-plan { /* Contextual styling for plan badge */
+  display: inline-block;
+  /* Base .conversation-plan styles (bg, color, padding) are assumed to be global or inherited */
+}
+
+.detail-group ul {
+  list-style-type: none; /* Remove default bullet points */
+  padding-left: 0; /* Remove default padding */
+  margin-left: 0; /* Explicitly set, though likely reset globally */
+}
+
+.detail-group ul li {
+  padding: 5px 0;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.gem-link {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+.gem-link:hover {
+  color: var(--primary-dark);
+}
+
+/* Ensure modal parts are styled if not already handled by ConfirmationModal or a base modal style */
+/* These are typically part of a more generic modal component, but included if this one is standalone */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow: auto; /* Enable scroll if content overflows */
+}
+
+.modal.active {
+  display: flex; /* Use flexbox to center content */
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow); /* Use CSS variable for shadow */
+  width: 90%;
+  max-width: 600px; /* Default max-width for larger modals */
+  animation: modalFadeIn 0.3s; /* Use the global animation */
+}
+
+/* Keyframes should be global or defined if this component is truly standalone */
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-light);
+}
+.close-button:hover {
+  color: var(--text-color);
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: 70vh; /* Limit height and enable scroll */
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 </style>
