@@ -118,6 +118,11 @@
           browser.tabs.create({ url });
         }
       "
+      @copy-url="
+        (url) => {
+          showToast('URL copied to clipboard', 'success');
+        }
+      "
       @delete="confirmDeleteConversation"
     />
 
