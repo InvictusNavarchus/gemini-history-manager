@@ -34,7 +34,11 @@
     <div class="viz-container">
       <canvas ref="vizChartCanvas"></canvas>
     </div>
-    <div v-show="activeVizTab === 'activityOverTime'" style="margin-top: 15px; min-height: 84px">
+    <div
+      id="vizOptions"
+      v-show="activeVizTab === 'activityOverTime'"
+      style="margin-top: 15px; min-height: 84px"
+    >
       <div class="viz-options-panel">
         <div class="viz-option-group">
           <label>Display Mode:</label>
@@ -237,14 +241,11 @@ defineExpose({ vizChartCanvas });
 }
 
 /* Styles for #vizOptions container and its panel */
-/* Assuming the v-show div acts as the #vizOptions container */
-/* We might need to add id="vizOptions" to the div if strict ID targeting is needed */
-div[style*="min-height: 84px"] {
-  /* Targeting the v-show div for #vizOptions styles */
-  min-height: 84px; /* from inline style, matching #vizOptions behavior */
+#vizOptions {
+  min-height: 84px;
   transition:
     opacity 0.2s ease-in-out,
-    visibility 0.2s ease-in-out; /* from #vizOptions */
+    visibility 0.2s ease-in-out;
 }
 
 .viz-options-panel {
