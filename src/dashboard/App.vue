@@ -172,11 +172,11 @@ import {
   getAvailableGems,
   importHistoryData,
 } from "./helpers/dataHelpers.js";
-import { 
-  getModelDistributionChartConfig, 
+import {
+  getModelDistributionChartConfig,
   getActivityOverTimeChartConfig,
   getPlanDistributionChartConfig,
-  getGemDistributionChartConfig
+  getGemDistributionChartConfig,
 } from "./helpers/chartHelpers.js";
 import {
   createToastManager,
