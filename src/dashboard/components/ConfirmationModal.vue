@@ -62,7 +62,7 @@ defineEmits(["confirm", "cancel"]);
 .modal-content {
   background-color: var(--card-bg);
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow);
   width: 90%;
   /* max-width: 600px; Default from original .modal-content */
   max-width: 400px; /* Applied from .confirmation-modal specific style */
