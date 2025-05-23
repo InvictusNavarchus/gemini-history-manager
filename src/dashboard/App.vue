@@ -719,6 +719,10 @@ function checkUrlParameters() {
 </script>
 
 <style scoped>
+.content {
+  width: 100%;
+}
+
 .settings-view-layout {
   display: flex;
   height: 100%;
