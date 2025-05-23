@@ -67,6 +67,7 @@ The extension operates through several key components:
     - Injects into `https://gemini.google.com/*` pages.
     - Monitors user interactions, specifically clicks on the "Send" button when initiating a new chat.
     - Distinguishes between regular Gemini chats (on `gemini.google.com/app`) and interactions with custom Gems (on `gemini.google.com/gem`) to apply specific tracking logic.
+    - Recognizes and handles URLs with the `/u/[n]/` multi-account structure for accurate tracking across multiple Google accounts.
     - Captures the current model, prompt text, and any attached filenames.
     - Utilizes `MutationObserver` to detect the newly created conversation item and its generated title in the sidebar.
     - Saves the complete chat entry (timestamp, URL, title, model, prompt, files, account info, and Gem details if applicable) to `browser.storage.local`.
