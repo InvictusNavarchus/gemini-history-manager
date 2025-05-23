@@ -11,9 +11,6 @@ Gemini History Manager is a browser extension designed to automatically track, m
 
 ## 🚀 Features
 
-<details>
-<summary><strong>Click to expand/collapse full feature list</strong></summary>
-
 - **🤖 Automatic Chat Tracking**:
   - Captures chat URL, title, and an ISO 8601 UTC timestamp.
   - Identifies the Gemini model used (e.g., "2.5 Pro", "2.0 Flash", "Deep Research", "Veo 2").
@@ -55,8 +52,6 @@ Gemini History Manager is a browser extension designed to automatically track, m
   - **Theme Toggling**: Switch between Light and Dark themes.
   - **Toast Notifications**: Provides feedback for actions like saving, deleting, importing, or exporting data.
 
-</details>
-
 ---
 
 ## 🔧 How it Works
@@ -91,8 +86,7 @@ The extension operates through several key components:
 
 ## 📥 Installation
 
-> [!IMPORTANT]
-> **Web Store Availability**: This extension is not yet available on the Chrome Web Store (as Chrome is not currently supported) or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
+> [!IMPORTANT] > **Web Store Availability**: This extension is not yet available on the Chrome Web Store (as Chrome is not currently supported) or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
 
 ### Manual Installation (Developer Mode)
 
