@@ -54,3 +54,69 @@ function openConversation(url) {
   emit("openConversation", url);
 }
 </script>
+
+<style scoped>
+/* History section */
+.history-preview h2 {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.conversation-list {
+  background-color: var(--card-bg);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.conversation-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color var(--animation-speed);
+}
+
+.conversation-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.conversation-item:last-child {
+  border-bottom: none;
+}
+
+.conversation-title {
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conversation-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.conversation-model {
+  background-color: var(--hover-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--text-light);
+}
+
+.empty-state p {
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+</style>
