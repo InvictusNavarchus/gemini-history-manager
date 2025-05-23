@@ -18,6 +18,13 @@
       </button>
       <button
         class="viz-tab"
+        :class="{ active: activeVizTab === 'gemDistribution' }"
+        @click="setActiveVizTab('gemDistribution')"
+      >
+        Gem Distribution
+      </button>
+      <button
+        class="viz-tab"
         :class="{ active: activeVizTab === 'activityOverTime' }"
         @click="setActiveVizTab('activityOverTime')"
       >

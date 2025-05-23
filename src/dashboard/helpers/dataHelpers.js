@@ -128,6 +128,28 @@ export function filterAndSortHistory(history, filters) {
     );
   }
 
+  // Apply gem filter
+  if (filters.gemFilter) {
+    Logger.log("dataHelpers", `Applying gem filter: "${filters.gemFilter}"`);
+
+    const originalCount = items.length;
+
+    if (filters.gemFilter === "hasGem") {
+      // Show only conversations with any gem
+      items = items.filter((item) => item.gemName || item.gemId);
+      Logger.debug("dataHelpers", `Filtering to show only conversations with gems`);
+    } else {
+      // Show conversations with a specific gem
+      items = items.filter((item) => item.gemName === filters.gemFilter);
+      Logger.debug("dataHelpers", `Filtering to show only conversations with gem: ${filters.gemFilter}`);
+    }
+
+    Logger.debug(
+      "dataHelpers",
+      `Gem filter reduced items from ${originalCount} to ${items.length} (removed ${originalCount - items.length})`
+    );
+  }
+
   // Apply date filter
   const now = dayjs();
   if (filters.dateFilter !== "all") {
@@ -386,6 +408,29 @@ export function getAvailablePlans(historyData) {
 
   Logger.debug("dataHelpers", `Found ${sortedPlans.length} unique plans: ${sortedPlans.join(", ")}`);
   return sortedPlans;
+}
+
+/**
+ * Extract all available Gems from history data
+ * @param {Array} historyData - The history data array
+ * @returns {Array} Array of unique gem names
+ */
+export function getAvailableGems(historyData) {
+  Logger.log("dataHelpers", `Extracting available Gems from ${historyData.length} history items`);
+
+  // Get unique set of gem names, filter out undefined/null gems
+  const gemsSet = new Set();
+  historyData.forEach((item) => {
+    if (item.gemName) {
+      gemsSet.add(item.gemName);
+    }
+  });
+
+  // Sort gems alphabetically
+  const sortedGems = Array.from(gemsSet).sort((a, b) => a.localeCompare(b));
+
+  Logger.debug("dataHelpers", `Found ${sortedGems.length} unique gems: ${sortedGems.join(", ")}`);
+  return sortedGems;
 }
 
 /**

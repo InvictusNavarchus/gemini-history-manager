@@ -16,6 +16,14 @@
       </select>
     </div>
     <div class="filter-group">
+      <label for="gemFilter">Gem</label>
+      <select id="gemFilter" :value="selectedGemFilter" @change="handleGemFilterChange($event)">
+        <option value="">All Conversations</option>
+        <option value="hasGem">Gem Conversations Only</option>
+        <option v-for="gem in availableGems" :key="gem" :value="gem">{{ gem }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
       <label for="dateFilter">Date Range</label>
       <select
         id="dateFilter"
@@ -77,6 +85,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  selectedGemFilter: {
+    type: String,
+    default: "",
+  },
   selectedDateFilter: {
     type: String,
     default: "all",
@@ -101,12 +113,17 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  availableGems: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 // Define emits
 const emit = defineEmits([
   "update:selectedModelFilter",
   "update:selectedPlanFilter",
+  "update:selectedGemFilter",
   "update:selectedDateFilter",
   "update:customStartDate",
   "update:customEndDate",
@@ -141,6 +158,7 @@ const hasActiveFilters = computed(() => {
   return (
     props.selectedModelFilter !== "" ||
     props.selectedPlanFilter !== "" ||
+    props.selectedGemFilter !== "" ||
     props.selectedDateFilter !== "all" ||
     props.currentSortBy !== "date-desc"
   );
@@ -186,6 +204,18 @@ function handlePlanFilterChange(event) {
   });
 
   emit("update:selectedPlanFilter", newValue);
+  emit("filter-change");
+}
+
+// Handle gem filter changes
+function handleGemFilterChange(event) {
+  const newValue = event.target.value;
+  Logger.log("Filters", "Gem filter changed by user", {
+    from: props.selectedGemFilter,
+    to: newValue,
+  });
+
+  emit("update:selectedGemFilter", newValue);
   emit("filter-change");
 }
 

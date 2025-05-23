@@ -47,6 +47,12 @@ export const MODEL_COLOR_MAP = {
   Unknown: RESERVED_COLORS[6], // Gray for unknown models
 };
 
+// Gem-specific color mapping for consistent colors across visualizations
+export const GEM_COLOR_MAP = {
+  // We'll use fallback colors for gems since they're dynamic
+  Unknown: RESERVED_COLORS[6], // Gray for unknown gems
+};
+
 /**
  * Get color for a specific model, ensuring consistency across visualizations
  * @param {string} modelName - Name of the model
@@ -73,6 +79,22 @@ export function getPlanColor(planName, fallbackIndex = 0) {
   // If we have a specific color defined for this plan, use it
   if (PLAN_COLOR_MAP[planName]) {
     return PLAN_COLOR_MAP[planName];
+  }
+
+  // Otherwise use the fallback color based on the index
+  return FALLBACK_COLORS[fallbackIndex % FALLBACK_COLORS.length];
+}
+
+/**
+ * Get color for a specific gem, ensuring consistency across visualizations
+ * @param {string} gemName - Name of the gem
+ * @param {number} fallbackIndex - Fallback index to use if no specific color is defined
+ * @returns {string} Color to use for the gem
+ */
+export function getGemColor(gemName, fallbackIndex = 0) {
+  // If we have a specific color defined for this gem, use it
+  if (GEM_COLOR_MAP[gemName]) {
+    return GEM_COLOR_MAP[gemName];
   }
 
   // Otherwise use the fallback color based on the index
@@ -465,6 +487,99 @@ export function getPlanDistributionChartConfig(historyData, theme) {
           borderColor: labels.map((plan, index) =>
             (PLAN_COLOR_MAP[plan] || FALLBACK_COLORS[index]).replace("0.8", "1")
           ),
+          borderWidth: 1,
+          maxBarThickness: 50,
+        },
+      ],
+    },
+    options: {
+      indexAxis: "y", // This makes the bars horizontal
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: {
+            color: gridColor,
+          },
+          ticks: {
+            color: textColor,
+            precision: 0,
+          },
+          title: {
+            display: true,
+            text: "Number of Conversations",
+            color: textColor,
+          },
+        },
+        y: {
+          grid: {
+            color: gridColor,
+          },
+          ticks: {
+            color: textColor,
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: false, // Hide legend as it's redundant for this chart
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              const value = context.raw || 0;
+              const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value * 100) / total);
+              return `${value} conversations (${percentage}%)`;
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+/**
+ * Generate configuration for gem distribution chart
+ * @param {Array} historyData - History data array
+ * @param {string} theme - Current theme ('light' or 'dark')
+ * @returns {Object} Chart.js configuration
+ */
+export function getGemDistributionChartConfig(historyData, theme) {
+  Logger.log(
+    "chartHelpers",
+    `Generating gem distribution chart with ${historyData.length} entries and theme: ${theme}`
+  );
+
+  const gemCounts = historyData.reduce((acc, entry) => {
+    const gem = entry.gemName || "Unknown";
+    if (gem !== "Unknown") {
+      acc[gem] = (acc[gem] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  Logger.debug("chartHelpers", `Gem distribution data: ${JSON.stringify(gemCounts)}`);
+
+  // Sort by count in descending order
+  const sortedEntries = Object.entries(gemCounts).sort((a, b) => b[1] - a[1]);
+  const labels = sortedEntries.map((entry) => entry[0]);
+  const data = sortedEntries.map((entry) => entry[1]);
+  Logger.debug("chartHelpers", `Chart labels: ${labels.join(", ")}`);
+
+  const { textColor, gridColor } = getChartJsThemeOptions(theme);
+
+  return {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Conversations",
+          data,
+          backgroundColor: labels.map((gem, index) => getGemColor(gem, index)),
+          borderColor: labels.map((gem, index) => getGemColor(gem, index).replace("0.8", "1")),
           borderWidth: 1,
           maxBarThickness: 50,
         },

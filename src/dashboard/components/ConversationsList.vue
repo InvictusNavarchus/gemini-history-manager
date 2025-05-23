@@ -53,6 +53,7 @@
               <span v-if="entry.geminiPlan" class="conversation-plan" :class="entry.geminiPlan.toLowerCase()">
                 {{ entry.geminiPlan }}
               </span>
+              <span v-if="entry.gemName" class="conversation-gem"> Gem: {{ entry.gemName }} </span>
             </div>
             <div class="meta-right">
               <span v-if="entry.accountName && entry.accountName !== 'Unknown'" class="conversation-account">

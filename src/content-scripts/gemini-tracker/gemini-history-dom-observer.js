@@ -314,14 +314,17 @@
         // Get the Gemini Plan from the state
         const geminiPlan = STATE.pendingGeminiPlan;
         Logger.log("gemini-tracker", `Using Gemini plan: ${geminiPlan || "Unknown"}`);
-        
+
         // Get Gem information from the state
         const gemId = STATE.pendingGemId;
         const gemName = STATE.pendingGemName;
         const gemUrl = STATE.pendingGemUrl;
-        
+
         if (gemId) {
-          Logger.log("gemini-tracker", `Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`);
+          Logger.log(
+            "gemini-tracker",
+            `Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`
+          );
         }
 
         const success = await HistoryManager.addHistoryEntry(
