@@ -171,9 +171,13 @@ function copyUrlToClipboard() {
       isCopied.value = true;
 
       // Reset the state after 1.5 seconds
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         isCopied.value = false;
       }, 1500);
+
+      onUnmounted(() => {
+        clearTimeout(timerId);
+      });
     })
     .catch((error) => {
       Logger.error("ConversationDetail", "Failed to copy URL to clipboard", { error });
