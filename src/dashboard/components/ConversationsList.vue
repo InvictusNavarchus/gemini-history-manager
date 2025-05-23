@@ -227,14 +227,14 @@ function formatDate(timestamp) {
 }
 
 .conversation-gem, /* Added styling for gem if it exists */
-.conversation-files { /* Added styling for files if it exists */
+.conversation-files {
+  /* Added styling for files if it exists */
   font-size: 12px;
   color: var(--text-lighter);
   background-color: var(--hover-bg); /* Subtle background to distinguish */
   padding: 2px 6px;
   border-radius: 4px;
 }
-
 
 /* Dark theme specific adjustments */
 :deep(html[data-theme="dark"]) .conversation-plan.pro {
@@ -254,7 +254,8 @@ function formatDate(timestamp) {
 
 /* Empty and Loading states - Assuming these are part of ConversationsList.vue template */
 .empty-state,
-.loading-state { /* loading-state styles were not in the provided CSS but adding selector if needed */
+.loading-state {
+  /* loading-state styles were not in the provided CSS but adding selector if needed */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -262,7 +263,7 @@ function formatDate(timestamp) {
   padding: 60px 20px;
   text-align: center;
   color: var(--text-light);
-  height: 100%; 
+  height: 100%;
   flex-grow: 1;
 }
 
@@ -308,7 +309,6 @@ function formatDate(timestamp) {
   color: var(--text-light);
 }
 
-
 /* Responsive adjustments */
 @media (max-width: 600px) {
   .conversation-header {
@@ -330,7 +330,8 @@ function formatDate(timestamp) {
     gap: 5px;
     align-items: flex-start; /* Align items to start in column layout */
   }
-  .meta-left, .meta-right {
+  .meta-left,
+  .meta-right {
     flex-direction: column; /* Stack meta items vertically */
     align-items: flex-start;
     gap: 5px; /* Adjust gap for stacked items */

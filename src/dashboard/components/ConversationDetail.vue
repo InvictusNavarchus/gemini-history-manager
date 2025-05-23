@@ -229,7 +229,8 @@ function copyUrlToClipboard() {
   word-break: break-word; /* Ensure long words or IDs don't break layout */
 }
 
-.detail-group .conversation-plan { /* Contextual styling for plan badge */
+.detail-group .conversation-plan {
+  /* Contextual styling for plan badge */
   display: inline-block;
   /* Base .conversation-plan styles (bg, color, padding) are assumed to be global or inherited */
 }
@@ -285,8 +286,14 @@ function copyUrlToClipboard() {
 
 /* Keyframes should be global or defined if this component is truly standalone */
 @keyframes modalFadeIn {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-header {

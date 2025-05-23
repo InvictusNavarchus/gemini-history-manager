@@ -239,7 +239,8 @@ defineExpose({ vizChartCanvas });
 /* Styles for #vizOptions container and its panel */
 /* Assuming the v-show div acts as the #vizOptions container */
 /* We might need to add id="vizOptions" to the div if strict ID targeting is needed */
-div[style*="min-height: 84px"] { /* Targeting the v-show div for #vizOptions styles */
+div[style*="min-height: 84px"] {
+  /* Targeting the v-show div for #vizOptions styles */
   min-height: 84px; /* from inline style, matching #vizOptions behavior */
   transition:
     opacity 0.2s ease-in-out,
@@ -252,7 +253,7 @@ div[style*="min-height: 84px"] { /* Targeting the v-show div for #vizOptions sty
   border-radius: 6px;
   border: 1px solid var(--border-color);
   /* Fixed height to accommodate both the display mode row and model selector row */
-  height: 84px; 
+  height: 84px;
 }
 
 .viz-option-group {
@@ -269,7 +270,8 @@ div[style*="min-height: 84px"] { /* Targeting the v-show div for #vizOptions sty
   margin-bottom: 0;
 }
 
-.viz-option-group label { /* General label styling within an option group */
+.viz-option-group label {
+  /* General label styling within an option group */
   font-size: 13px;
   color: var(--text-color);
   font-weight: 500;
@@ -282,7 +284,8 @@ div[style*="min-height: 84px"] { /* Targeting the v-show div for #vizOptions sty
   gap: 15px;
 }
 
-.viz-radio-label { /* Specific styling for labels of radio buttons */
+.viz-radio-label {
+  /* Specific styling for labels of radio buttons */
   display: flex;
   align-items: center;
   font-size: 13px;
@@ -292,7 +295,8 @@ div[style*="min-height: 84px"] { /* Targeting the v-show div for #vizOptions sty
   font-weight: normal; /* Radio labels are typically normal weight */
 }
 
-.viz-radio-label input { /* Styling for the radio input itself */
+.viz-radio-label input {
+  /* Styling for the radio input itself */
   cursor: pointer;
 }
 
@@ -316,7 +320,8 @@ div[style*="min-height: 84px"] { /* Targeting the v-show div for #vizOptions sty
 
 /* Targeting the canvas element via its ref or a class would be more robust */
 /* For now, assuming canvas might get an ID or class that #vizChart was targeting */
-.viz-container > canvas { /* More direct targeting of the canvas if #vizChart is problematic */
+.viz-container > canvas {
+  /* More direct targeting of the canvas if #vizChart is problematic */
   max-height: 100%;
 }
 

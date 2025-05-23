@@ -26,7 +26,7 @@ defineProps({
   padding: 60px 20px;
   text-align: center;
   color: var(--text-light); /* This applies for both light and dark via CSS vars */
-  height: 100%; 
+  height: 100%;
   flex-grow: 1;
 }
 

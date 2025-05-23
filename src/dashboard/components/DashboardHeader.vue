@@ -193,7 +193,8 @@ h1 {
   transition: all var(--animation-speed);
 }
 
-#searchFilter { /* This ID is within the component, so it's fine */
+#searchFilter {
+  /* This ID is within the component, so it's fine */
   background-color: var(--input-bg);
 }
 
@@ -240,7 +241,8 @@ h1 {
 /* Dark theme specific adjustments for search input */
 /* :deep() is used to target global html attribute from within scoped style */
 :deep(html[data-theme="dark"]) .search-container input,
-:deep(html[data-theme="dark"]) #searchFilter { /* Also target #searchFilter for dark mode */
+:deep(html[data-theme="dark"]) #searchFilter {
+  /* Also target #searchFilter for dark mode */
   background-color: rgba(255, 255, 255, 0.05);
   /* color and border-color will be inherited from var(--text-color) and var(--border-color) 
      which are updated in the dark theme an already applied to .search-container input */
@@ -275,8 +277,9 @@ h1 {
   /* Styling for .button within .controls under this media query */
   /* This assumes .button class is available globally or defined in this component if needed */
   /* If .button is globally styled, these specific overrides for padding/font-size will apply in this context */
-  .controls .button { /* This will style .button elements that are children of .controls */
-    padding: 6px 10px; 
+  .controls .button {
+    /* This will style .button elements that are children of .controls */
+    padding: 6px 10px;
     font-size: 12px;
   }
 }
