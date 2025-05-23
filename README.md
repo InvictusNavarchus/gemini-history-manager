@@ -91,7 +91,8 @@ The extension operates through several key components:
 
 ## 📥 Installation
 
-> [!IMPORTANT] > **Web Store Availability**: This extension is not yet available on the Chrome Web Store (as Chrome is not currently supported) or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
+> [!IMPORTANT]
+> **Web Store Availability**: This extension is not yet available on the Chrome Web Store (as Chrome is not currently supported) or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
 
 ### Manual Installation (Developer Mode)
 
