@@ -202,6 +202,53 @@ The extension icon should now appear in your browser's toolbar.
 
 ---
 
+## ⚠️ Limitations
+
+While Gemini History Manager aims to be a comprehensive tool for tracking your Gemini chats, it's important to understand its current limitations:
+
+### Data Storage
+*   **Local Storage Reliance**: The extension uses `browser.storage.local`. While `unlimitedStorage` permission helps, browser-specific quotas or policies could still impose limits. Performance may degrade with extremely large datasets (many thousands of conversations).
+*   **No Cloud Sync/Backup**: All data is stored locally within the browser instance where the extension is installed. There is no automatic cloud synchronization or backup feature. If you clear your browser data or use a different browser profile/computer, the history will not be available unless manually exported and imported.
+*   **Single Browser Instance**: Data is tied to the specific browser and profile it was saved on.
+
+### Data Capture
+*   **DOM Dependent & Fragile**: Chat detection and data extraction heavily rely on the current HTML structure of the Gemini website. Changes made by Google to the Gemini interface can break the extension's tracking capabilities, requiring updates to the extension.
+*   **Initial Prompt Focus**: The extension primarily captures the *initial* prompt of a conversation. Subsequent edits to the prompt, or the nuances of multi-turn interactions within a single chat session, may not be fully captured.
+*   **Best-Effort Account Info**: Extraction of Google account information (name, email) is on a best-effort basis and might not always be successful depending on website changes or account configurations.
+*   **No Inline Image Content**: Only the *filenames* of uploaded images are recorded, not the image content itself.
+*   **Error Handling in Capture**: If data capture fails for a specific chat (e.g., due to unexpected website changes), the extension may silently fail to record that chat or record incomplete information. Robust error reporting for capture failures is an area for improvement.
+
+### Feature Set
+*   **Manual Data Management**: Backup and transfer of history rely on manual export and import of JSON files. No automatic backup or cloud synchronization features are currently implemented.
+*   **Search Functionality**:
+    *   **Current Capabilities (Basic Search)**: The existing search feature is primarily a case-insensitive filter targeting chat titles and the initial prompt text. It does not support advanced search operators (e.g., AND, OR, NOT), regular expressions, or exact phrase matching. As the extension focuses on capturing the initial prompt, full-text search across entire multi-turn conversation content is not available.
+    *   **Potential Future Enhancements**:
+        *   Implementing full-text search across all captured conversational data (if the scope of data capture were expanded beyond initial prompts).
+        *   Adding support for advanced search operators (AND, OR, NOT) and exact phrase matching.
+        *   Providing user options for case-sensitive and case-insensitive searching.
+        *   Integrating metadata filters (e.g., date ranges, models used) more directly into the search query syntax.
+*   **Pre-defined Visualizations**: The dashboard offers a set of pre-defined charts and statistics. User-customizable reporting or visualization options are not currently supported.
+*   **No Collaborative Features**: The extension is designed for individual use. There are no features for sharing history or collaborating with other users.
+*   **Gemini Specific**: Designed exclusively for Google Gemini. It does not support other LLM platforms (e.g., ChatGPT, Claude).
+*   **Gem Detection Specificity**: The identification of "Custom Gems" is based on current URL patterns and specific DOM elements. New or significantly altered Gem implementations by Google might not be correctly identified.
+
+### Performance
+*   **Large Dataset Impact**: With a very large number of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching, as all processing is done client-side.
+*   **DOM Observation Overhead**: While efforts are made to optimize it, the continuous observation of the Gemini page for new chats can have a minor performance footprint.
+
+### Platform & Browser Compatibility
+*   **Firefox Prioritized**: Primary development and testing are done on Mozilla Firefox.
+*   **Limited Chrome Support**: Google Chrome is **not officially supported** at this time. While some functionality might work, full compatibility is not guaranteed.
+*   **No Mobile Support**: The extension is designed for desktop browsers and is unlikely to work on mobile browsers.
+
+### Security & Privacy
+*   **Local Data Responsibility**: Your chat history is stored locally on your computer. This is beneficial for privacy as your data is not sent to the extension developer. However, you are responsible for securing your local machine and browser environment.
+
+### Maintenance
+*   **Website Dependency**: The extension's core functionality is tightly coupled to the Gemini website's structure. Changes by Google can necessitate frequent updates to the extension to maintain functionality. This reliance means there's a potential for periods where the extension may not work as expected until it's updated.
+
+---
+
 ## 🧑‍💻 Development
 
 Note: The primary development and testing workflow for this extension is centered around Mozilla Firefox, utilizing `web-ext` for streamlined development.
