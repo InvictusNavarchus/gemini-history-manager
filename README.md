@@ -229,8 +229,7 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
         *   Integrating metadata filters (e.g., date ranges, models used) more directly into the search query syntax.
 *   **Pre-defined Visualizations**: The dashboard offers a set of pre-defined charts and statistics. User-customizable reporting or visualization options are not currently supported.
 *   **No Collaborative Features**: The extension is designed for individual use. There are no features for sharing history or collaborating with other users.
-*   **Gemini Specific**: Designed exclusively for Google Gemini. It does not support other LLM platforms (e.g., ChatGPT, Claude).
-*   **Gem Detection Specificity**: The identification of "Custom Gems" is based on current URL patterns and specific DOM elements. New or significantly altered Gem implementations by Google might not be correctly identified.
+*   **Gemini Specific**: Designed exclusively for Google Gemini. It does not support other LLM platforms yet (e.g., ChatGPT, Claude).
 
 ### Performance
 *   **Large Dataset Impact**: With a very large number of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching, as all processing is done client-side.
