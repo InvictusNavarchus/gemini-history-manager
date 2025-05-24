@@ -232,7 +232,7 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 *   **Gemini Specific**: Designed exclusively for Google Gemini. It does not support other LLM platforms yet (e.g., ChatGPT, Claude).
 
 ### Performance
-*   **Large Dataset Impact**: With a very large number of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching, as all processing is done client-side.
+*   **Large Dataset Impact**: With a very large number of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching
 *   **DOM Observation Overhead**: The continuous observation of the Gemini page for new chats can have a minor performance footprint.
 
 ### Platform & Browser Compatibility
