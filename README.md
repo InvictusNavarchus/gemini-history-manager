@@ -234,7 +234,7 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 
 ### Performance
 *   **Large Dataset Impact**: With a very large number of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching, as all processing is done client-side.
-*   **DOM Observation Overhead**: While efforts are made to optimize it, the continuous observation of the Gemini page for new chats can have a minor performance footprint.
+*   **DOM Observation Overhead**: The continuous observation of the Gemini page for new chats can have a minor performance footprint.
 
 ### Platform & Browser Compatibility
 *   **Firefox Prioritized**: Primary development and testing are done on Mozilla Firefox.
