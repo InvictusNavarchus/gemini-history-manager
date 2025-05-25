@@ -5,6 +5,9 @@
 import { Logger, parseTimestamp } from "../../lib/utils.js";
 import dayjs from "dayjs";
 import { createSearchIndex, searchHistory } from "./searchHelpers.js";
+import isBetween from "dayjs/plugin/isBetween";
+
+dayjs.extend(isBetween);
 
 // Constants
 export const STORAGE_KEY = "geminiChatHistory";
