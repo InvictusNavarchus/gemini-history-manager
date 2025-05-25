@@ -111,8 +111,24 @@ const props = defineProps({
 defineEmits(["update:currentSortBy", "show-details", "start-chat", "reset-filters"]);
 
 // Highlight search matches in text
+let lastQuery = "";
+let lastRegex = null;
+
+function getSearchRegex(query) {
+  if (query === lastQuery && lastRegex) {
+    return lastRegex;
+  }
+  const words = query.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return null;
+  lastQuery = query;
+  lastRegex = new RegExp(
+    "(" + words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")",
+    "gi"
+  );
+  return lastRegex;
+}
+
 function highlightMatch(text) {
-  // Debug log to check what is received
   Logger.debug("ConversationsList", "highlightMatch called", {
     searchQuery: props.searchQuery,
     hasSearchQuery: props.hasSearchQuery,
@@ -120,14 +136,8 @@ function highlightMatch(text) {
   });
   if (!props.hasSearchQuery || !props.searchQuery || !text) return escapeHtml(text);
   try {
-    // Support multiple words, highlight each
-    const words = props.searchQuery.trim().split(/\s+/).filter(Boolean);
-    if (!words.length) return escapeHtml(text);
-    // Build regex for all words (escape special chars)
-    const regex = new RegExp(
-      "(" + words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")",
-      "gi"
-    );
+    const regex = getSearchRegex(props.searchQuery);
+    if (!regex) return escapeHtml(text);
     return escapeHtml(text).replace(regex, '<mark class="search-highlight">$1</mark>');
   } catch (e) {
     Logger.error("ConversationsList", "highlightMatch error", e);
