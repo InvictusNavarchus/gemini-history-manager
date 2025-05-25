@@ -191,6 +191,7 @@ function formatDate(timestamp) {
 }
 
 .conversation-prompt {
+  max-width: 550px;
   margin-top: 8px;
   font-size: 13px;
   color: var(--text-secondary);
