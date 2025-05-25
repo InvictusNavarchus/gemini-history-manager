@@ -92,7 +92,7 @@
 
         if (buttonText.includes("Video")) {
           Logger.log("gemini-tracker", "Video tool is activated, checking for Veo version...");
-          
+
           // Check for tooltip to determine if it's Veo 2 or Veo 3
           const tooltipContainer = document.querySelector(".cdk-describedby-message-container");
           if (tooltipContainer) {
@@ -100,7 +100,7 @@
             for (const tooltip of tooltips) {
               const tooltipText = tooltip.textContent.trim();
               Logger.log("gemini-tracker", `Found tooltip with text: "${tooltipText}"`);
-              
+
               if (tooltipText === "Generate with Veo 3") {
                 Logger.log("gemini-tracker", "Veo 3 is detected via tooltip");
                 return "Veo 3";
@@ -110,7 +110,7 @@
               }
             }
           }
-          
+
           // Fallback to Veo 2 if tooltip detection fails
           Logger.log("gemini-tracker", "Could not determine Veo version, defaulting to Veo 2");
           return "Veo 2";
@@ -139,8 +139,11 @@
             'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
           );
           if (videoButton) {
-            Logger.log("gemini-tracker", "Video tool is activated (detected via icon), checking for Veo version...");
-            
+            Logger.log(
+              "gemini-tracker",
+              "Video tool is activated (detected via icon), checking for Veo version..."
+            );
+
             // Check for tooltip to determine if it's Veo 2 or Veo 3
             const tooltipContainer = document.querySelector(".cdk-describedby-message-container");
             if (tooltipContainer) {
@@ -148,7 +151,7 @@
               for (const tooltip of tooltips) {
                 const tooltipText = tooltip.textContent.trim();
                 Logger.log("gemini-tracker", `Found tooltip with text: "${tooltipText}"`);
-                
+
                 if (tooltipText === "Generate with Veo 3") {
                   Logger.log("gemini-tracker", "Veo 3 is detected via tooltip");
                   return "Veo 3";
@@ -158,7 +161,7 @@
                 }
               }
             }
-            
+
             // Fallback to Veo 2 if tooltip detection fails
             Logger.log("gemini-tracker", "Could not determine Veo version, defaulting to Veo 2");
             return "Veo 2";
