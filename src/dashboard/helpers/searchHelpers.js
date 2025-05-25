@@ -71,10 +71,10 @@ export function searchHistory(searchIndex, query, allHistory) {
     const searchResults = searchIndex.search(query);
     Logger.debug("searchHelpers", `Found ${searchResults.length} results`);
 
-    // Map search results back to original history entries in MiniSearch result order
-    // This ensures relevance ordering is preserved
+    // Optimize: Use a Map for O(1) lookups from id to entry
+    const idToEntry = new Map(allHistory.map(entry => [(entry.id || ""), entry]));
     const matchedEntries = searchResults
-      .map((result) => allHistory.find((entry) => (entry.id || "") === result.id))
+      .map(result => idToEntry.get(result.id))
       .filter(Boolean); // Remove any not found
 
     // If we didn't find exact matches by ID, try to find by content similarity
