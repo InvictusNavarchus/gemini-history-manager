@@ -75,6 +75,9 @@ _Interactive charts showing model usage and activity over time_
 
 ## 🔧 How it Works
 
+<details>
+<summary>See how it works</summary>
+
 The extension operates through several key components:
 
 1.  **Content Script (`content-scripts/gemini-tracker.js`)**:
@@ -101,6 +104,7 @@ The extension operates through several key components:
 5.  **Shared Libraries (`lib/`)**:
     - **`utils.js` / `themeManager.js`**: Contains shared functions for logging, date formatting (using Day.js), and theme management (light/dark modes).
 
+</details>
 ---
 
 ## 🧑‍💻 Development
