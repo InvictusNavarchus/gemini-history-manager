@@ -56,6 +56,9 @@
               </span>
               <span v-if="entry.gemName" class="conversation-gem"> Gem: {{ entry.gemName }} </span>
             </div>
+            <div class="conversation-prompt" v-if="entry.prompt">
+              {{ truncatePrompt(entry.prompt) }}
+            </div>
             <div class="meta-right">
               <span v-if="entry.accountName && entry.accountName !== 'Unknown'" class="conversation-account">
                 {{ entry.accountEmail || entry.accountName }}
@@ -101,6 +104,13 @@ defineEmits(["update:currentSortBy", "show-details", "start-chat", "reset-filter
 // Format date
 function formatDate(timestamp) {
   return dayjsFormatDate(timestamp);
+}
+
+// Truncate prompt to approximately 2 lines
+function truncatePrompt(prompt) {
+  if (!prompt) return '';
+  const maxLength = 150; // Approximately 2 lines of text
+  return prompt.length > maxLength ? prompt.substring(0, maxLength) + '...' : prompt;
 }
 </script>
 
@@ -197,6 +207,18 @@ function formatDate(timestamp) {
   display: flex;
   gap: 10px;
   align-items: center; /* Align items vertically in meta-right */
+}
+
+.conversation-prompt {
+  margin-top: 5px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .conversation-model {
