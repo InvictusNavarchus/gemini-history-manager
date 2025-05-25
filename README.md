@@ -207,7 +207,6 @@ The extension icon should now appear in your browser's toolbar.
 
 ---
 
-
 ## 🧑‍💻 Development
 
 Note: The primary development and testing workflow for this extension is centered around Mozilla Firefox, utilizing `web-ext` for streamlined development.
