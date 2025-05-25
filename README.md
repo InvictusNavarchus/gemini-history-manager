@@ -297,7 +297,7 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 
 ### Data Storage
 
-- **Local Storage Reliance**: The extension uses `browser.storage.local`. While `unlimitedStorage` permission helps, browser-specific quotas or policies could still impose limits. Performance may degrade with extremely large datasets (many thousands of conversations).
+- **Local Storage Reliance**: The extension uses `browser.storage.local`. While `unlimitedStorage` permission helps, browser-specific quotas or policies could still impose limits. Performance may degrade with large datasets (many thousands of conversations).
 - **No Cloud Sync/Backup**: All data is stored locally within the browser instance where the extension is installed. There is no automatic cloud synchronization or backup feature. If you clear your browser data or use a different browser profile/computer, the history will not be available unless manually exported and imported.
 - **Single Browser Instance**: Data is tied to the specific browser and profile it was saved on.
 
@@ -323,7 +323,7 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 
 ### Performance
 
-- **Large Dataset Impact**: With a very large number of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching, due to lack of indexing and efficient searching algorithm.
+- **Large Dataset Impact**: With large datasets of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching, due to lack of indexing and efficient searching algorithm.
 - **DOM Observation Overhead**: The continuous observation of the Gemini page for new chats can have a minor performance footprint.
 
 ### Platform & Browser Compatibility
