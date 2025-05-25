@@ -51,6 +51,7 @@
                 :totalConversations="allHistory.length"
                 :currentSortBy="currentSortBy"
                 :hasSearchQuery="!!searchFilterQuery"
+                :searchQuery="searchFilterQuery"
                 @update:currentSortBy="
                   (value) => {
                     currentSortBy = value;
