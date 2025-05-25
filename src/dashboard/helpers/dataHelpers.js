@@ -213,10 +213,14 @@ export function filterAndSortHistory(history, filters) {
 
   switch (filters.sortBy) {
     case "relevance":
-      // Relevance sorting is handled during the search process
-      // When using MiniSearch, results are already sorted by relevance
-      // This case is here to prevent falling through to other sort options
-      Logger.debug("dataHelpers", "Using search relevance order");
+      // If there's an active search query, relevance sorting was already applied during search
+      // If there's no search query, we'll default to date-desc sorting
+      if (!filters.searchQuery) {
+        Logger.debug("dataHelpers", "No search query for relevance sorting, defaulting to date-desc");
+        items.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
+      } else {
+        Logger.debug("dataHelpers", "Using search relevance order");
+      }
       break;
     case "date-desc":
       Logger.debug("dataHelpers", "Sorting by date descending (newest first)");
