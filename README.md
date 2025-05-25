@@ -119,6 +119,7 @@ Note: The primary development and testing workflow for this extension is centere
 
 - Node.js (v18+ recommended)
 - Package manager: pnpm, npm, or Yarn
+- Python 3 (for checksum comparison) (Optional)
 
 ---
 
@@ -156,6 +157,67 @@ Note: The primary development and testing workflow for this extension is centere
     ```
 
     This generates the installable extension in the `dist` directory.
+
+4.  **Package the extension**:
+
+    ```bash
+    # Using pnpm
+    pnpm run package
+
+    # Using npm
+    npm run package
+
+    # Using Yarn
+    yarn package
+    ```
+
+    This packages the extension into a zip file in the `dist-zip` directory.
+
+5.  **Record builds for checksum comparison**:
+
+    ```bash
+    # Using pnpm
+    pnpm run package-record
+
+    # Using npm
+    npm run package-record
+
+    # Using Yarn
+    yarn package-record
+    ```
+
+    This packages the extension and records the build in the `dist-record` directory for later checksum comparison.
+
+6.  **Compare checksums across builds**:
+
+    ```bash
+    # Using pnpm (version is optional, defaults to current version in package.json)
+    pnpm run compare-checksums
+
+    # Or specify a specific version
+    pnpm run compare-checksums 0.15.0
+
+    # Using npm
+    npm run compare-checksums
+    # or with specific version
+    npm run compare-checksums 0.15.0
+
+    # Using Yarn
+    yarn compare-checksums
+    # or with specific version
+    yarn compare-checksums 0.15.0
+    ```
+
+    This compares checksums across all recorded builds of the specified version to identify inconsistencies.
+    If no version is provided, the current version from package.json will be used automatically.
+
+    You can also generate a detailed JSON report with the `--output` option:
+
+    ```bash
+    pnpm run compare-checksums -- --output report.json
+    # or with specific version
+    pnpm run compare-checksums 0.15.0 -- --output report.json
+    ```
 
 </details>
 
