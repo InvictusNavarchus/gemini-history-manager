@@ -228,7 +228,6 @@ const currentSortBy = ref("date-desc");
 const availableModels = ref([]);
 const availablePlans = ref([]);
 const availableGems = ref([]);
-const stats = ref({});
 const searchIndex = ref(null); // MiniSearch instance
 const activeMainTab = ref("history");
 const activeVizTab = ref("modelDistribution");
