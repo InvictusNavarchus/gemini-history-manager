@@ -75,6 +75,9 @@ _Interactive charts showing model usage and activity over time_
 
 ## 🔧 How it Works
 
+<details>
+<summary>See how it works</summary>
+
 The extension operates through several key components:
 
 1.  **Content Script (`content-scripts/gemini-tracker.js`)**:
@@ -100,6 +103,61 @@ The extension operates through several key components:
     - Uses Day.js for date and time manipulations and Chart.js for data visualizations.
 5.  **Shared Libraries (`lib/`)**:
     - **`utils.js` / `themeManager.js`**: Contains shared functions for logging, date formatting (using Day.js), and theme management (light/dark modes).
+
+</details>
+
+---
+
+## 🧑‍💻 Development
+
+Note: The primary development and testing workflow for this extension is centered around Mozilla Firefox, utilizing `web-ext` for streamlined development.
+
+<details>
+<summary>See how to build the Extension</summary>
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- Package manager: pnpm, npm, or Yarn
+
+---
+
+### Setup
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/InvictusNavarchus/gemini-history-manager.git
+    cd gemini-history-manager
+    ```
+2.  **Install dependencies**:
+
+    ```bash
+    # Using pnpm
+    pnpm install
+
+    # Using npm
+    npm install
+
+    # Using Yarn
+    yarn install
+    ```
+
+3.  **Build the project**:
+
+    ```bash
+    # Using pnpm
+    pnpm run build
+
+    # Using npm
+    npm run build
+
+    # Using Yarn
+    yarn build
+    ```
+
+    This generates the installable extension in the `dist` directory.
+
+</details>
 
 ---
 
@@ -171,18 +229,6 @@ The extension icon should now appear in your browser's toolbar.
 
 ---
 
-## 🧩 Key Components
-
-- **`manifest.json`**: Defines the extension's name, version, permissions, and core script paths.
-- **`src/background.js`**: Manages background tasks like badge updates and message handling.
-- **`src/content-scripts/gemini-tracker.js`**: The core script injected into Gemini pages for chat tracking and data extraction.
-- **`src/popup/App.vue` & `src/popup/main.js`**: Vue.js application for the browser action popup.
-- **`src/dashboard/App.vue` & `src/dashboard/main.js`**: Vue.js application for the full dashboard page.
-- **`src/lib/utils.js` & `src/lib/themeManager.js`**: Shared utility functions for logging, date/time operations (Day.js), and theme management.
-- **`vite.config.js`**: Configuration for Vite, the build tool used for the project.
-
----
-
 ## 🔐 Permissions Required
 
 - **`storage`**: To save and retrieve your Gemini chat history locally using `browser.storage.local`.
@@ -204,90 +250,6 @@ The extension icon should now appear in your browser's toolbar.
 - **Charts**: Chart.js (v4)
 
 </details>
-
----
-
-## 🧑‍💻 Development
-
-Note: The primary development and testing workflow for this extension is centered around Mozilla Firefox, utilizing `web-ext` for streamlined development.
-
-### Prerequisites
-
-- Node.js (v18+ recommended)
-- Package manager: pnpm, npm, or Yarn
-
----
-
-### Setup
-
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/InvictusNavarchus/gemini-history-manager.git
-    cd gemini-history-manager
-    ```
-2.  **Install dependencies**:
-
-    ```bash
-    # Using pnpm
-    pnpm install
-
-    # Using npm
-    npm install
-
-    # Using Yarn
-    yarn install
-    ```
-
-3.  **Build the project**:
-
-    ```bash
-    # Using pnpm
-    pnpm run build
-
-    # Using npm
-    npm run build
-
-    # Using Yarn
-    yarn build
-    ```
-
-    This generates the installable extension in the `dist` directory.
-
-### Development Commands
-
-- **Development mode**:
-
-  ```bash
-  # Using pnpm
-  pnpm run dev
-
-  # Using npm
-  npm run dev
-
-  # Using Yarn
-  yarn dev
-  ```
-
-  Build in watch mode & run in a Firefox development profile with hot reload.
-
-- **Other commands**:
-
-  ```bash
-  # Build for production
-  pnpm run build | npm run build | yarn build
-
-  # Preview build
-  pnpm run preview | npm run preview | yarn preview
-
-  # Lint project
-  pnpm run lint | npm run lint | yarn lint
-
-  # Package extension
-  pnpm run package | npm run package | yarn package
-  ```
-
-> [!TIP]
-> The `vite.config.js` file manages the copying of static assets (`manifest.json`, icons, HTML, content scripts) to the `dist` directory during the build.
 
 ---
 
