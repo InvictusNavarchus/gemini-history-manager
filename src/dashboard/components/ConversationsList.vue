@@ -66,7 +66,7 @@
             </div>
           </div>
           <div class="conversation-prompt" v-if="entry.prompt">
-            {{ truncatePrompt(entry.prompt) }}
+            {{ entry.prompt }}
           </div>
         </div>
       </div>
@@ -104,13 +104,6 @@ defineEmits(["update:currentSortBy", "show-details", "start-chat", "reset-filter
 // Format date
 function formatDate(timestamp) {
   return dayjsFormatDate(timestamp);
-}
-
-// Truncate prompt to approximately 2 lines
-function truncatePrompt(prompt) {
-  if (!prompt) return '';
-  const maxLength = 150; // Approximately 2 lines of text
-  return prompt.length > maxLength ? prompt.substring(0, maxLength) + '...' : prompt;
 }
 </script>
 
