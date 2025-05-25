@@ -12,12 +12,10 @@
           @change="$emit('update:currentSortBy', $event.target.value)"
         >
           <option value="relevance">Relevance</option>
-          <option value="date-desc">Newest First</option>
-          <option value="date-asc">Oldest First</option>
+          <option value="date-desc">Date (Newest First)</option>
+          <option value="date-asc">Date (Oldest First)</option>
           <option value="title-asc">Title (A-Z)</option>
           <option value="title-desc">Title (Z-A)</option>
-          <option value="model">Model</option>
-          <option value="plan">Plan</option>
         </select>
       </div>
     </div>
