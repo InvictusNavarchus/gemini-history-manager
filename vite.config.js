@@ -30,7 +30,7 @@ export default defineConfig({
           }
           return "[name].js"; // For background.js
         },
-        chunkFileNames: "chunks/[name].[hash].js",
+        chunkFileNames: "chunks/[name].js",
         assetFileNames: (assetInfo) => {
           // Keep original CSS and other assets structure if possible
           if (assetInfo.name.endsWith(".css")) {
