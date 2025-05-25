@@ -177,6 +177,7 @@ import {
   getAvailableGems,
   importHistoryData,
 } from "./helpers/dataHelpers.js";
+import { createSearchIndex } from "./helpers/searchHelpers.js";
 import {
   getModelDistributionChartConfig,
   getActivityOverTimeChartConfig,
@@ -215,15 +216,20 @@ initDayjsPlugins();
 // --- Reactive State ---
 const isLoading = ref(true);
 const allHistory = ref([]);
+const filteredHistory = ref([]);
 const searchFilterQuery = ref("");
-const activeSettingsTab = ref("logging");
 const selectedModelFilter = ref("");
 const selectedPlanFilter = ref("");
 const selectedGemFilter = ref("");
 const selectedDateFilter = ref("all");
-const customStartDate = ref(dayjs().subtract(30, "days").format("YYYY-MM-DD"));
-const customEndDate = ref(dayjs().format("YYYY-MM-DD"));
+const customStartDate = ref("");
+const customEndDate = ref("");
 const currentSortBy = ref("date-desc");
+const availableModels = ref([]);
+const availablePlans = ref([]);
+const availableGems = ref([]);
+const stats = ref({});
+const searchIndex = ref(null); // MiniSearch instance
 const activeMainTab = ref("history");
 const activeVizTab = ref("modelDistribution");
 const currentTheme = ref("light");
@@ -262,6 +268,9 @@ const availableGems = computed(() => getAvailableGems(allHistory.value));
 
 const filteredHistory = computed(() => {
   Logger.log("App.vue", "Re-calculating filtered history...");
+  
+  // Use the persistent search index for better performance
+  // Pass the search index to filterAndSortHistory function
   return filterAndSortHistory(allHistory.value, {
     searchQuery: searchFilterQuery.value,
     modelFilter: selectedModelFilter.value,
@@ -271,6 +280,7 @@ const filteredHistory = computed(() => {
     customStartDate: customStartDate.value,
     customEndDate: customEndDate.value,
     sortBy: currentSortBy.value,
+    searchIndex: searchIndex.value // Pass the persistent search index
   });
 });
 
@@ -304,6 +314,10 @@ async function initializeDashboard() {
 
     // Load history data using the helper function
     allHistory.value = await loadHistoryData();
+    
+    // Initialize search index for faster searching
+    Logger.log("App.vue", "Creating search index for faster searching");
+    searchIndex.value = createSearchIndex(allHistory.value);
 
     // Update stats and visualizations
     updateDashboardStats();
