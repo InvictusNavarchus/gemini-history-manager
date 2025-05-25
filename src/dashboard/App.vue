@@ -216,7 +216,6 @@ initDayjsPlugins();
 // --- Reactive State ---
 const isLoading = ref(true);
 const allHistory = ref([]);
-const filteredHistory = ref([]);
 const searchFilterQuery = ref("");
 const selectedModelFilter = ref("");
 const selectedPlanFilter = ref("");
@@ -225,9 +224,6 @@ const selectedDateFilter = ref("all");
 const customStartDate = ref("");
 const customEndDate = ref("");
 const currentSortBy = ref("date-desc");
-const availableModels = ref([]);
-const availablePlans = ref([]);
-const availableGems = ref([]);
 const searchIndex = ref(null); // MiniSearch instance
 const activeMainTab = ref("history");
 const activeVizTab = ref("modelDistribution");
