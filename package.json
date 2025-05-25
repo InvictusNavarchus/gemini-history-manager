@@ -11,7 +11,7 @@
     "package": "vite build && web-ext build --config ./web-ext-config.cjs",
     "record-build": "node scripts/record-build.js",
     "package-record": "pnpm run package && pnpm run record-build",
-    "compare-checksums": "python3 scripts/compare_checksums.py",
+    "compare-checksums": "node scripts/compare-checksums-wrapper.js",
     "format": "pretty-quick --staged",
     "format:check": "pretty-quick --check --staged",
     "format:all": "prettier --write \"**/*.{js,vue,json,css,md,html}\"",
