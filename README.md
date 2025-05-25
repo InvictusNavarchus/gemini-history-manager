@@ -171,18 +171,6 @@ The extension icon should now appear in your browser's toolbar.
 
 ---
 
-## 🧩 Key Components
-
-- **`manifest.json`**: Defines the extension's name, version, permissions, and core script paths.
-- **`src/background.js`**: Manages background tasks like badge updates and message handling.
-- **`src/content-scripts/gemini-tracker.js`**: The core script injected into Gemini pages for chat tracking and data extraction.
-- **`src/popup/App.vue` & `src/popup/main.js`**: Vue.js application for the browser action popup.
-- **`src/dashboard/App.vue` & `src/dashboard/main.js`**: Vue.js application for the full dashboard page.
-- **`src/lib/utils.js` & `src/lib/themeManager.js`**: Shared utility functions for logging, date/time operations (Day.js), and theme management.
-- **`vite.config.js`**: Configuration for Vite, the build tool used for the project.
-
----
-
 ## 🔐 Permissions Required
 
 - **`storage`**: To save and retrieve your Gemini chat history locally using `browser.storage.local`.
