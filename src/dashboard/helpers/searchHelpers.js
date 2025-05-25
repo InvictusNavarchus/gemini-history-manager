@@ -8,16 +8,13 @@ import { Logger } from "../../lib/utils.js";
 // Fields to be indexed for search
 const SEARCH_FIELDS = [
   { name: 'title', weight: 2 }, // Title has higher weight
-  { name: 'prompt', weight: 1 },
-  { name: 'model', weight: 0.5 },
-  { name: 'geminiPlan', weight: 0.5 },
-  { name: 'gemName', weight: 0.5 }
+  { name: 'prompt', weight: 1 }
 ];
 
 // Configure MiniSearch options
 const MINI_SEARCH_OPTIONS = {
   fields: SEARCH_FIELDS.map(field => field.name),
-  storeFields: ['id', 'title', 'model', 'geminiPlan', 'timestamp'], // Fields to return in search results
+  storeFields: ['id', 'title', 'timestamp'], // Fields to return in search results
   searchOptions: {
     boost: Object.fromEntries(SEARCH_FIELDS.map(field => [field.name, field.weight])),
     fuzzy: 0.2, // Enable fuzzy search with a small distance
