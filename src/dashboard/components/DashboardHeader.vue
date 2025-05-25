@@ -122,6 +122,7 @@ function handleClearHistory() {
 }
 
 // Debounce timer for search
+import { onUnmounted } from "vue";
 let searchDebounceTimer = null;
 let lastImmediateSearch = false;
 
@@ -129,26 +130,33 @@ function handleSearchInput(event) {
   const query = event.target.value;
   Logger.debug("DashboardHeader", "Search input updated", { query });
 
-  // If query is less than 4 chars, only trigger search if 3 chars and after 400ms debounce
-  if (query.length < 4) {
-    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-    if (query.length === 3) {
-      searchDebounceTimer = setTimeout(() => {
-        emit("update:searchQuery", query);
-        lastImmediateSearch = false;
-      }, 400);
-    } else {
-      // For 0, 1, 2 chars, do not search immediately
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+
+  if (query.length < 3) {
+    // For 0, 1, 2 chars, do not search
+    lastImmediateSearch = false;
+    return;
+  }
+
+  if (query.length === 3) {
+    // Debounce 400ms for exactly 3 chars
+    searchDebounceTimer = setTimeout(() => {
+      emit("update:searchQuery", query);
       lastImmediateSearch = false;
-    }
-  } else {
-    // For 4+ chars, trigger search immediately
-    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-    // Only emit if not already immediately searched for this value
-    emit("update:searchQuery", query);
-    lastImmediateSearch = true;
+    }, 400);
+  } else if (query.length >= 4) {
+    // Debounce 100ms for 4+ chars
+    searchDebounceTimer = setTimeout(() => {
+      emit("update:searchQuery", query);
+      lastImmediateSearch = false;
+    }, 150);
   }
 }
+
+// Cleanup debounce timer on unmount
+onUnmounted(() => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+});
 
 // Expose themeIconSvg for parent component access
 defineExpose({ themeIconSvg });
