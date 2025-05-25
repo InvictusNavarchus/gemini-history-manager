@@ -39,6 +39,7 @@
                 :availableModels="availableModels"
                 :availablePlans="availablePlans"
                 :availableGems="availableGems"
+                :hasSearchQuery="!!searchFilterQuery"
                 @filter-change="handleFilterChange"
                 @reset-filters="resetAllFilters"
               />

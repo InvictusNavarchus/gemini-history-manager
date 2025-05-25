@@ -117,6 +117,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  hasSearchQuery: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 // Define emits
