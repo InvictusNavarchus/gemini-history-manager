@@ -76,10 +76,10 @@
           const tooltipText = tooltip.textContent.trim();
           Logger.log("gemini-tracker", `Found tooltip with text: "${tooltipText}"`);
 
-          if (tooltipText === "Generate with Veo 3") {
+          if (tooltipText.includes("Veo 3")) {
             Logger.log("gemini-tracker", "Veo 3 is detected via tooltip");
             return "Veo 3";
-          } else if (tooltipText === "Generate with Veo 2") {
+          } else if (tooltipText.includes("Veo 2")) {
             Logger.log("gemini-tracker", "Veo 2 is detected via tooltip");
             return "Veo 2";
           }
