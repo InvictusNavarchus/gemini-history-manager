@@ -107,6 +107,9 @@ The extension operates through several key components:
 
 Note: The primary development and testing workflow for this extension is centered around Mozilla Firefox, utilizing `web-ext` for streamlined development.
 
+<details>
+<summary>See how to build the Extension</summary>
+
 ### Prerequisites
 
 - Node.js (v18+ recommended)
@@ -148,6 +151,8 @@ Note: The primary development and testing workflow for this extension is centere
     ```
 
     This generates the installable extension in the `dist` directory.
+
+</details>
 
 ---
 
