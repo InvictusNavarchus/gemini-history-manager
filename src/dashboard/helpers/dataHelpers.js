@@ -96,7 +96,7 @@ export function filterAndSortHistory(history, filters) {
   if (filters.searchQuery) {
     Logger.log("dataHelpers", `Applying search filter: "${filters.searchQuery}"`);
     const originalCount = items.length;
-    
+
     // Use the persistent search index if provided, otherwise create a new one
     // This is more efficient as we don't need to rebuild the index on every search
     const activeSearchIndex = filters.searchIndex || createSearchIndex(items);

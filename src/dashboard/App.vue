@@ -224,7 +224,7 @@ const selectedPlanFilter = ref("");
 const selectedGemFilter = ref("");
 const selectedDateFilter = ref("all");
 const customStartDate = ref(dayjs().subtract(30, "days").format("YYYY-MM-DD"));
-const customEndDate   = ref(dayjs().format("YYYY-MM-DD"));
+const customEndDate = ref(dayjs().format("YYYY-MM-DD"));
 const currentSortBy = ref("date-desc");
 const searchIndex = ref(null); // MiniSearch instance
 const activeMainTab = ref("history");
@@ -265,7 +265,7 @@ const availableGems = computed(() => getAvailableGems(allHistory.value));
 
 const filteredHistory = computed(() => {
   Logger.log("App.vue", "Re-calculating filtered history...");
-  
+
   // Use the persistent search index for better performance
   // Pass the search index to filterAndSortHistory function
   return filterAndSortHistory(allHistory.value, {
@@ -277,7 +277,7 @@ const filteredHistory = computed(() => {
     customStartDate: customStartDate.value,
     customEndDate: customEndDate.value,
     sortBy: currentSortBy.value,
-    searchIndex: searchIndex.value // Pass the persistent search index
+    searchIndex: searchIndex.value, // Pass the persistent search index
   });
 });
 
@@ -311,7 +311,7 @@ async function initializeDashboard() {
 
     // Load history data using the helper function
     allHistory.value = await loadHistoryData();
-    
+
     // Initialize search index for faster searching
     Logger.log("App.vue", "Creating search index for faster searching");
     searchIndex.value = createSearchIndex(allHistory.value);

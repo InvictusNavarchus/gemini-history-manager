@@ -91,7 +91,7 @@ defineProps({
   },
   hasSearchQuery: {
     type: Boolean,
-    default: false
+    default: false,
   },
 });
 

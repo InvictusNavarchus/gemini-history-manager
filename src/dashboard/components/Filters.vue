@@ -121,7 +121,7 @@ const props = defineProps({
   hasSearchQuery: {
     type: Boolean,
     default: false,
-  }
+  },
 });
 
 // Define emits
