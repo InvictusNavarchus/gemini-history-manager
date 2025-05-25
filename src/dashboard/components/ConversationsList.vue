@@ -11,6 +11,7 @@
           :value="currentSortBy"
           @change="$emit('update:currentSortBy', $event.target.value)"
         >
+          <option value="relevance">Relevance</option>
           <option value="date-desc">Newest First</option>
           <option value="date-asc">Oldest First</option>
           <option value="title-asc">Title (A-Z)</option>
@@ -87,6 +88,10 @@ defineProps({
   currentSortBy: {
     type: String,
     default: "date-desc",
+  },
+  hasSearchQuery: {
+    type: Boolean,
+    default: false,
   },
 });
 

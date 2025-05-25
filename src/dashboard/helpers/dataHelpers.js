@@ -4,6 +4,7 @@
  */
 import { Logger, parseTimestamp } from "../../lib/utils.js";
 import dayjs from "dayjs";
+import { createSearchIndex, searchHistory } from "./searchHelpers.js";
 
 // Constants
 export const STORAGE_KEY = "geminiChatHistory";
@@ -50,6 +51,13 @@ export async function loadHistoryData() {
     // Sort by timestamp descending (most recent first)
     historyData.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
 
+    // Add unique IDs to history items if they don't have one
+    historyData.forEach((item, index) => {
+      if (!item.id) {
+        item.id = `history-${index}-${Date.now()}`;
+      }
+    });
+
     Logger.log("dataHelpers", `Loaded ${historyData.length} conversations from storage`);
     return historyData;
   } catch (error) {
@@ -86,15 +94,13 @@ export function filterAndSortHistory(history, filters) {
 
   // Apply search filter
   if (filters.searchQuery) {
-    const searchLower = filters.searchQuery.toLowerCase();
     Logger.log("dataHelpers", `Applying search filter: "${filters.searchQuery}"`);
-
     const originalCount = items.length;
-    items = items.filter(
-      (item) =>
-        (item.title && item.title.toLowerCase().includes(searchLower)) ||
-        (item.prompt && item.prompt.toLowerCase().includes(searchLower))
-    );
+
+    // Use the persistent search index if provided, otherwise create a new one
+    // This is more efficient as we don't need to rebuild the index on every search
+    const activeSearchIndex = filters.searchIndex || createSearchIndex(items);
+    items = searchHistory(activeSearchIndex, filters.searchQuery, items);
 
     Logger.debug(
       "dataHelpers",
@@ -206,6 +212,16 @@ export function filterAndSortHistory(history, filters) {
   Logger.log("dataHelpers", `Applying sort order: ${filters.sortBy || "default"}`);
 
   switch (filters.sortBy) {
+    case "relevance":
+      // If there's an active search query, relevance sorting was already applied during search
+      // If there's no search query, we'll default to date-desc sorting
+      if (!filters.searchQuery) {
+        Logger.debug("dataHelpers", "No search query for relevance sorting, defaulting to date-desc");
+        items.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
+      } else {
+        Logger.debug("dataHelpers", "Using search relevance order");
+      }
+      break;
     case "date-desc":
       Logger.debug("dataHelpers", "Sorting by date descending (newest first)");
       items.sort((a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf());
