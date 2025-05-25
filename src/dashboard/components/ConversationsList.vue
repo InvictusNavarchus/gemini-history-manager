@@ -44,7 +44,10 @@
           class="conversation-item"
           @click="$emit('show-details', entry)"
         >
-          <div class="conversation-title">{{ entry.title || "Untitled Conversation" }}</div>
+          <div
+            class="conversation-title"
+            v-html="highlightMatch(entry.title || 'Untitled Conversation')"
+          ></div>
           <div class="conversation-meta">
             <div class="meta-left">
               <span>{{ formatDate(entry.timestamp) }}</span>
@@ -63,9 +66,12 @@
               </span>
             </div>
           </div>
-          <div class="conversation-prompt" v-if="entry.prompt" :title="entry.prompt">
-            {{ entry.prompt }}
-          </div>
+          <div
+            class="conversation-prompt"
+            v-if="entry.prompt"
+            :title="entry.prompt"
+            v-html="highlightMatch(entry.prompt)"
+          ></div>
         </div>
       </div>
     </div>
@@ -73,11 +79,12 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from "vue";
+import Logger from "../../lib/logger.js";
+import { defineProps, defineEmits, computed } from "vue";
 import { dayjsFormatDate } from "../../lib/utils.js";
 
 // Define props
-defineProps({
+const props = defineProps({
   conversations: {
     type: Array,
     default: () => [],
@@ -94,10 +101,58 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  searchQuery: {
+    type: String,
+    default: "",
+  },
 });
 
 // Define emits
 defineEmits(["update:currentSortBy", "show-details", "start-chat", "reset-filters"]);
+
+// Highlight search matches in text
+let lastQuery = "";
+let lastRegex = null;
+
+function getSearchRegex(query) {
+  if (query === lastQuery && lastRegex) {
+    return lastRegex;
+  }
+  const words = query.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return null;
+  lastQuery = query;
+  lastRegex = new RegExp(
+    "(" + words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")",
+    "gi"
+  );
+  return lastRegex;
+}
+
+function highlightMatch(text) {
+  Logger.debug("ConversationsList", "highlightMatch called", {
+    searchQuery: props.searchQuery,
+    hasSearchQuery: props.hasSearchQuery,
+    text,
+  });
+  if (!props.hasSearchQuery || !props.searchQuery || !text) return escapeHtml(text);
+  try {
+    const regex = getSearchRegex(props.searchQuery);
+    if (!regex) return escapeHtml(text);
+    return escapeHtml(text).replace(regex, '<mark class="search-highlight">$1</mark>');
+  } catch (e) {
+    Logger.error("ConversationsList", "highlightMatch error", e);
+    return escapeHtml(text);
+  }
+}
+// Escape HTML to prevent XSS
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 // Format date
 function formatDate(timestamp) {
@@ -106,6 +161,14 @@ function formatDate(timestamp) {
 </script>
 
 <style scoped>
+.search-highlight,
+mark.search-highlight {
+  background: var(--primary-bg, #ffe066);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
 /* Styles originally for .content, now applied to .conversations-container */
 .conversations-container {
   flex-grow: 1;
