@@ -214,9 +214,7 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 ### Data Capture
 *   **DOM Dependent & Fragile**: Chat detection and data extraction heavily rely on the current HTML structure of the Gemini website. Changes made by Google to the Gemini interface can break the extension's tracking capabilities, requiring updates to the extension.
 *   **Initial Prompt Focus**: The extension primarily captures the *initial* prompt of a conversation. Subsequent edits to the prompt, or the nuances of multi-turn interactions within a single chat session, may not be fully captured.
-*   **Best-Effort Account Info**: Extraction of Google account information (name, email) is on a best-effort basis and might not always be successful depending on website changes or account configurations.
 *   **No Inline Image Content**: Only the *filenames* of uploaded images are recorded, not the image content itself.
-*   **Error Handling in Capture**: If data capture fails for a specific chat (e.g., due to unexpected website changes), the extension may silently fail to record that chat or record incomplete information. Robust error reporting for capture failures is an area for improvement.
 
 ### Feature Set
 *   **Manual Data Management**: Backup and transfer of history rely on manual export and import of JSON files. No automatic backup or cloud synchronization features are currently implemented.
