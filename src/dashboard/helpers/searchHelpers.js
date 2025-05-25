@@ -71,13 +71,11 @@ export function searchHistory(searchIndex, query, allHistory) {
     const searchResults = searchIndex.search(query);
     Logger.debug("searchHelpers", `Found ${searchResults.length} results`);
 
-    // Map search results back to original history entries
-    // We need to do this to maintain the complete object structure
-    const resultMap = new Map(searchResults.map((result) => [result.id, result]));
-    const matchedEntries = allHistory.filter((entry) => {
-      const entryId = entry.id || "";
-      return resultMap.has(entryId);
-    });
+    // Optimize: Use a Map for O(1) lookups from id to entry
+    const idToEntry = new Map(allHistory.map(entry => [(entry.id || ""), entry]));
+    const matchedEntries = searchResults
+      .map(result => idToEntry.get(result.id))
+      .filter(Boolean); // Remove any not found
 
     // If we didn't find exact matches by ID, try to find by content similarity
     // This is a fallback for entries without IDs or older entries
