@@ -63,13 +63,42 @@
     },
 
     /**
+     * Detects the Veo version based on tooltip text.
+     *
+     * @returns {string} - Returns "Veo 3" or "Veo 2" (defaults to "Veo 2" if version can't be determined)
+     */
+    detectVeoVersion: function () {
+      // Check for tooltip to determine if it's Veo 2 or Veo 3
+      const tooltipContainer = document.querySelector(".cdk-describedby-message-container");
+      if (tooltipContainer) {
+        const tooltips = tooltipContainer.querySelectorAll("[role='tooltip']");
+        for (const tooltip of tooltips) {
+          const tooltipText = tooltip.textContent.trim();
+          Logger.log("gemini-tracker", `Found tooltip with text: "${tooltipText}"`);
+
+          if (tooltipText.includes("Veo 3")) {
+            Logger.log("gemini-tracker", "Veo 3 is detected via tooltip");
+            return "Veo 3";
+          } else if (tooltipText.includes("Veo 2")) {
+            Logger.log("gemini-tracker", "Veo 2 is detected via tooltip");
+            return "Veo 2";
+          }
+        }
+      }
+
+      // Fallback to Veo 2 if tooltip detection fails
+      Logger.log("gemini-tracker", "Could not determine Veo version, defaulting to Veo 2");
+      return "Veo 2";
+    },
+
+    /**
      * Checks if any special tools are activated in the toolbox drawer.
-     * Looks for "Deep Research" and "Video" (Veo 2) tools.
+     * Looks for "Deep Research" and "Video" (Veo 2/3) tools.
      *
      * @returns {string|null} - Returns the special model name if detected, or null if none detected
      */
     checkForSpecialTools: function () {
-      Logger.log("gemini-tracker", "Checking for special tools (Deep Research, Veo 2)...");
+      Logger.log("gemini-tracker", "Checking for special tools (Deep Research, Veo)...");
 
       // Get all activated tools in the toolbox drawer
       const activatedButtons = document.querySelectorAll(
@@ -91,8 +120,8 @@
         }
 
         if (buttonText.includes("Video")) {
-          Logger.log("gemini-tracker", "Video tool (Veo 2) is activated");
-          return "Veo 2";
+          Logger.log("gemini-tracker", "Video tool is activated, checking for Veo version...");
+          return this.detectVeoVersion();
         }
       }
 
@@ -118,8 +147,11 @@
             'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
           );
           if (videoButton) {
-            Logger.log("gemini-tracker", "Video tool (Veo 2) is activated (detected via icon)");
-            return "Veo 2";
+            Logger.log(
+              "gemini-tracker",
+              "Video tool is activated (detected via icon), checking for Veo version..."
+            );
+            return this.detectVeoVersion();
           }
         }
       }
