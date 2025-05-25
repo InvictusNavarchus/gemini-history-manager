@@ -235,7 +235,7 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 
 ### Platform & Browser Compatibility
 *   **Firefox Prioritized**: Primary development and testing are done on Mozilla Firefox.
-*   **Limited Chrome Support**: Google Chrome is **not officially supported** at this time. While some functionality might work, full compatibility is not guaranteed.
+*   **Can't run on Chrome yet:** Google Chrome has a slightly different Manifest structure and Web Extension API.
 *   **No Mobile Support**: The extension is designed for desktop browsers and is unlikely to work on mobile browsers.
 
 ### Security & Privacy
