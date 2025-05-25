@@ -37,9 +37,8 @@
 
     /**
      * Saves chat history to browser storage.
-     *
-     * @param {Array} history - Array of history entries to save
-     * @returns {Promise} - Promise resolving when save is complete
+     * @param {Array} history - Array of history entries to save.
+     * @returns {Promise} Promise resolving when save is complete.
      */
     saveHistory: function (history) {
       Logger.log("gemini-tracker", `Attempting to save history with ${history.length} entries...`);

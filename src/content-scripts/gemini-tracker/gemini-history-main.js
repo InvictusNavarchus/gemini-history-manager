@@ -1,3 +1,8 @@
+/**
+ * Entry point for Gemini history content script.
+ * Initializes observers, event listeners, and extension messaging.
+ * @returns {void}
+ */
 (function () {
   "use strict";
 
@@ -9,16 +14,31 @@
   const Utils = window.GeminiHistory_Utils;
 
   /**
-   * Initializes the script.
-   * Sets up observers, event listeners, and menu commands.
+   * Initializes the Gemini history manager.
+   * Sets up DOM observers, event listeners, and background communication.
+   *
+   * @returns {void}
    */
-  function init() {
+  function initializeGeminiHistoryManager() {
     Logger.log("gemini-tracker", "Initializing Gemini History Manager...");
 
     // Initialize status indicator
+    /**
+     * Initializes the status indicator component.
+     * Displays the initial status message.
+     *
+     * @returns {void}
+     */
     StatusIndicator.init();
 
     // Add storage event listener to detect logging config changes from other contexts
+    /**
+     * Listens for storage events to detect logging configuration changes.
+     * Invalidates the logging configuration cache when changes are detected.
+     *
+     * @param {StorageEvent} event - The storage event object.
+     * @returns {void}
+     */
     window.addEventListener("storage", (event) => {
       if (event.key === LogConfig.CONFIG_STORAGE_KEY) {
         Logger.debug("ContentScript", "Logging configuration changed in localStorage, invalidating cache");
@@ -41,6 +61,12 @@
 
     // Monitor URL changes to detect navigation to/from Gem pages
     let lastUrl = window.location.href;
+    /**
+     * Observes URL changes to detect navigation to/from Gem pages.
+     * Resets the Gem detector when navigating away from a Gem page.
+     *
+     * @returns {void}
+     */
     new MutationObserver(() => {
       const currentUrl = window.location.href;
       if (currentUrl !== lastUrl) {
@@ -67,6 +93,13 @@
     }).observe(document, { subtree: true, childList: true });
 
     // Watch for sidebar to appear before showing ready status
+    /**
+     * Waits for the Gemini sidebar to appear before showing the ready status.
+     * Displays a success message when the sidebar is detected.
+     *
+     * @param {HTMLElement} sidebar - The Gemini sidebar element.
+     * @returns {void}
+     */
     DomObserver.watchForSidebar((sidebar) => {
       Logger.log("gemini-tracker", "Sidebar confirmed available. Manager fully active.");
       StatusIndicator.show("Gemini History Manager active", "success");
@@ -74,10 +107,26 @@
 
     // Attach main click listener
     Logger.log("gemini-tracker", "Attaching main click listener to document body...");
+    /**
+     * Handles click events on the document body.
+     * Triggers the send click handler when a click event is detected.
+     *
+     * @param {MouseEvent} event - The click event object.
+     * @returns {void}
+     */
     document.body.addEventListener("click", EventHandlers.handleSendClick.bind(EventHandlers), true); // Use capture phase
 
     // Listen for messages from the popup or background
-    browser.runtime.onMessage.addListener((message) => {
+    /**
+     * Handles messages received from the extension (background or popup).
+     * Processes commands and triggers appropriate actions.
+     *
+     * @param {Object} message - The message object sent by the extension.
+     * @param {Object} sender - The sender of the message.
+     * @param {Function} sendResponse - Callback to send a response.
+     * @returns {void|boolean} Return true to indicate async response.
+     */
+    browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === "getPageInfo") {
         const url = window.location.href;
         const isGeminiChat = Utils.isValidChatUrl(url);

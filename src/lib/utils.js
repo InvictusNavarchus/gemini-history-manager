@@ -16,12 +16,14 @@ import { Logger } from "./logger.js";
 export { Logger };
 
 /**
- * Parse timestamp to dayjs object, handling different timestamp formats
+ * Parses a timestamp into a dayjs object, handling multiple timestamp formats:
  * - Full ISO 8601 with Z (UTC): "2025-05-12T07:09:57.992Z"
  * - Local time without Z: "2025-05-12T11:32:40"
  * - With timezone offset: "2025-05-12T11:32:40+01:00"
- * @param {string|number|Date|dayjs.Dayjs} timestamp - The timestamp to parse
- * @returns {dayjs.Dayjs} A dayjs object in local time
+ * Returns a dayjs object in local time.
+ *
+ * @param {string|number|Date|dayjs.Dayjs} timestamp - The timestamp to parse.
+ * @returns {dayjs.Dayjs} A dayjs object in local time.
  */
 export function parseTimestamp(timestamp) {
   if (!timestamp) return dayjs(); // Return current time if no timestamp
@@ -49,14 +51,14 @@ export function parseTimestamp(timestamp) {
 }
 
 /**
- * Day.js based date formatting helper
- * Provides different formatting based on how recent the date is.
- * - For today: Shows time only (e.g., "2:30 PM")
- * - For this year: Shows month and day (e.g., "Jan 15")
- * - For previous years or when includeYear is true: Shows month, day and year (e.g., "Jan 15, 2023")
- * @param {string|number|Date|dayjs.Dayjs} dateInput - The date to format
- * @param {boolean} [includeYear=false] - Whether to force include the year
- * @returns {string} Formatted date string
+ * Formats a date using Day.js, providing different output depending on recency:
+ * - For today: shows time only (e.g., "2:30 PM")
+ * - For this year: shows month and day (e.g., "Jan 15")
+ * - For previous years or if includeYear is true: shows month, day, and year (e.g., "Jan 15, 2023")
+ *
+ * @param {string|number|Date|dayjs.Dayjs} dateInput - The date to format.
+ * @param {boolean} [includeYear=false] - Whether to force include the year in output.
+ * @returns {string} Formatted date string.
  */
 export function dayjsFormatDate(dateInput, includeYear = false) {
   const d = parseTimestamp(dateInput);
@@ -77,7 +79,10 @@ export function dayjsFormatDate(dateInput, includeYear = false) {
 }
 
 /**
- * Formats a Day.js object for display in the conversation list using the calendar plugin.
+ * Formats a Day.js date object for display using the Day.js calendar plugin.
+ * Produces human-friendly, relative time output (e.g., "Today at 2:30 PM", "Yesterday at 10:00 AM").
+ * Falls back to a basic format if the plugin is not available.
+ *
  * @param {Object} djsDate - A Day.js date object.
  * @returns {string} Formatted date string (e.g., "Today at 2:30 PM", "Yesterday at 10:00 AM", "01/15/2023").
  */
@@ -101,9 +106,10 @@ export function formatDateForDisplay(djsDate) {
 }
 
 /**
- * Reads a file and returns its contents as text
- * @param {File} file - The file object to read
- * @returns {Promise<string>} A promise that resolves with the file contents as text
+ * Reads a file and returns its contents as text.
+ *
+ * @param {File} file - The file object to read.
+ * @returns {Promise<string>} A promise that resolves with the file contents as text.
  */
 export function readFile(file) {
   Logger.debug("FileUtils", "Reading file", { fileName: file.name, fileSize: file.size });
@@ -125,8 +131,9 @@ export function readFile(file) {
 }
 
 /**
- * Initialize Day.js plugins
- * Makes sure all needed plugins are loaded and available
+ * Initializes all required Day.js plugins for the extension.
+ * Ensures plugins such as utc, relativeTime, isToday, localizedFormat, calendar, timezone, isSameOrBefore are loaded.
+ * Should be called before using any date formatting or parsing utilities.
  */
 export function initDayjsPlugins() {
   try {

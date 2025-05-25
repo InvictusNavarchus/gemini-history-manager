@@ -6,8 +6,10 @@ import { Logger } from "../../lib/utils.js";
 import { ref } from "vue";
 
 /**
- * Create modal state manager for conversation details and confirmation dialogs
- * @returns {Object} Modal state management functions
+ * Creates a modal state manager for conversation details and confirmation dialogs.
+ * Provides functions to show/hide modals and manage state for confirmations.
+ *
+ * @returns {Object} Modal state management functions and refs.
  */
 export function createModalManager() {
   // Modal state
@@ -135,14 +137,20 @@ export function createModalManager() {
 }
 
 /**
- * Create a delete conversation confirmation
- * @param {Object} modalManager - Modal manager from createModalManager()
- * @param {Function} deleteFunction - Function to call when confirmed
- * @returns {Function} Function that shows confirmation dialog
+ * Creates a delete conversation confirmation dialog trigger.
+ * Returns a function that, when called, shows the confirmation dialog and calls deleteFunction on confirm.
+ *
+ * @param {Object} modalManager - Modal manager from createModalManager().
+ * @param {Function} deleteFunction - Function to call when confirmed.
+ * @returns {Function} Function that shows confirmation dialog.
  */
 export function createDeleteConversationConfirmation(modalManager, deleteFunction) {
   Logger.log("modalHelpers", "Creating delete conversation confirmation handler");
 
+  /**
+   * Delete conversation confirmation callback.
+   * @param {Object} conversation - Conversation data to delete.
+   */
   return function confirmDeleteConversation(conversation) {
     Logger.log(
       "modalHelpers",
@@ -185,14 +193,19 @@ export function createDeleteConversationConfirmation(modalManager, deleteFunctio
 }
 
 /**
- * Create a clear all history confirmation
- * @param {Object} modalManager - Modal manager from createModalManager()
- * @param {Function} clearFunction - Function to call when confirmed
- * @returns {Function} Function that shows confirmation dialog
+ * Creates a clear all history confirmation dialog trigger.
+ * Returns a function that, when called, shows the confirmation dialog and calls clearFunction on confirm.
+ *
+ * @param {Object} modalManager - Modal manager from createModalManager().
+ * @param {Function} clearFunction - Function to call when confirmed.
+ * @returns {Function} Function that shows confirmation dialog.
  */
 export function createClearHistoryConfirmation(modalManager, clearFunction) {
   Logger.log("modalHelpers", "Creating clear history confirmation handler");
 
+  /**
+   * Clear all history confirmation callback.
+   */
   return function confirmClearAllHistory() {
     Logger.log("modalHelpers", "Showing clear all history confirmation dialog");
 
