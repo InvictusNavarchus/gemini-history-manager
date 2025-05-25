@@ -215,8 +215,6 @@ function formatDate(timestamp) {
   align-items: center; /* Align items vertically in meta-right */
 }
 
-
-
 .conversation-model {
   background-color: var(--primary-bg);
   color: var(--primary-color);
