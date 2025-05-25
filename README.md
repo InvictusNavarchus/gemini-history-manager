@@ -335,10 +335,15 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 
 - **Manual Data Management**: Backup and transfer of history rely on manual export and import of JSON files. No automatic backup or cloud synchronization features are currently implemented.
 - **Search Functionality**:
-  - **Current Capabilities (Basic Search)**: The existing search feature is primarily a case-insensitive filter targeting chat titles and the initial prompt text. It does not support advanced search operators (e.g., AND, OR, NOT), regular expressions, or exact phrase matching. As the extension focuses on capturing the initial prompt, full-text search across entire multi-turn conversation content is not available.
+  - **Advanced Search Engine**: The extension now uses MiniSearch, a powerful full-text search engine with the following capabilities:
+    - **Fuzzy Search**: Find results even with slight misspellings or typos
+    - **Prefix Matching**: Search for partial words (e.g., searching "program" will find "programming")
+    - **Relevance Scoring**: Results are ranked by relevance, with a new sort option to display most relevant matches first
+    - **Boosted Fields**: Title matches are prioritized over prompt matches for more intuitive results
+    - **Fast Performance**: Utilizes an optimized search index for quick results even with large history collections
   - **Potential Future Enhancements**:
-    - Implementing full-text search across all captured conversational data (if the scope of data capture were expanded beyond initial prompts).
-    - Adding support for advanced search operators (AND, OR, NOT) and exact phrase matching.
+    - Implementing full-text search across entire multi-turn conversation content (if the scope of data capture were expanded beyond initial prompts)
+    - Adding support for explicit advanced search operators (AND, OR, NOT) and exact phrase matching
     - Providing user options for case-sensitive and case-insensitive searching.
     - Integrating metadata filters (e.g., date ranges, models used) more directly into the search query syntax.
 - **Pre-defined Visualizations**: The dashboard offers a set of pre-defined charts and statistics. User-customizable reporting or visualization options are not currently supported.
