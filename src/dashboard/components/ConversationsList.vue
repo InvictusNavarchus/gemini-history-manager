@@ -65,6 +65,9 @@
               </span>
             </div>
           </div>
+          <div class="conversation-prompt" v-if="entry.prompt" :title="entry.prompt">
+            {{ entry.prompt }}
+          </div>
         </div>
       </div>
     </div>
@@ -185,6 +188,19 @@ function formatDate(timestamp) {
   justify-content: space-between;
   font-size: 13px;
   color: var(--text-light);
+}
+
+.conversation-prompt {
+  max-width: 550px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .meta-left {
