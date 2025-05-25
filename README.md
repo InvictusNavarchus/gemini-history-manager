@@ -105,6 +105,7 @@ The extension operates through several key components:
     - **`utils.js` / `themeManager.js`**: Contains shared functions for logging, date formatting (using Day.js), and theme management (light/dark modes).
 
 </details>
+
 ---
 
 ## 🧑‍💻 Development
