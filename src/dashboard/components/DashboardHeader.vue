@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, onMounted, watch } from "vue";
+import { ref, defineProps, defineEmits, onMounted, watch, onUnmounted } from "vue";
 import { Logger } from "../../lib/utils.js";
 
 // Define props
@@ -122,7 +122,6 @@ function handleClearHistory() {
 }
 
 // Debounce timer for search
-import { onUnmounted } from "vue";
 let searchDebounceTimer = null;
 let lastImmediateSearch = false;
 
