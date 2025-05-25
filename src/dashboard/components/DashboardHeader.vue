@@ -123,7 +123,6 @@ function handleClearHistory() {
 
 // Debounce timer for search
 let searchDebounceTimer = null;
-let lastImmediateSearch = false;
 
 function handleSearchInput(event) {
   const query = event.target.value;
@@ -133,7 +132,6 @@ function handleSearchInput(event) {
 
   if (query.length < 3) {
     // For 0, 1, 2 chars, do not search
-    lastImmediateSearch = false;
     return;
   }
 
@@ -141,13 +139,11 @@ function handleSearchInput(event) {
     // Debounce 400ms for exactly 3 chars
     searchDebounceTimer = setTimeout(() => {
       emit("update:searchQuery", query);
-      lastImmediateSearch = false;
     }, 400);
   } else if (query.length >= 4) {
     // Debounce 100ms for 4+ chars
     searchDebounceTimer = setTimeout(() => {
       emit("update:searchQuery", query);
-      lastImmediateSearch = false;
     }, 150);
   }
 }
