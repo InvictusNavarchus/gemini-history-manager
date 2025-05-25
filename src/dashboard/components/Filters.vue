@@ -62,8 +62,8 @@
       <label for="sortBy">Sort By</label>
       <select id="sortBy" :value="currentSortBy" @change="handleSortChange($event)">
         <option value="relevance">Relevance</option>
-        <option value="date-desc">Date (Newest First)</option>
-        <option value="date-asc">Date (Oldest First)</option>
+        <option value="date-desc">Newest First</option>
+        <option value="date-asc">Oldest First</option>
         <option value="title-asc">Title (A-Z)</option>
         <option value="title-desc">Title (Z-A)</option>
       </select>
