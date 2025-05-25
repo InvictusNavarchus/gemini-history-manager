@@ -82,10 +82,12 @@ def find_inconsistencies(checksums: Dict, file_sizes: Dict) -> Tuple[Dict, Dict,
     missing_files = {}
     size_differences = {}
     
+    # Precompute all build numbers
+    all_build_numbers = set(build_number for checksums_dict in checksums.values() for build_number in checksums_dict.keys())
+    
     for file_path, build_checksums in checksums.items():
         # Check if file exists in all builds
         build_numbers = list(build_checksums.keys())
-        all_build_numbers = set(build_number for checksums_dict in checksums.values() for build_number in checksums_dict.keys())
         
         if len(build_numbers) < len(all_build_numbers):
             missing_in_builds = all_build_numbers - set(build_numbers)
