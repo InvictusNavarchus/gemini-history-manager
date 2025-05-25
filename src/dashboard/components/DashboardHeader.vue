@@ -121,10 +121,33 @@ function handleClearHistory() {
   emit("clear-history");
 }
 
+// Debounce timer for search
+let searchDebounceTimer = null;
+let lastImmediateSearch = false;
+
 function handleSearchInput(event) {
   const query = event.target.value;
   Logger.debug("DashboardHeader", "Search input updated", { query });
-  emit("update:searchQuery", query);
+
+  // If query is less than 4 chars, only trigger search if 3 chars and after 400ms debounce
+  if (query.length < 4) {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+    if (query.length === 3) {
+      searchDebounceTimer = setTimeout(() => {
+        emit("update:searchQuery", query);
+        lastImmediateSearch = false;
+      }, 400);
+    } else {
+      // For 0, 1, 2 chars, do not search immediately
+      lastImmediateSearch = false;
+    }
+  } else {
+    // For 4+ chars, trigger search immediately
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+    // Only emit if not already immediately searched for this value
+    emit("update:searchQuery", query);
+    lastImmediateSearch = true;
+  }
 }
 
 // Expose themeIconSvg for parent component access
