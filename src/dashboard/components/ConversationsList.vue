@@ -56,9 +56,6 @@
               </span>
               <span v-if="entry.gemName" class="conversation-gem"> Gem: {{ entry.gemName }} </span>
             </div>
-            <div class="conversation-prompt" v-if="entry.prompt">
-              {{ truncatePrompt(entry.prompt) }}
-            </div>
             <div class="meta-right">
               <span v-if="entry.accountName && entry.accountName !== 'Unknown'" class="conversation-account">
                 {{ entry.accountEmail || entry.accountName }}
@@ -67,6 +64,9 @@
                 {{ entry.attachedFiles.length }} file{{ entry.attachedFiles.length !== 1 ? "s" : "" }}
               </span>
             </div>
+          </div>
+          <div class="conversation-prompt" v-if="entry.prompt">
+            {{ truncatePrompt(entry.prompt) }}
           </div>
         </div>
       </div>
@@ -197,6 +197,18 @@ function truncatePrompt(prompt) {
   color: var(--text-light);
 }
 
+.conversation-prompt {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 .meta-left {
   display: flex;
   gap: 15px;
@@ -209,17 +221,7 @@ function truncatePrompt(prompt) {
   align-items: center; /* Align items vertically in meta-right */
 }
 
-.conversation-prompt {
-  margin-top: 5px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
+
 
 .conversation-model {
   background-color: var(--primary-bg);
