@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, onMounted, watch } from "vue";
+import { ref, defineProps, defineEmits, onMounted, watch, onUnmounted } from "vue";
 import { Logger } from "../../lib/utils.js";
 
 // Define props
@@ -121,11 +121,37 @@ function handleClearHistory() {
   emit("clear-history");
 }
 
+// Debounce timer for search
+let searchDebounceTimer = null;
+
 function handleSearchInput(event) {
   const query = event.target.value;
   Logger.debug("DashboardHeader", "Search input updated", { query });
-  emit("update:searchQuery", query);
+
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+
+  if (query.length < 3) {
+    // For 0, 1, 2 chars, do not search
+    return;
+  }
+
+  if (query.length === 3) {
+    // Debounce 400ms for exactly 3 chars
+    searchDebounceTimer = setTimeout(() => {
+      emit("update:searchQuery", query);
+    }, 400);
+  } else if (query.length >= 4) {
+    // Debounce 100ms for 4+ chars
+    searchDebounceTimer = setTimeout(() => {
+      emit("update:searchQuery", query);
+    }, 150);
+  }
 }
+
+// Cleanup debounce timer on unmount
+onUnmounted(() => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+});
 
 // Expose themeIconSvg for parent component access
 defineExpose({ themeIconSvg });
