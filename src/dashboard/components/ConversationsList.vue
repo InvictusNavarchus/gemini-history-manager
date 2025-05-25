@@ -65,7 +65,7 @@
               </span>
             </div>
           </div>
-          <div class="conversation-prompt" v-if="entry.prompt">
+          <div class="conversation-prompt" v-if="entry.prompt" :title="entry.prompt">
             {{ entry.prompt }}
           </div>
         </div>
