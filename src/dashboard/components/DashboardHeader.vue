@@ -182,9 +182,8 @@
   function handleSearchInput(event) {
     const query = event.target.value.trim();
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-    if (query.length < 3 && query !== "") return;
-    // Debounce 400ms for exactly 3 chars
-    if (query.length === 3) {
+    if (query.length <= 3) {
+      // Debounce 400ms for 3 chars and less
       searchDebounceTimer = setTimeout(() => {
         emit("update:searchQuery", query);
       }, 400);
