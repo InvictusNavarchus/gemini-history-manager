@@ -132,11 +132,6 @@ export function getGemColor(gemName, fallbackIndex = 0) {
  * @param {string} theme - Current theme ('light' or 'dark')
  * @returns {Object} Theme options for Chart.js
  */
-/**
- * @description Returns theme-specific options for Chart.js.
- * @param {string} theme - Current theme ('light' or 'dark').
- * @returns {Object} Theme options for Chart.js.
- */
 export function getChartJsThemeOptions(theme) {
   Logger.debug("chartHelpers", `Generating chart theme options for theme: ${theme}`);
 
