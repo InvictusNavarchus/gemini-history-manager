@@ -76,7 +76,7 @@ export function createSearchIndex(historyData) {
  * @param {Array<Object>} allHistory - The complete array of history entries (for retrieving full entry data).
  * @returns {Array<Object>} Array of history entries that match the search query.
  */
-export function searchHistory(searchIndex, query, allHistory) {
+export function searchHistory(searchIndex, query, allHistory, highlight = false) {
   if (!query || query.trim() === "") {
     Logger.debug("searchHelpers", "Empty search query, returning all history");
     return allHistory;
@@ -85,13 +85,33 @@ export function searchHistory(searchIndex, query, allHistory) {
   Logger.log("searchHelpers", `Searching for "${query}"`);
 
   try {
-    // Perform the search
-    const searchResults = searchIndex.search(query);
-    Logger.debug("searchHelpers", `Found ${searchResults.length} results`);
+    // Perform the search with highlighting if requested
+    const searchOptions = highlight
+      ? { ...MINI_SEARCH_OPTIONS.searchOptions, highlight: true }
+      : MINI_SEARCH_OPTIONS.searchOptions;
+    const searchResults = searchIndex.search(query, searchOptions);
+    Logger.debug(
+      "searchHelpers",
+      `Found ${searchResults.length} results${highlight ? " with highlighting" : ""}`
+    );
 
     // Optimize: Use a Map for O(1) lookups from id to entry
     const idToEntry = new Map(allHistory.map((entry) => [entry.id || "", entry]));
-    const matchedEntries = searchResults.map((result) => idToEntry.get(result.id)).filter(Boolean); // Remove any not found
+
+    // Map results to entries and include the _matches field when highlight is enabled
+    const matchedEntries = searchResults
+      .map((result) => {
+        const entry = idToEntry.get(result.id);
+        if (!entry) return null;
+
+        // Add matches information to the entry if highlighting is enabled
+        if (highlight && result._matches) {
+          entry._matches = result._matches;
+        }
+
+        return entry;
+      })
+      .filter(Boolean); // Remove any not found
 
     // If we didn't find exact matches by ID, try to find by content similarity
     // This is a fallback for entries without IDs or older entries

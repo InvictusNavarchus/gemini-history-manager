@@ -46,7 +46,7 @@
         >
           <div
             class="conversation-title"
-            v-html="highlightMatch(entry.title || 'Untitled Conversation')"
+            v-html="highlightMatch(entry.title || 'Untitled Conversation', 'title')"
           ></div>
           <div class="conversation-meta">
             <div class="meta-left">
@@ -70,7 +70,7 @@
             class="conversation-prompt"
             v-if="entry.prompt"
             :title="entry.prompt"
-            v-html="highlightMatch(entry.prompt)"
+            v-html="highlightMatch(entry.prompt, 'prompt')"
           ></div>
         </div>
       </div>
@@ -80,7 +80,7 @@
 
 <script setup>
 import Logger from "../../lib/logger.js";
-import { defineProps, defineEmits, computed } from "vue";
+import { defineProps, defineEmits, computed, getCurrentInstance } from "vue";
 import { dayjsFormatDate } from "../../lib/utils.js";
 
 // Define props
@@ -108,37 +108,82 @@ const props = defineProps({
 });
 
 // Define emits
-defineEmits(["update:currentSortBy", "show-details", "start-chat", "reset-filters"]);
+const emit = defineEmits([
+  "update:currentSortBy",
+  "show-details",
+  "start-chat",
+  "reset-filters",
+  "search-with-highlight",
+]);
 
-// Highlight search matches in text
-let lastQuery = "";
-let lastRegex = null;
+// Watch for search query changes to enable highlighting
+import { watch } from "vue";
+watch(
+  () => props.searchQuery,
+  (newQuery) => {
+    if (newQuery && newQuery.trim() !== "") {
+      // Emit event to parent to perform search with highlighting enabled
+      emit("search-with-highlight", newQuery);
+      Logger.debug("ConversationsList", "Emitted search-with-highlight event", { query: newQuery });
+    }
+  },
+  { immediate: true }
+);
 
-function getSearchRegex(query) {
-  if (query === lastQuery && lastRegex) {
-    return lastRegex;
-  }
-  const words = query.trim().split(/\s+/).filter(Boolean);
-  if (!words.length) return null;
-  lastQuery = query;
-  lastRegex = new RegExp(
-    "(" + words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")",
-    "gi"
-  );
-  return lastRegex;
-}
-
-function highlightMatch(text) {
+// Highlight search matches in text using MiniSearch's _matches field
+function highlightMatch(text, field) {
   Logger.debug("ConversationsList", "highlightMatch called", {
     searchQuery: props.searchQuery,
     hasSearchQuery: props.hasSearchQuery,
     text,
+    field,
   });
   if (!props.hasSearchQuery || !props.searchQuery || !text) return escapeHtml(text);
+
   try {
-    const regex = getSearchRegex(props.searchQuery);
-    if (!regex) return escapeHtml(text);
-    return escapeHtml(text).replace(regex, '<mark class="search-highlight">$1</mark>');
+    // Get the current conversation object from the v-for loop context
+    const currentItem = getCurrentInstance()?.vnode?.key;
+    const entry = props.conversations.find((c) => c.url === currentItem);
+
+    // If we have _matches from MiniSearch and they include this field
+    if (entry && entry._matches && entry._matches[field]) {
+      // Get the field matches information
+      const matches = entry._matches[field];
+
+      // If no matches for this field, just return the escaped text
+      if (!matches || matches.length === 0) {
+        return escapeHtml(text);
+      }
+
+      // Sort matches by position to process them in order
+      matches.sort((a, b) => a.index - b.index);
+
+      // Apply highlighting to the text
+      let result = escapeHtml(text);
+      let offset = 0;
+
+      for (const match of matches) {
+        const startPos = match.index + offset;
+        const matchText = result.substring(startPos, startPos + match.length);
+        const highlighted = `<mark class="search-highlight">${matchText}</mark>`;
+        result = result.substring(0, startPos) + highlighted + result.substring(startPos + match.length);
+        offset += highlighted.length - match.length;
+      }
+
+      return result;
+    } else {
+      // Fallback to simple highlighting if _matches not available
+      // This ensures backward compatibility
+      const searchTerms = props.searchQuery.trim().split(/\s+/).filter(Boolean);
+      if (!searchTerms.length) return escapeHtml(text);
+
+      const regex = new RegExp(
+        "(" + searchTerms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")",
+        "gi"
+      );
+
+      return escapeHtml(text).replace(regex, '<mark class="search-highlight">$1</mark>');
+    }
   } catch (e) {
     Logger.error("ConversationsList", "highlightMatch error", e);
     return escapeHtml(text);
