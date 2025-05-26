@@ -224,6 +224,35 @@ function handleGemFilterChange(event) {
   emit("filter-change");
 }
 
+// --- Dynamic Sort State ---
+// Track if user manually changed sort during search
+let userSortDuringSearch = false;
+let sortBeforeSearch = null;
+
+// Watch for search state changes
+watch(
+  () => props.hasSearchQuery,
+  (hasSearch, prevHasSearch) => {
+    if (hasSearch && !prevHasSearch) {
+      // Search started: Save previous sort and auto-switch to relevance if not already set
+      sortBeforeSearch = props.currentSortBy;
+      userSortDuringSearch = false;
+      if (props.currentSortBy !== "relevance") {
+        emit("update:currentSortBy", "relevance");
+        emit("filter-change");
+      }
+    } else if (!hasSearch && prevHasSearch) {
+      // Search cleared: revert to 'Newest' unless user changed sort during search
+      if (!userSortDuringSearch) {
+        emit("update:currentSortBy", "date-desc");
+        emit("filter-change");
+      }
+      userSortDuringSearch = false;
+      sortBeforeSearch = null;
+    }
+  }
+);
+
 // Handle sort order changes
 function handleSortChange(event) {
   const newValue = event.target.value;
@@ -232,6 +261,10 @@ function handleSortChange(event) {
     to: newValue,
   });
 
+  // If search is active and user changes sort, flag it
+  if (props.hasSearchQuery && newValue !== "relevance") {
+    userSortDuringSearch = true;
+  }
   emit("update:currentSortBy", newValue);
   emit("filter-change");
 }
