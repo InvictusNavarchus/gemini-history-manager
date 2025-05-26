@@ -62,31 +62,62 @@
 </template>
 
 <script setup>
+/**
+ * Import necessary dependencies from Vue.
+ */
 import { ref, defineProps, defineEmits, onMounted, watch, onUnmounted } from "vue";
+
+/**
+ * Import the Logger utility.
+ */
 import { Logger } from "../../lib/utils.js";
 
-// Define props
+/**
+ * Define the props accepted by the DashboardHeader component.
+ * @typedef {Object} DashboardHeaderProps
+ * @property {string} searchQuery - The current search query string.
+ */
 const props = defineProps({
+  /**
+   * The current search query string.
+   * @type {string}
+   */
   searchQuery: {
     type: String,
     default: "",
   },
 });
 
-// Define emits
+/**
+ * Define the emits available from the DashboardHeader component.
+ * @typedef {Object} DashboardHeaderEmits
+ * @property {function(string):void} update:searchQuery - Emitted when the search query changes.
+ * @property {function():void} theme-toggle - Emitted when the theme toggle is triggered.
+ * @property {function():void} export - Emitted when export is triggered.
+ * @property {function():void} import - Emitted when import is triggered.
+ * @property {function():void} clear-history - Emitted when clear history is triggered.
+ */
 const emit = defineEmits(["update:searchQuery", "theme-toggle", "export", "import", "clear-history"]);
 
-// References
+/**
+ * Reference to the theme icon SVG element in the header.
+ * @type {import('vue').Ref<SVGElement|null>}
+ */
 const themeIconSvg = ref(null);
 
-// Component lifecycle hooks
+/**
+ * Lifecycle hook: Runs when the component is mounted.
+ * Logs initial search query state.
+ */
 onMounted(() => {
   Logger.debug("DashboardHeader", "Component mounted", {
     initialSearchQuery: props.searchQuery || "empty",
   });
 });
 
-// Watch for search query changes
+/**
+ * Watches for changes to the searchQuery prop and logs changes.
+ */
 watch(
   () => props.searchQuery,
   (newQuery, oldQuery) => {
@@ -99,56 +130,79 @@ watch(
   }
 );
 
-// Event handlers
+/**
+ * Handles the theme toggle button click event.
+ * Emits the 'theme-toggle' event to parent, passing the themeIconSvg ref.
+ * @returns {void}
+ */
 function handleThemeToggle() {
   Logger.log("DashboardHeader", "Theme toggle button clicked");
   emit("theme-toggle", themeIconSvg.value);
+  return;
 }
 
-// Add handlers for other events
+/**
+ * Handles the export button click event.
+ * Emits the 'export' event to parent.
+ * @returns {void}
+ */
 function handleExport() {
   Logger.log("DashboardHeader", "Export button clicked");
   emit("export");
 }
 
+/**
+ * Handles the import button click event.
+ * Emits the 'import' event to parent.
+ * @returns {void}
+ */
 function handleImport() {
   Logger.log("DashboardHeader", "Import button clicked");
   emit("import");
 }
 
+/**
+ * Handles the clear history button click event.
+ * Emits the 'clear-history' event to parent.
+ * @returns {void}
+ */
 function handleClearHistory() {
   Logger.log("DashboardHeader", "Clear history button clicked");
   emit("clear-history");
 }
 
-// Debounce timer for search
+/**
+ * Handles user input in the search field with debounce logic.
+ * Emits an update to the search query after a short delay (250ms).
+ * Ignores queries shorter than 3 characters except for clearing the search.
+ * @param {Event} event - The input event from the search field.
+ * @returns {void}
+ */
 let searchDebounceTimer = null;
-
 function handleSearchInput(event) {
-  const query = event.target.value;
-  Logger.debug("DashboardHeader", "Search input updated", { query });
-
+  const query = event.target.value.trim();
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-
-  if (query.length < 3) {
-    // For 0, 1, 2 chars, do not search
-    return;
-  }
-
-  if (query.length === 3) {
-    // Debounce 400ms for exactly 3 chars
+  if (query.length <= 3) {
+    // Debounce 400ms for 3 chars and less
     searchDebounceTimer = setTimeout(() => {
       emit("update:searchQuery", query);
     }, 400);
   } else if (query.length >= 4) {
-    // Debounce 100ms for 4+ chars
+    // Debounce 150ms for 4+ chars
     searchDebounceTimer = setTimeout(() => {
       emit("update:searchQuery", query);
     }, 150);
+  } else {
+    // No debounce for clearing the search
+    emit("update:searchQuery", query);
   }
 }
 
 // Cleanup debounce timer on unmount
+/**
+ * Lifecycle hook: Runs when the component is unmounted.
+ * Cleans up any remaining debounce timer.
+ */
 onUnmounted(() => {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
 });

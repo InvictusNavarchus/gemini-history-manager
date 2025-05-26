@@ -9,13 +9,20 @@ import isBetween from "dayjs/plugin/isBetween";
 
 dayjs.extend(isBetween);
 
-// Constants
+/**
+ * Storage key used for saving and loading chat history in browser storage.
+ * @type {string}
+ */
 export const STORAGE_KEY = "geminiChatHistory";
 
 /**
- * Save history data to browser storage
- * @param {Array} historyData - The history data array to save
- * @returns {Promise} A promise that resolves when the data is saved
+ * Saves history data to browser storage.
+ * Cleans Vue reactivity, saves to local storage, and updates UI badge count.
+ * Handles errors and logs all major steps.
+ *
+ * @param {Array<Object>} historyData - The history data array to save.
+ * @returns {Promise<void>} Resolves when the data is saved.
+ * @throws Will throw if storage fails.
  */
 export async function saveHistoryData(historyData) {
   try {
@@ -43,8 +50,11 @@ export async function saveHistoryData(historyData) {
 }
 
 /**
- * Load history data from browser storage
- * @returns {Promise<Array>} A promise that resolves with the history data array
+ * Loads history data from browser storage, sorts it, and ensures unique IDs.
+ * Handles errors, sorts by timestamp, and logs results.
+ *
+ * @returns {Promise<Array<Object>>} Resolves with the loaded and sorted history data array.
+ * @throws Will throw if loading from storage fails.
  */
 export async function loadHistoryData() {
   try {
@@ -70,16 +80,18 @@ export async function loadHistoryData() {
 }
 
 /**
- * Filter history data based on search query, model, and date range
- * @param {Array} history - The array of history items to filter
- * @param {Object} filters - Filter criteria
- * @param {string} filters.searchQuery - Search query for text filtering
- * @param {string} filters.modelFilter - Model name to filter by
- * @param {string} filters.dateFilter - Date range filter ('all', 'today', 'yesterday', 'thisWeek', 'thisMonth', 'custom')
- * @param {string} filters.customStartDate - Start date for custom range (YYYY-MM-DD)
- * @param {string} filters.customEndDate - End date for custom range (YYYY-MM-DD)
- * @param {string} filters.sortBy - Sort option ('date-desc', 'date-asc', 'title-asc', 'title-desc', 'model')
- * @returns {Array} Filtered and sorted history items
+ * Filters and sorts history data based on search query, model, date range, and sort options.
+ * Applies fuzzy search, model filtering, date range, and sorting as specified in filters.
+ *
+ * @param {Array<Object>} history - The array of history items to filter.
+ * @param {Object} filters - Filter criteria.
+ * @param {string} filters.searchQuery - Search query for text filtering.
+ * @param {string} filters.modelFilter - Model name to filter by.
+ * @param {string} filters.dateFilter - Date range filter ('all', 'today', 'yesterday', 'thisWeek', 'thisMonth', 'custom').
+ * @param {string} filters.customStartDate - Start date for custom range (YYYY-MM-DD).
+ * @param {string} filters.customEndDate - End date for custom range (YYYY-MM-DD).
+ * @param {string} filters.sortBy - Sort option ('date-desc', 'date-asc', 'title-asc', 'title-desc', 'model').
+ * @returns {Array<Object>} Filtered and sorted history items.
  */
 export function filterAndSortHistory(history, filters) {
   Logger.log("dataHelpers", `Applying filters to history data (${history.length} total items)`);
@@ -273,9 +285,11 @@ export function filterAndSortHistory(history, filters) {
 }
 
 /**
- * Generate statistics for the dashboard based on history data
- * @param {Array} historyData - The history data array
- * @returns {Object} Statistics object with counts and insights
+ * Generates statistics for the dashboard based on history data.
+ * Calculates counts, model usage, plan distribution, and other insights.
+ *
+ * @param {Array<Object>} historyData - The history data array.
+ * @returns {Object} Statistics object with counts and insights.
  */
 export function generateDashboardStats(historyData) {
   Logger.log("dataHelpers", `Generating dashboard statistics from ${historyData.length} history items`);
@@ -385,9 +399,10 @@ export function generateDashboardStats(historyData) {
 }
 
 /**
- * Extract all available models from history data
- * @param {Array} historyData - The history data array
- * @returns {Array} Array of unique model names
+ * Extracts all available models from history data.
+ *
+ * @param {Array<Object>} historyData - The history data array.
+ * @returns {Array<string>} Array of unique model names.
  */
 export function getAvailableModels(historyData) {
   Logger.log("dataHelpers", `Extracting available models from ${historyData.length} history items`);
@@ -401,9 +416,10 @@ export function getAvailableModels(historyData) {
 }
 
 /**
- * Extract all available Gemini plans from history data
- * @param {Array} historyData - The history data array
- * @returns {Array} Array of unique plan names
+ * Extracts all available Gemini plans from history data.
+ *
+ * @param {Array<Object>} historyData - The history data array.
+ * @returns {Array<string>} Array of unique plan names.
  */
 export function getAvailablePlans(historyData) {
   Logger.log("dataHelpers", `Extracting available Gemini plans from ${historyData.length} history items`);
@@ -430,9 +446,10 @@ export function getAvailablePlans(historyData) {
 }
 
 /**
- * Extract all available Gems from history data
- * @param {Array} historyData - The history data array
- * @returns {Array} Array of unique gem names
+ * Extracts all available Gems from history data.
+ *
+ * @param {Array<Object>} historyData - The history data array.
+ * @returns {Array<string>} Array of unique gem names.
  */
 export function getAvailableGems(historyData) {
   Logger.log("dataHelpers", `Extracting available Gems from ${historyData.length} history items`);
@@ -453,10 +470,12 @@ export function getAvailableGems(historyData) {
 }
 
 /**
- * Import history data from JSON
- * @param {string} fileContent - JSON content to import
- * @param {Array} currentHistory - Current history data
- * @returns {Promise<Object>} Results with imported items and new history
+ * Imports history data from a JSON string, merges with current history, and returns results.
+ * Handles deduplication and error reporting.
+ *
+ * @param {string} fileContent - JSON content to import.
+ * @param {Array<Object>} currentHistory - Current history data.
+ * @returns {Promise<Object>} Results with imported items and new history.
  */
 export async function importHistoryData(fileContent, currentHistory) {
   Logger.log("dataHelpers", "Starting import of history data from JSON");

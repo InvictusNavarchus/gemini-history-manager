@@ -5,7 +5,11 @@
 import { parseTimestamp, Logger } from "../../lib/utils.js";
 import dayjs from "dayjs";
 
-// Chart colors
+/**
+ * Reserved color palette for charts (primary, secondary, etc.).
+ * Used for consistent color assignment in visualizations.
+ * @type {string[]}
+ */
 export const RESERVED_COLORS = [
   "rgba(110, 65, 226, 0.8)", // Primary purple
   "rgba(30, 100, 200, 0.8)", // Deep blue
@@ -16,7 +20,11 @@ export const RESERVED_COLORS = [
   "rgba(150, 150, 150, 0.8)", // Gray
 ];
 
-// leftover colors for other unspecified models
+/**
+ * Fallback color palette for unspecified models or overflow.
+ * Used when RESERVED_COLORS are exhausted or for dynamic values.
+ * @type {string[]}
+ */
 export const FALLBACK_COLORS = [
   "rgba(156, 204, 101, 0.8)", // Soft green
   "rgba(187, 143, 206, 0.8)", // Soft lavender
@@ -28,14 +36,22 @@ export const FALLBACK_COLORS = [
   "rgba(208, 211, 212, 0.8)", // Soft silver
 ];
 
-// Plan-specific color mapping for consistent colors across visualizations
+/**
+ * Plan-specific color mapping for consistent colors across visualizations.
+ * Maps plan names to specific color strings.
+ * @type {Object.<string, string>}
+ */
 export const PLAN_COLOR_MAP = {
   Pro: "rgba(110, 65, 226, 0.8)", // Primary purple for Pro
   Free: "rgba(71, 163, 255, 0.8)", // Blue for Free
   Unknown: "rgba(150, 150, 150, 0.8)", // Gray for unknown plans
 };
 
-// Model-specific color mapping for consistent colors across visualizations
+/**
+ * Model-specific color mapping for consistent colors across visualizations.
+ * Maps model names to specific color strings.
+ * @type {Object.<string, string>}
+ */
 export const MODEL_COLOR_MAP = {
   "2.5 Pro": RESERVED_COLORS[0], // Primary purple for 2.5 Pro
   "Deep Research": RESERVED_COLORS[1], // Deep blue for Deep Research
@@ -47,17 +63,23 @@ export const MODEL_COLOR_MAP = {
   Unknown: RESERVED_COLORS[6], // Gray for unknown models
 };
 
-// Gem-specific color mapping for consistent colors across visualizations
+/**
+ * Gem-specific color mapping for consistent colors across visualizations.
+ * Maps gem names to specific color strings.
+ * @type {Object.<string, string>}
+ */
 export const GEM_COLOR_MAP = {
   // We'll use fallback colors for gems since they're dynamic
   Unknown: RESERVED_COLORS[6], // Gray for unknown gems
 };
 
 /**
- * Get color for a specific model, ensuring consistency across visualizations
- * @param {string} modelName - Name of the model
- * @param {number} fallbackIndex - Fallback index to use if no specific color is defined
- * @returns {string} Color to use for the model
+ * Returns the color for a specific model, ensuring consistency across visualizations.
+ * Uses MODEL_COLOR_MAP if available, otherwise falls back to FALLBACK_COLORS.
+ *
+ * @param {string} modelName - Name of the model.
+ * @param {number} [fallbackIndex=0] - Fallback index to use if no specific color is defined.
+ * @returns {string} Color to use for the model.
  */
 export function getModelColor(modelName, fallbackIndex = 0) {
   // If we have a specific color defined for this model, use it
@@ -70,10 +92,12 @@ export function getModelColor(modelName, fallbackIndex = 0) {
 }
 
 /**
- * Get color for a specific plan, ensuring consistency across visualizations
- * @param {string} planName - Name of the plan
- * @param {number} fallbackIndex - Fallback index to use if no specific color is defined
- * @returns {string} Color to use for the plan
+ * Returns the color for a specific plan, ensuring consistency across visualizations.
+ * Uses PLAN_COLOR_MAP if available, otherwise falls back to FALLBACK_COLORS.
+ *
+ * @param {string} planName - Name of the plan.
+ * @param {number} [fallbackIndex=0] - Fallback index to use if no specific color is defined.
+ * @returns {string} Color to use for the plan.
  */
 export function getPlanColor(planName, fallbackIndex = 0) {
   // If we have a specific color defined for this plan, use it
@@ -86,10 +110,12 @@ export function getPlanColor(planName, fallbackIndex = 0) {
 }
 
 /**
- * Get color for a specific gem, ensuring consistency across visualizations
- * @param {string} gemName - Name of the gem
- * @param {number} fallbackIndex - Fallback index to use if no specific color is defined
- * @returns {string} Color to use for the gem
+ * Returns the color for a specific gem, ensuring consistency across visualizations.
+ * Uses GEM_COLOR_MAP if available, otherwise falls back to FALLBACK_COLORS.
+ *
+ * @param {string} gemName - Name of the gem.
+ * @param {number} [fallbackIndex=0] - Fallback index to use if no specific color is defined.
+ * @returns {string} Color to use for the gem.
  */
 export function getGemColor(gemName, fallbackIndex = 0) {
   // If we have a specific color defined for this gem, use it
@@ -122,6 +148,12 @@ export function getChartJsThemeOptions(theme) {
  * @param {Array} historyData - History data array
  * @param {string} theme - Current theme ('light' or 'dark')
  * @returns {Object} Chart.js configuration
+ */
+/**
+ * @description Generates the Chart.js configuration for the model distribution chart.
+ * @param {Array} historyData - History data array.
+ * @param {string} theme - Current theme ('light' or 'dark').
+ * @returns {Object} Chart.js configuration.
  */
 export function getModelDistributionChartConfig(historyData, theme) {
   Logger.log(
@@ -217,6 +249,16 @@ export function getModelDistributionChartConfig(historyData, theme) {
  * @param {string} chartOptions.selectedModel - Selected model for filtering ('all' or specific model name)
  * @param {string} theme - Current theme ('light' or 'dark')
  * @returns {Object} Chart.js configuration
+ */
+/**
+ * @description Generates the Chart.js configuration for the activity over time chart.
+ * @param {Array} historyData - History data array.
+ * @param {Array} availableModels - List of unique model names.
+ * @param {Object} chartOptions - Chart configuration options.
+ * @param {string} chartOptions.displayMode - Display mode ('combined' or 'separate').
+ * @param {string} chartOptions.selectedModel - Selected model for filtering ('all' or specific model name').
+ * @param {string} theme - Current theme ('light' or 'dark').
+ * @returns {Object} Chart.js configuration.
  */
 export function getActivityOverTimeChartConfig(historyData, availableModels, chartOptions, theme) {
   Logger.log("chartHelpers", `Generating activity over time chart with ${historyData.length} entries`);
@@ -453,6 +495,12 @@ export function getActivityOverTimeChartConfig(historyData, availableModels, cha
  * @param {string} theme - Current theme ('light' or 'dark')
  * @returns {Object} Chart.js configuration
  */
+/**
+ * @description Generates the Chart.js configuration for the plan distribution chart.
+ * @param {Array} historyData - History data array.
+ * @param {string} theme - Current theme ('light' or 'dark').
+ * @returns {Object} Chart.js configuration.
+ */
 export function getPlanDistributionChartConfig(historyData, theme) {
   Logger.log(
     "chartHelpers",
@@ -545,6 +593,12 @@ export function getPlanDistributionChartConfig(historyData, theme) {
  * @param {Array} historyData - History data array
  * @param {string} theme - Current theme ('light' or 'dark')
  * @returns {Object} Chart.js configuration
+ */
+/**
+ * @description Generates the Chart.js configuration for the gem distribution chart.
+ * @param {Array} historyData - History data array.
+ * @param {string} theme - Current theme ('light' or 'dark').
+ * @returns {Object} Chart.js configuration.
  */
 export function getGemDistributionChartConfig(historyData, theme) {
   Logger.log(

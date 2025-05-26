@@ -5,13 +5,24 @@
 import MiniSearch from "minisearch";
 import { Logger } from "../../lib/utils.js";
 
-// Fields to be indexed for search
+/**
+ * Fields to be indexed for search in MiniSearch.
+ * Each field has a name and a weight for boosting relevance.
+ * @type {Array<{name: string, weight: number}>}
+ */
 const SEARCH_FIELDS = [
   { name: "title", weight: 2 }, // Title has higher weight
   { name: "prompt", weight: 1 },
 ];
 
-// Configure MiniSearch options
+/**
+ * Configuration options for MiniSearch instance.
+ * - fields: Which fields to index for searching.
+ * - storeFields: Which fields to return in search results.
+ * - searchOptions: Search behavior (boosting, fuzzy, prefix).
+ * - extractField: Handles missing fields gracefully.
+ * @type {Object}
+ */
 const MINI_SEARCH_OPTIONS = {
   fields: SEARCH_FIELDS.map((field) => field.name),
   storeFields: ["id", "title", "timestamp"], // Fields to return in search results
@@ -27,9 +38,12 @@ const MINI_SEARCH_OPTIONS = {
 };
 
 /**
- * Initialize a MiniSearch instance with the history data
- * @param {Array} historyData - The history data array to index
- * @returns {MiniSearch} A configured MiniSearch instance
+ * Initializes and returns a MiniSearch instance with the provided history data.
+ * Adds unique IDs to entries if missing (required by MiniSearch),
+ * configures search fields and boosting, and indexes all documents.
+ *
+ * @param {Array<Object>} historyData - The history data array to index. Each object should represent a conversation or entry.
+ * @returns {MiniSearch} A configured MiniSearch instance with all documents indexed.
  */
 export function createSearchIndex(historyData) {
   Logger.log("searchHelpers", `Creating search index for ${historyData.length} history entries`);
@@ -52,11 +66,15 @@ export function createSearchIndex(historyData) {
 }
 
 /**
- * Search for history entries using MiniSearch
- * @param {MiniSearch} searchIndex - The MiniSearch instance
- * @param {string} query - The search query
- * @returns {Array} - Array of history entries that match the search
- * @param {Array} allHistory - Complete history array (for retrieving full entries)
+ * Searches for history entries using a MiniSearch index and a query string.
+ * Returns matching history entries, using ID-based lookup for accuracy and
+ * falling back to content similarity if no matches by ID are found.
+ * Handles errors gracefully and logs search process.
+ *
+ * @param {MiniSearch} searchIndex - The MiniSearch instance to use for searching.
+ * @param {string} query - The search query string.
+ * @param {Array<Object>} allHistory - The complete array of history entries (for retrieving full entry data).
+ * @returns {Array<Object>} Array of history entries that match the search query.
  */
 export function searchHistory(searchIndex, query, allHistory) {
   if (!query || query.trim() === "") {
@@ -72,10 +90,8 @@ export function searchHistory(searchIndex, query, allHistory) {
     Logger.debug("searchHelpers", `Found ${searchResults.length} results`);
 
     // Optimize: Use a Map for O(1) lookups from id to entry
-    const idToEntry = new Map(allHistory.map(entry => [(entry.id || ""), entry]));
-    const matchedEntries = searchResults
-      .map(result => idToEntry.get(result.id))
-      .filter(Boolean); // Remove any not found
+    const idToEntry = new Map(allHistory.map((entry) => [entry.id || "", entry]));
+    const matchedEntries = searchResults.map((result) => idToEntry.get(result.id)).filter(Boolean); // Remove any not found
 
     // If we didn't find exact matches by ID, try to find by content similarity
     // This is a fallback for entries without IDs or older entries

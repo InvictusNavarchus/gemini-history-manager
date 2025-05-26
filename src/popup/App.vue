@@ -102,6 +102,12 @@ onMounted(async () => {
   });
 });
 
+/**
+ * Initializes the popup by loading extension version, theme, and user history data.
+ * Handles theme icon update and error state.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function initializePopup() {
   Logger.debug("App", "Starting popup initialization");
   isLoading.value = true;
@@ -142,11 +148,20 @@ async function initializePopup() {
   }
 }
 
+/**
+ * Retries the popup initialization process, typically after an error.
+ */
 function retryInitialization() {
   Logger.log("App", "User initiated retry of popup initialization");
   initializePopup();
 }
 
+/**
+ * Loads the extension version from the manifest and updates the UI.
+ * Handles errors gracefully and logs version info.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadExtensionVersion() {
   Logger.debug("App", "Loading extension version from manifest");
   try {
@@ -163,6 +178,12 @@ async function loadExtensionVersion() {
   }
 }
 
+/**
+ * Loads chat history data from browser storage, sorts it, and logs relevant info.
+ * @async
+ * @returns {Promise<Array>} Resolves with the loaded and sorted history data array.
+ * @throws Will throw if loading from storage fails.
+ */
 async function loadHistoryDataFromStorage() {
   Logger.debug("App", "Loading history data from browser storage");
   try {
@@ -189,6 +210,10 @@ async function loadHistoryDataFromStorage() {
 }
 
 // --- UI Update Functions ---
+/**
+ * Updates statistics display (total conversations, most used model, last conversation time) based on history data.
+ * @param {Array} historyData - The array of conversation history objects.
+ */
 function updateStatsDisplay(historyData) {
   Logger.debug("App", "Updating statistics display with history data");
   totalConversations.value = historyData.length;
@@ -234,6 +259,10 @@ function updateStatsDisplay(historyData) {
   }
 }
 
+/**
+ * Updates the list of recent conversations displayed in the popup.
+ * @param {Array} historyData - The array of conversation history objects.
+ */
 function updateRecentConversationsDisplay(historyData) {
   const displayCount = Math.min(historyData.length, MAX_PREVIEW_CONVERSATIONS);
   Logger.log("App", "Updating recent conversations display", {
@@ -246,6 +275,10 @@ function updateRecentConversationsDisplay(historyData) {
 }
 
 // --- Event Handlers ---
+/**
+ * Handles the theme toggle action, switching between light and dark themes.
+ * @param {SVGElement} themeIconSvgElement - The SVG element for the theme icon.
+ */
 function handleThemeToggle(themeIconSvgElement) {
   Logger.log("App", "Theme toggle button clicked", { currentTheme: currentTheme.value });
   currentTheme.value = toggleTheme(currentTheme.value, themeIconSvgElement);
@@ -253,6 +286,9 @@ function handleThemeToggle(themeIconSvgElement) {
   // applyTheme is called within toggleTheme
 }
 
+/**
+ * Handles the event to open the full dashboard page from the popup.
+ */
 function handleOpenFullPage() {
   Logger.log("App", "Open full dashboard page button clicked");
   browser.runtime
@@ -271,6 +307,11 @@ function handleOpenFullPage() {
     });
 }
 
+/**
+ * Handles exporting chat history to a JSON file. Loads history, creates a file, and triggers download.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function handleExportHistory() {
   Logger.log("App", "Export history button clicked");
   try {
@@ -311,6 +352,9 @@ async function handleExportHistory() {
   }
 }
 
+/**
+ * Handles the import history button click, redirects user to dashboard import page.
+ */
 function handleImportHistory() {
   Logger.log("App", "Import history button clicked", { redirectTarget: "dashboard" });
   browser.tabs
@@ -328,6 +372,9 @@ function handleImportHistory() {
     });
 }
 
+/**
+ * Handles the start chat action, opening a new Gemini chat tab.
+ */
 function handleStartChat() {
   Logger.log("App", "Start new Gemini chat button clicked");
   browser.tabs
@@ -341,6 +388,10 @@ function handleStartChat() {
     });
 }
 
+/**
+ * Opens an existing conversation in a new browser tab.
+ * @param {string} url - The URL of the conversation to open.
+ */
 function openConversation(url) {
   Logger.log("App", "Opening existing conversation", { url });
 
@@ -363,6 +414,11 @@ function openConversation(url) {
 // The importFileInput ref and handleFileImported method are placeholders
 // if we were to handle import directly in popup, but it's redirected.
 const importFileInput = ref(null);
+/**
+ * Placeholder handler for file import events in the popup (actual import is redirected).
+ * Logs file info if present.
+ * @param {Event} event - The file input change event.
+ */
 function handleFileImported(event) {
   // This logic would be more complex and involve reading the file,
   // parsing JSON, merging with existing history, and saving.

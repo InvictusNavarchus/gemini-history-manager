@@ -95,8 +95,7 @@
     /**
      * Handles clicks on the send button to detect new chats.
      * Uses capture phase to intercept clicks before they're processed.
-     *
-     * @param {Event} event - The click event
+     * @param {Event} event - The click event.
      */
     handleSendClick: function (event) {
       Logger.log("gemini-tracker", "Click detected on body (capture phase). Target:", event.target);

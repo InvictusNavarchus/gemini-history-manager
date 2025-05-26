@@ -11,11 +11,23 @@ import { Logger } from "../../lib/utils.js";
  * @returns {Object} Toast notification functions
  */
 export function createToastManager() {
+  /**
+   * Initialize the toast manager
+   * @description Initializes the toast manager with an empty array of active toasts and a toast ID counter
+   */
   Logger.log("uiHelpers", "🔧 Toast Manager: Initializing toast manager");
   // Use Vue's reactive system for the toasts array
 
   const state = reactive({
+    /**
+     * Array of active toast notifications
+     * @type {Array}
+     */
     activeToasts: [],
+    /**
+     * Counter for generating unique toast IDs
+     * @type {number}
+     */
     toastIdCounter: 0,
   });
 
@@ -109,8 +121,23 @@ export function createToastManager() {
   }
 
   return {
+    /**
+     * Show a toast notification
+     * @param {string} message - Message to display
+     * @param {string} type - Toast type (success, error, warning, info)
+     * @param {number} duration - Duration in milliseconds
+     * @returns {number} The ID of the created toast
+     */
     showToast,
+    /**
+     * Remove a toast notification by ID
+     * @param {number} id - Toast ID to remove
+     */
     removeToast,
+    /**
+     * Get all active toast notifications
+     * @returns {Array} Array of active toast objects
+     */
     getActiveToasts,
   };
 }
@@ -122,6 +149,10 @@ export function createToastManager() {
  * @param {string} type - MIME type (default: 'application/json')
  */
 export function downloadFile(data, filename, type = "application/json") {
+  /**
+   * Create a file download with the provided data
+   * @description Creates a file download with the provided data
+   */
   Logger.log("uiHelpers", `Creating download for file: ${filename}, type: ${type}`);
 
   try {
@@ -167,6 +198,10 @@ export function downloadFile(data, filename, type = "application/json") {
  * @returns {Object} Result of the export operation
  */
 export function exportHistoryData(dataToExport, isFiltered = false) {
+  /**
+   * Export history data to a JSON file
+   * @description Exports history data to a JSON file
+   */
   Logger.log("uiHelpers", `Exporting ${isFiltered ? "filtered" : "all"} conversation history data`);
   Logger.debug("uiHelpers", `Export data contains ${dataToExport ? dataToExport.length : 0} conversations`);
 
@@ -207,6 +242,10 @@ export function exportHistoryData(dataToExport, isFiltered = false) {
  * @returns {boolean} True if guided import was initiated
  */
 export function processGuidedImportFromUrl() {
+  /**
+   * Process guided import experience from URL parameters
+   * @description Processes guided import experience from URL parameters
+   */
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has("action") && urlParams.get("action") === "import") {
     // Clear URL parameters
@@ -221,6 +260,10 @@ export function processGuidedImportFromUrl() {
  * @param {string} importButtonId - ID of the import button element
  */
 export function createImportGuidedExperience(importButtonId = "importHistory") {
+  /**
+   * Create visual guidance for import
+   * @description Creates visual guidance for import
+   */
   // Give time for the UI to render, then guide the user to import
   setTimeout(() => {
     const importBtn = document.getElementById(importButtonId);
