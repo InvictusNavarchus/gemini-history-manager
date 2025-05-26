@@ -195,12 +195,6 @@
       // No debounce for clearing the search
       emit("update:searchQuery", query);
     }
-  } else if (query.length >= 4) {
-    // Debounce 100ms for 4+ chars
-    searchDebounceTimer = setTimeout(() => {
-      emit("update:searchQuery", query);
-    }, 150);
-  }
 }
 
 // Cleanup debounce timer on unmount
