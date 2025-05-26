@@ -218,6 +218,7 @@ initDayjsPlugins();
 
 // --- Reactive State ---
 const isLoading = ref(true);
+const activeSettingsTab = ref("logging");
 const allHistory = ref([]);
 const searchFilterQuery = ref("");
 const selectedModelFilter = ref("");
@@ -283,6 +284,11 @@ const filteredHistory = computed(() => {
 });
 
 // --- Lifecycle Hooks ---
+// Ensure the settings tab always shows logging settings by default
+watch(activeMainTab, (newTab) => {
+  if (newTab === "settings") activeSettingsTab.value = "logging";
+});
+
 onMounted(async () => {
   Logger.log("App.vue", "Dashboard App.vue: Component mounted");
 
