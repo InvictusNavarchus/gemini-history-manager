@@ -19,7 +19,7 @@
    *
    * @returns {void}
    */
-  function initializeGeminiHistoryManager() {
+  function init() {
     Logger.log("gemini-tracker", "Initializing Gemini History Manager...");
 
     // Initialize status indicator
