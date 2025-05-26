@@ -24,7 +24,10 @@ _Comprehensive list view with search, filtering, and sorting capabilities_
 ### Dashboard - Visualizations
 
 ![Dashboard Visualizations](screenshots/dashboard-visualization-all-time-dark.png)
-_Interactive charts showing model usage and activity over time_
+_Interactive charts showing all time model usage_
+
+![Dashboard Visualizations](screenshots/dashboard-visualization-over-time-dark.png)
+_Interactive charts showing model usage over time_
 
 ---
 
