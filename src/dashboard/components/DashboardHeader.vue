@@ -178,8 +178,10 @@
    * @param {Event} event - The input event from the search field.
    * @returns {void}
    */
+  let searchDebounceTimer = null;
   function handleSearchInput(event) {
     const query = event.target.value.trim();
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
     if (query.length < 3 && query !== "") return;
     // Debounce 400ms for exactly 3 chars
     if (query.length === 3) {
@@ -187,7 +189,7 @@
         emit("update:searchQuery", query);
       }, 400);
     } else if (query.length >= 4) {
-      // Debounce 100ms for 4+ chars
+      // Debounce 150ms for 4+ chars
       searchDebounceTimer = setTimeout(() => {
         emit("update:searchQuery", query);
       }, 150);
@@ -195,7 +197,7 @@
       // No debounce for clearing the search
       emit("update:searchQuery", query);
     }
-}
+  }
 
 // Cleanup debounce timer on unmount
 /**
