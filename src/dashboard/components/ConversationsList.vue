@@ -46,7 +46,7 @@
         >
           <div
             class="conversation-title"
-            v-html="highlightMatch(entry.title || 'Untitled Conversation', 'title')"
+            v-html="highlightMatch(entry.title || 'Untitled Conversation', 'title', entry)"
           ></div>
           <div class="conversation-meta">
             <div class="meta-left">
@@ -70,7 +70,7 @@
             class="conversation-prompt"
             v-if="entry.prompt"
             :title="entry.prompt"
-            v-html="highlightMatch(entry.prompt, 'prompt')"
+            v-html="highlightMatch(entry.prompt, 'prompt', entry)"
           ></div>
         </div>
       </div>
@@ -80,7 +80,7 @@
 
 <script setup>
 import Logger from "../../lib/logger.js";
-import { defineProps, defineEmits, computed, getCurrentInstance } from "vue";
+import { defineProps, defineEmits, computed } from "vue";
 import { dayjsFormatDate } from "../../lib/utils.js";
 
 // Define props
@@ -131,7 +131,7 @@ watch(
 );
 
 // Highlight search matches in text using MiniSearch's _matches field
-function highlightMatch(text, field) {
+function highlightMatch(text, field, entry) {
   Logger.debug("ConversationsList", "highlightMatch called", {
     searchQuery: props.searchQuery,
     hasSearchQuery: props.hasSearchQuery,
@@ -141,10 +141,6 @@ function highlightMatch(text, field) {
   if (!props.hasSearchQuery || !props.searchQuery || !text) return escapeHtml(text);
 
   try {
-    // Get the current conversation object from the v-for loop context
-    const currentItem = getCurrentInstance()?.vnode?.key;
-    const entry = props.conversations.find((c) => c.url === currentItem);
-
     // If we have _matches from MiniSearch and they include this field
     if (entry && entry._matches && entry._matches[field]) {
       // Get the field matches information
