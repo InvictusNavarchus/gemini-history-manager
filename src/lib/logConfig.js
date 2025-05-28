@@ -56,8 +56,8 @@ let configCache = null;
 
 /**
  * Load logging configuration from storage, falling back to defaults if not found
- * Uses in-memory cache to reduce localStorage reads
- * @param {boolean} [forceRefresh=false] - Force refresh from localStorage
+ * Uses in-memory cache to reduce storage reads
+ * @param {boolean} [forceRefresh=false] - Force refresh from storage
  * @returns {Object} The current logging configuration
  */
 export function loadLogConfig(forceRefresh = false) {
@@ -66,6 +66,50 @@ export function loadLogConfig(forceRefresh = false) {
     return configCache;
   }
 
+  // Determine if we're in a service worker environment (no localStorage)
+  const isServiceWorker = typeof localStorage === "undefined";
+
+  // For service worker (background script in Chrome)
+  if (isServiceWorker) {
+    try {
+      // Set default config while we wait for the async storage call to complete
+      configCache = DEFAULT_CONFIG;
+
+      // Start the async storage operation but don't wait for it
+      // This will update the cache on the next call if needed
+      browser.storage.local
+        .get(CONFIG_STORAGE_KEY)
+        .then((result) => {
+          if (result && result[CONFIG_STORAGE_KEY]) {
+            const parsedConfig = result[CONFIG_STORAGE_KEY];
+            configCache = {
+              ...DEFAULT_CONFIG,
+              ...parsedConfig,
+              levels: {
+                ...DEFAULT_CONFIG.levels,
+                ...(parsedConfig.levels || {}),
+              },
+              components: {
+                ...DEFAULT_CONFIG.components,
+                ...(parsedConfig.components || {}),
+              },
+            };
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading logging config from browser.storage:", error);
+          configCache = DEFAULT_CONFIG;
+        });
+
+      return DEFAULT_CONFIG;
+    } catch (error) {
+      console.error("Error in service worker loadLogConfig:", error);
+      configCache = DEFAULT_CONFIG;
+      return DEFAULT_CONFIG;
+    }
+  }
+
+  // For regular environments (content scripts, popup, etc.)
   try {
     const storedConfig = localStorage.getItem(CONFIG_STORAGE_KEY);
 
@@ -87,7 +131,7 @@ export function loadLogConfig(forceRefresh = false) {
       return configCache;
     }
   } catch (error) {
-    console.error("Error loading logging config:", error);
+    console.error("Error loading logging config from localStorage:", error);
     // On error, invalidate the cache
     configCache = null;
   }
@@ -109,14 +153,34 @@ export function invalidateConfigCache() {
  * @param {Object} config - The configuration to save
  */
 export function saveLogConfig(config) {
-  try {
-    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
-    // Update the cache with the new config
-    configCache = config;
-    return true;
-  } catch (error) {
-    console.error("Error saving logging config:", error);
-    return false;
+  // Determine if we're in a service worker environment (no localStorage)
+  const isServiceWorker = typeof localStorage === "undefined";
+
+  // Update the cache with the new config regardless of environment
+  configCache = config;
+
+  if (isServiceWorker) {
+    try {
+      // In service worker, use browser.storage.local (async)
+      const saveObj = {};
+      saveObj[CONFIG_STORAGE_KEY] = config;
+      browser.storage.local.set(saveObj).catch((error) => {
+        console.error("Error saving logging config to browser.storage:", error);
+      });
+      return true;
+    } catch (error) {
+      console.error("Error in service worker saveLogConfig:", error);
+      return false;
+    }
+  } else {
+    // In regular environment, use localStorage (sync)
+    try {
+      localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+      return true;
+    } catch (error) {
+      console.error("Error saving logging config to localStorage:", error);
+      return false;
+    }
   }
 }
 
