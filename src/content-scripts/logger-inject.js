@@ -115,14 +115,26 @@
         return;
       }
 
+      // Add a timestamp in ISO 8601 local format
+      const timestamp = new Date().toISOString();
+
       // Always include context in brackets and the message
       if (error instanceof Error) {
-        console[method](this.LOG_PREFIX, this.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
+        console[method](
+          this.LOG_PREFIX,
+          this.CONTEXT_PREFIX,
+          `[${context}]`,
+          `[${timestamp}]`,
+          message,
+          error,
+          ...args
+        );
       } else {
         console[method](
           this.LOG_PREFIX,
           this.CONTEXT_PREFIX,
           `[${context}]`,
+          `[${timestamp}]`,
           message,
           ...(error !== undefined ? [error] : []),
           ...args
