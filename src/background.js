@@ -150,7 +150,7 @@ browser.runtime.onStartup.addListener(() => {
 /**
  * Log errors that occur in the background script context
  */
-window.addEventListener("error", (event) => {
+self.addEventListener("error", (event) => {
   Logger.error("background", `Uncaught error: ${event.message}`, {
     filename: event.filename,
     lineno: event.lineno,
