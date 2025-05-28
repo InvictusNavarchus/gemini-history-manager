@@ -58,10 +58,18 @@ def compare_checksums(builds: List[str]) -> Tuple[Dict, Dict]:
     for build_path in builds:
         build_number = os.path.basename(build_path).replace("build-", "")
         
-        # Process dist directory
-        dist_dir = os.path.join(build_path, "dist")
-        if os.path.exists(dist_dir):
-            for file_path in get_all_files(dist_dir):
+        # Process dist-firefox directory
+        dist_firefox_dir = os.path.join(build_path, "dist-firefox")
+        if os.path.exists(dist_firefox_dir):
+            for file_path in get_all_files(dist_firefox_dir):
+                rel_path = get_relative_path(file_path, build_path)
+                checksums[rel_path][build_number] = calculate_file_checksum(file_path)
+                file_sizes[rel_path][build_number] = os.path.getsize(file_path)
+                
+        # Process dist-chrome directory
+        dist_chrome_dir = os.path.join(build_path, "dist-chrome")
+        if os.path.exists(dist_chrome_dir):
+            for file_path in get_all_files(dist_chrome_dir):
                 rel_path = get_relative_path(file_path, build_path)
                 checksums[rel_path][build_number] = calculate_file_checksum(file_path)
                 file_sizes[rel_path][build_number] = os.path.getsize(file_path)
