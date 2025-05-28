@@ -26,7 +26,7 @@ import { initializeTheme, Logger, THEME_STORAGE_KEY } from "../lib/utils.js";
   Logger.debug("popup", `Popup initialized with theme: ${appliedTheme}`);
 })();
 
-import "../lib/browserShim.js"; // Browser compatibility shim
+import "../lib/polyfill.js"; // Browser compatibility polyfill
 import { createApp } from "vue"; // Import createApp function from Vue
 import App from "./App.vue"; // Import the root Vue component (we'll create this next)
 
