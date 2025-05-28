@@ -14,11 +14,6 @@
 
   const GemDetector = {
     /**
-     * Currently detected gem name, if any.
-     */
-    currentGemName: null,
-
-    /**
      * MutationObserver instance for watching DOM changes
      */
     observer: null,
@@ -67,13 +62,12 @@
     },
 
     /**
-     * Checks for the Gem name element, extracts the name, and logs it.
-     * If a Gem name is found, it updates the currentGemName and disconnects the observer.
+     * Extracts the Gem name directly from the DOM at the moment of calling.
      * Tries multiple selectors to adapt to different DOM structures.
      *
-     * @returns {boolean} True if a Gem name was found, false otherwise.
+     * @returns {string|null} The detected gem name or null if not found
      */
-    checkForGem: function () {
+    extractCurrentGemName: function () {
       let gemNameElement = null;
 
       // Try each selector until we find a matching element
@@ -89,15 +83,8 @@
         const detectedName = this.getGemName(gemNameElement);
 
         if (detectedName) {
-          Logger.log("gemini-tracker", `Detected Gem name: "${detectedName}"`);
-          this.currentGemName = detectedName;
-
-          if (this.observer) {
-            this.observer.disconnect();
-            this.observer = null;
-            Logger.log("gemini-tracker", "Observer disconnected after detecting Gem name.");
-          }
-          return true; // Gem name found
+          Logger.log("gemini-tracker", `Extracted Gem name: "${detectedName}"`);
+          return detectedName;
         } else {
           Logger.warn(
             "gemini-tracker",
@@ -108,67 +95,33 @@
           Logger.debug("gemini-tracker", `Gem container HTML: ${gemNameElement.innerHTML}`);
         }
       }
-      return false; // Gem name not found yet
+      return null; // Gem name not found
     },
 
     /**
-     * Initializes and starts the MutationObserver to watch for DOM changes.
-     * If the Gem name is found on the initial check, the observer is not started.
+     * Note: We no longer need to observe for gem name changes since we'll extract the name when needed.
+     * This method is kept for compatibility but doesn't start any observer.
      */
     startObserver: function () {
-      // Perform an initial check.
-      if (this.checkForGem()) {
-        return; // Gem name already found and processed.
-      }
-
-      // If not found immediately, set up the MutationObserver.
-      this.observer = new MutationObserver(() => {
-        // On any DOM change, re-check for the Gem name.
-        this.checkForGem();
-      });
-
-      // Determine a suitable root for observation.
-      let observationRoot = document.querySelector("chat-window-content");
-      if (!observationRoot) {
-        observationRoot = document.querySelector("bots-chat-window");
-      }
-      if (!observationRoot) {
-        observationRoot = document.body; // Fallback
-        Logger.warn(
-          "gemini-tracker",
-          "Observing document.body for Gem detection. Could not find preferred roots. This might be less efficient."
-        );
-      } else {
-        Logger.log("gemini-tracker", `Observing ${observationRoot.tagName.toLowerCase()} for Gem detection.`);
-      }
-
-      // Start observing the chosen root for child additions/removals and subtree modifications.
-      this.observer.observe(observationRoot, { childList: true, subtree: true });
-      Logger.log("gemini-tracker", "Gem detection MutationObserver started.");
+      Logger.log("gemini-tracker", "Gem detection observer not needed with on-demand extraction approach.");
+      // No longer using an observer - we'll extract the gem name when needed
     },
 
     /**
-     * Resets the gem detector state and starts monitoring again if needed.
+     * Resets the gem detector state.
      * Should be called when navigating to a different page/state.
      */
     reset: function () {
-      this.currentGemName = null;
-
       if (this.observer) {
         this.observer.disconnect();
         this.observer = null;
         Logger.log("gemini-tracker", "Gem detection observer reset.");
       }
-
-      const url = window.location.href;
-      if (Utils.isGemHomepageUrl(url) || Utils.isGemChatUrl(url)) {
-        Logger.log("gemini-tracker", "On a Gem page. Starting Gem name detection.");
-        this.startObserver();
-      }
     },
 
     /**
-     * Gets the current gem information.
+     * Gets the current gem information by extracting it at the moment this function is called.
+     * This ensures we always have the most up-to-date gem information.
      *
      * @returns {Object|null} Object with gemId and gemName if on a gem page, null otherwise
      */
@@ -177,15 +130,18 @@
       const gemId = Utils.extractGemId(url);
 
       if (gemId) {
+        // Extract the gem name at the moment it's needed, not relying on stored state
+        const gemName = this.extractCurrentGemName();
+
         const gemInfo = {
           gemId: gemId,
-          gemName: this.currentGemName,
+          gemName: gemName,
           gemUrl: `https://gemini.google.com/gem/${gemId}`,
         };
 
-        // Trigger a debug scan if name is not detected yet
-        if (!this.currentGemName) {
-          Logger.log("gemini-tracker", "Gem name not detected yet, performing debug scan");
+        // If name couldn't be extracted, try the debug scan
+        if (!gemName) {
+          Logger.log("gemini-tracker", "Gem name could not be extracted, performing debug scan");
           this.debugGemDetection();
         }
 
