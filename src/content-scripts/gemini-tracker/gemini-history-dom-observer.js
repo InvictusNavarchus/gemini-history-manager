@@ -333,6 +333,7 @@
             const extractedName = GemDetector.extractGemNameFromResponses();
             if (extractedName) {
               gemName = extractedName;
+              STATE.pendingGemName = extractedName;
               Logger.log(
                 "gemini-tracker",
                 `Successfully extracted gem name "${gemName}" from response container`
