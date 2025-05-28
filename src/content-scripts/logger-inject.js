@@ -115,11 +115,24 @@
         return;
       }
 
+      // Add a timestamp in HH:mm:ss format as the very first prefix
+      const now = new Date();
+      const timestamp = now.toTimeString().slice(0, 8); // HH:mm:ss
+
       // Always include context in brackets and the message
       if (error instanceof Error) {
-        console[method](this.LOG_PREFIX, this.CONTEXT_PREFIX, `[${context}]`, message, error, ...args);
+        console[method](
+          `[${timestamp}]`,
+          this.LOG_PREFIX,
+          this.CONTEXT_PREFIX,
+          `[${context}]`,
+          message,
+          error,
+          ...args
+        );
       } else {
         console[method](
+          `[${timestamp}]`,
           this.LOG_PREFIX,
           this.CONTEXT_PREFIX,
           `[${context}]`,
