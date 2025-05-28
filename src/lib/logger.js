@@ -52,26 +52,27 @@ export const Logger = {
       return;
     }
 
-    // Add a timestamp in ISO 8601 local format
-    const timestamp = new Date().toISOString();
+    // Add a timestamp in HH:mm:ss format as the very first prefix
+    const now = new Date();
+    const timestamp = now.toTimeString().slice(0, 8); // HH:mm:ss
 
     // Always include context in brackets and the message
     if (error instanceof Error) {
       console[method](
+        `[${timestamp}]`,
         this.LOG_PREFIX,
         this.CONTEXT_PREFIX,
         `[${context}]`,
-        `[${timestamp}]`,
         message,
         error,
         ...args
       );
     } else {
       console[method](
+        `[${timestamp}]`,
         this.LOG_PREFIX,
         this.CONTEXT_PREFIX,
         `[${context}]`,
-        `[${timestamp}]`,
         message,
         ...(error !== undefined ? [error] : []),
         ...args
