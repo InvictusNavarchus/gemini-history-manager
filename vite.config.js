@@ -131,26 +131,18 @@ export default defineConfig({
             if (TARGET_BROWSER === "chrome") {
               let scriptContent = fs.readFileSync(sourceFullPath, "utf-8");
 
-              // Add browser shim import at the top for content scripts that don't already import it
+              // Add polyfill for content scripts that don't already import it
               if (
-                !scriptContent.includes("browserShim") &&
-                !scriptPath.includes("browserShim") &&
+                !scriptContent.includes("polyfill") &&
+                !scriptPath.includes("polyfill") &&
                 !scriptContent.includes("import")
               ) {
-                // For content scripts that don't use modules, prepend the browserShim as an IIFE
-                const browserShimPath = path.resolve(__dirname, "src/lib/browserShim.js");
-                let browserShimContent = fs.readFileSync(browserShimPath, "utf-8");
-
-                // Remove import/export statements and wrap in IIFE for content scripts
-                browserShimContent = browserShimContent
-                  .replace(/import.*?from.*?;?\n/g, "")
-                  .replace(/export.*?;?\n/g, "");
-
-                // Wrap in IIFE
-                browserShimContent = `(function() {\n${browserShimContent}\n})();\n\n`;
+                // For content scripts that don't use modules, prepend the polyfill
+                const polyfillPath = path.resolve(__dirname, "src/lib/polyfill-content.js");
+                let polyfillContent = fs.readFileSync(polyfillPath, "utf-8");
 
                 // Prepend to content script
-                scriptContent = `${browserShimContent}${scriptContent}`;
+                scriptContent = `${polyfillContent}\n\n${scriptContent}`;
               }
 
               fs.writeFileSync(targetFullPath, scriptContent);
