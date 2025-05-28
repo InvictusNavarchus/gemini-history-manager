@@ -127,28 +127,8 @@ export default defineConfig({
             // Ensure the target directory structure exists (e.g., dist/content-scripts/gemini-tracker/)
             fs.ensureDirSync(path.dirname(targetFullPath));
 
-            // For Chrome, we need to inject the browser shim at the top of content scripts
-            if (TARGET_BROWSER === "chrome") {
-              let scriptContent = fs.readFileSync(sourceFullPath, "utf-8");
-
-              // Add polyfill for content scripts that don't already import it
-              if (
-                !scriptContent.includes("polyfill") &&
-                !scriptPath.includes("polyfill") &&
-                !scriptContent.includes("import")
-              ) {
-                // For content scripts that don't use modules, prepend the polyfill
-                const polyfillPath = path.resolve(__dirname, "src/lib/polyfill-content.js");
-                let polyfillContent = fs.readFileSync(polyfillPath, "utf-8");
-
-                // Prepend to content script
-                scriptContent = `${polyfillContent}\n\n${scriptContent}`;
-              }
-
-              fs.writeFileSync(targetFullPath, scriptContent);
-            } else {
-              fs.copySync(sourceFullPath, targetFullPath);
-            }
+            // Copy content script files directly without modification
+            fs.copySync(sourceFullPath, targetFullPath);
           });
           if (contentScriptsPaths.length > 0) {
             console.log(`Copied content scripts for ${TARGET_BROWSER}, preserving subdirectory structure.`);
