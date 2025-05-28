@@ -48,6 +48,7 @@
     "chart.js": "^4.4.0",
     "dayjs": "^1.11.10",
     "minisearch": "^7.1.2",
-    "vue": "^3.4.27"
+    "vue": "^3.4.27",
+    "webextension-polyfill": "^0.12.0"
   }
 }
