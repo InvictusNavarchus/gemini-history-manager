@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Gemini History Manager",
+  "version": "0.16.0",
+  "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
+  "permissions": ["storage", "unlimitedStorage"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Gemini History Manager",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://gemini.google.com/*"],
+      "js": [
+        "content-scripts/logger-inject.js",
+        "content-scripts/gemini-tracker/gemini-history-config.js",
+        "content-scripts/gemini-tracker/gemini-history-state.js",
+        "content-scripts/gemini-tracker/gemini-history-status-indicator.js",
+        "content-scripts/gemini-tracker/gemini-history-log-config.js",
+        "content-scripts/gemini-tracker/gemini-history-utils.js",
+        "content-scripts/gemini-tracker/gemini-history-model-detector.js",
+        "content-scripts/gemini-tracker/gemini-history-input-extractor.js",
+        "content-scripts/gemini-tracker/gemini-history-history-manager.js",
+        "content-scripts/gemini-tracker/gemini-history-dom-observer.js",
+        "content-scripts/gemini-tracker/gemini-history-gem-detector.js",
+        "content-scripts/gemini-tracker/gemini-history-event-handlers.js",
+        "content-scripts/gemini-tracker/gemini-history-main.js"
+      ]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

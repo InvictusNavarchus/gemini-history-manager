@@ -2,6 +2,7 @@
  * Gemini History Manager - Background Script
  * Manages background events and browser action functionality
  */
+import "./lib/browserShim.js"; // Browser compatibility shim
 import { Logger } from "./lib/utils.js";
 
 // Initialize logger with background context
