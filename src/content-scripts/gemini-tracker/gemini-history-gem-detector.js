@@ -12,6 +12,16 @@
     ".bot-name-and-description .bot-name-container",
   ];
 
+  // Backup selectors for finding gem names in response containers
+  const RESPONSE_GEM_NAME_SELECTORS = [
+    ".response-container-content .bot-name .bot-name-text",
+    ".response-container .bot-name-text",
+    ".response-container-content .bot-name",
+    // Additional fallback selectors based on the HTML structure provided
+    ".bot-name-text",
+    ".bot-name",
+  ];
+
   const GemDetector = {
     /**
      * MutationObserver instance for watching DOM changes
@@ -68,13 +78,14 @@
      * @returns {string|null} The detected gem name or null if not found
      */
     extractCurrentGemName: function () {
+      // First try the primary selectors (gem info section)
       let gemNameElement = null;
 
       // Try each selector until we find a matching element
       for (const selector of GEM_NAME_SELECTORS) {
         gemNameElement = document.querySelector(selector);
         if (gemNameElement) {
-          Logger.log("gemini-tracker", `Found gem name element using selector: ${selector}`);
+          Logger.log("gemini-tracker", `Found gem name element using primary selector: ${selector}`);
           break;
         }
       }
@@ -83,19 +94,64 @@
         const detectedName = this.getGemName(gemNameElement);
 
         if (detectedName) {
-          Logger.log("gemini-tracker", `Extracted Gem name: "${detectedName}"`);
+          Logger.log("gemini-tracker", `Extracted Gem name from primary source: "${detectedName}"`);
           return detectedName;
         } else {
           Logger.warn(
             "gemini-tracker",
-            "Gem name container found, but the name text could not be extracted as expected."
+            "Primary gem name container found, but the name text could not be extracted as expected."
           );
 
           // Log the HTML content to help with debugging
-          Logger.debug("gemini-tracker", `Gem container HTML: ${gemNameElement.innerHTML}`);
+          Logger.debug("gemini-tracker", `Primary gem container HTML: ${gemNameElement.innerHTML}`);
         }
       }
-      return null; // Gem name not found
+
+      // If primary detection failed, try extracting from response containers
+      return this.extractGemNameFromResponses();
+    },
+
+    /**
+     * Backup method to extract gem name from response containers.
+     * This is useful when users send prompts quickly before the gem info section loads,
+     * but responses do contain the gem name.
+     *
+     * @returns {string|null} The detected gem name or null if not found
+     */
+    extractGemNameFromResponses: function () {
+      let responseGemElement = null;
+
+      // Try each response selector
+      for (const selector of RESPONSE_GEM_NAME_SELECTORS) {
+        // Look for all matching elements since there could be multiple responses
+        const elements = document.querySelectorAll(selector);
+
+        if (elements && elements.length > 0) {
+          // Use the most recent (last) response
+          responseGemElement = elements[elements.length - 1];
+          Logger.log("gemini-tracker", `Found gem name in response using selector: ${selector}`);
+          break;
+        }
+      }
+
+      if (responseGemElement) {
+        const detectedName = this.getGemName(responseGemElement);
+
+        if (detectedName) {
+          Logger.log("gemini-tracker", `Extracted Gem name from response: "${detectedName}"`);
+          return detectedName;
+        } else {
+          Logger.warn(
+            "gemini-tracker",
+            "Response gem name container found, but the name text could not be extracted as expected."
+          );
+
+          // Log the HTML content to help with debugging
+          Logger.debug("gemini-tracker", `Response gem container HTML: ${responseGemElement.innerHTML}`);
+        }
+      }
+
+      return null; // Gem name not found in responses either
     },
 
     /**

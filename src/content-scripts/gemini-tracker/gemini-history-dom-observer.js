@@ -317,8 +317,29 @@
 
         // Get Gem information from the state
         const gemId = STATE.pendingGemId;
-        const gemName = STATE.pendingGemName;
+        let gemName = STATE.pendingGemName;
         const gemUrl = STATE.pendingGemUrl;
+
+        // If this is a gem chat but we don't have the name yet, try to extract it from response containers
+        // This helps when the user sent a prompt before the gem name was initially detected
+        if (gemId && !gemName) {
+          const GemDetector = window.GeminiHistory_GemDetector;
+          if (GemDetector && typeof GemDetector.extractGemNameFromResponses === "function") {
+            Logger.log(
+              "gemini-tracker",
+              "No gem name was detected earlier. Attempting to extract from response containers..."
+            );
+            // Try to extract the gem name from response containers which appear after responses are completed
+            const extractedName = GemDetector.extractGemNameFromResponses();
+            if (extractedName) {
+              gemName = extractedName;
+              Logger.log(
+                "gemini-tracker",
+                `Successfully extracted gem name "${gemName}" from response container`
+              );
+            }
+          }
+        }
 
         if (gemId) {
           Logger.log(
