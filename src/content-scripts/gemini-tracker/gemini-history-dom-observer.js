@@ -93,9 +93,10 @@
      *   - Uses the new title once it changes.
      *
      * @param {Element} conversationItem - The DOM element representing a conversation item
+     * @param {string} [prompt] - The original user prompt to compare against for placeholder detection
      * @returns {string|null} - The extracted title or null if not found
      */
-    extractTitleFromSidebarItem: function (conversationItem) {
+    extractTitleFromSidebarItem: function (conversationItem, prompt = null) {
       Logger.log("gemini-tracker", "Attempting to extract title from sidebar item:", conversationItem);
 
       const titleElement = conversationItem.querySelector(".conversation-title");
@@ -108,7 +109,7 @@
       // Special logic for collapsed sidebar - execute first
       if (this.isSidebarCollapsed()) {
         Logger.log("gemini-tracker", "Sidebar is collapsed. Setting up observer to wait for real title...");
-        const placeholderPrompt = STATE.pendingPrompt;
+        const placeholderPrompt = prompt; // Use the passed prompt parameter instead of STATE.pendingPrompt
         // Try direct text node
         let currentTitle = "";
         try {
@@ -455,7 +456,7 @@
       }
 
       // Extract title and process if found
-      const title = this.extractTitleFromSidebarItem(conversationItem);
+      const title = this.extractTitleFromSidebarItem(conversationItem, prompt);
       const geminiPlan = STATE.pendingGeminiPlan;
       if (
         await this.processTitleAndAddHistory(
@@ -519,7 +520,7 @@
           const titleElement = conversationItem.querySelector(".conversation-title");
           if (DomObserver.isSidebarCollapsed() && titleElement) {
             const currentTitle = titleElement.textContent.trim();
-            const placeholderPrompt = STATE.pendingPrompt;
+            const placeholderPrompt = prompt; // Use the passed prompt parameter instead of STATE.pendingPrompt
 
             // Set up secondary observer if we detect placeholder or empty title
             if (!currentTitle || (placeholderPrompt && currentTitle === placeholderPrompt)) {
@@ -643,7 +644,7 @@
         return true; // Return true to indicate we should stop trying (observer is disconnected)
       }
 
-      const title = this.extractTitleFromSidebarItem(item);
+      const title = this.extractTitleFromSidebarItem(item, prompt);
       Logger.log("gemini-tracker", `TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
 
       // Get the Gemini Plan from the state
