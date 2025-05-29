@@ -14,6 +14,33 @@
   const Utils = window.GeminiHistory_Utils;
 
   /**
+   * Re-initializes observers after they have been cleaned up.
+   * Used when the page becomes visible again after being hidden.
+   *
+   * @returns {void}
+   */
+  function reinitializeObservers() {
+    Logger.log("gemini-tracker", "Re-initializing observers after page became visible...");
+
+    // Re-initialize GemDetector for current URL
+    const GemDetector = window.GeminiHistory_GemDetector;
+    if (GemDetector) {
+      const url = window.location.href;
+      if (Utils.isGemHomepageUrl(url) || Utils.isGemChatUrl(url)) {
+        Logger.log("gemini-tracker", "Re-detecting Gem information for current URL...");
+        GemDetector.reset();
+      }
+    }
+
+    // Re-establish sidebar watcher
+    StatusIndicator.show("Reconnecting to Gemini sidebar...", "loading", 0);
+    DomObserver.watchForSidebar((sidebar) => {
+      Logger.log("gemini-tracker", "Sidebar re-detected after page visibility change. Manager fully active.");
+      StatusIndicator.show("Gemini History Manager active", "success");
+    });
+  }
+
+  /**
    * Initializes the Gemini history manager.
    * Sets up DOM observers, event listeners, and background communication.
    *
@@ -173,8 +200,9 @@
     });
 
     /**
-     * Cleans up all observers when the page visibility changes (e.g., tab switch).
-     * Additional safety measure for observer cleanup.
+     * Handles page visibility changes (e.g., tab switch).
+     * Cleans up observers when hidden to prevent memory leaks,
+     * and re-initializes them when visible again to restore functionality.
      *
      * @returns {void}
      */
@@ -182,6 +210,9 @@
       if (document.hidden) {
         Logger.log("gemini-tracker", "Page hidden, cleaning up all observers");
         DomObserver.cleanupAllObservers();
+      } else {
+        Logger.log("gemini-tracker", "Page became visible, re-initializing observers");
+        reinitializeObservers();
       }
     });
   }
