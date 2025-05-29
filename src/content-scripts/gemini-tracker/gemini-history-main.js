@@ -235,7 +235,15 @@
         Logger.log("gemini-tracker", "Page hidden, cleaning up all observers");
         DomObserver.cleanupAllObservers();
       } else {
+        const STATE = window.GeminiHistory_STATE;
         Logger.log("gemini-tracker", "Page became visible, re-initializing observers");
+
+        // Check if we're returning during an active chat tracking session
+        if (STATE && STATE.isNewChatPending) {
+          Logger.log("gemini-tracker", "Returning during active chat tracking, restoring status indicator");
+          StatusIndicator.show("Tracking new chat...", "info");
+        }
+
         reinitializeObservers();
       }
     });
