@@ -91,6 +91,7 @@
     /**
      * Observes URL changes to detect navigation to/from Gem pages.
      * Resets the Gem detector when navigating away from a Gem page.
+     * Preserves observers during new chat creation workflows.
      *
      * @returns {void}
      */
@@ -99,8 +100,10 @@
       if (currentUrl !== lastUrl) {
         Logger.log("gemini-tracker", `URL changed: ${lastUrl} -> ${currentUrl}`);
 
-        // Special case: If we're transitioning from a Gem homepage to a Gem chat page,
-        // we don't want to reset the Gem detector as we're still in the same Gem context
+        // Check if this is a new chat creation transition that should preserve observers
+        const isNewChatTransition = Utils.isNewChatTransition(lastUrl, currentUrl);
+
+        // Special case: If we're transitioning within the same Gem context
         const isTransitionWithinGem =
           Utils.isGemHomepageUrl(lastUrl) &&
           Utils.isGemChatUrl(currentUrl) &&
@@ -111,8 +114,18 @@
             "gemini-tracker",
             "URL change is within the same Gem context, maintaining Gem detection"
           );
+        } else if (isNewChatTransition) {
+          Logger.log(
+            "gemini-tracker",
+            "URL change indicates new chat creation, preserving observers for chat detection"
+          );
+          // Don't cleanup observers - they're needed to capture the new conversation
         } else {
           // Clean up all observers when navigating to a different context
+          Logger.log(
+            "gemini-tracker",
+            "URL change indicates navigation away from chat context, cleaning up observers"
+          );
           DomObserver.cleanupAllObservers();
 
           if (GemDetector) {

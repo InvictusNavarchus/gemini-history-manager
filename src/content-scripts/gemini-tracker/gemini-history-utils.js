@@ -102,6 +102,28 @@
       const userAccountPattern = /^https:\/\/gemini\.google\.com\/u\/\d+\/app(\?.*)?$/;
       return userAccountPattern.test(url);
     },
+
+    /**
+     * Determines if a URL transition represents new chat creation that should preserve observers.
+     * This helps distinguish between navigation away from chat context vs. new chat creation.
+     *
+     * @param {string} fromUrl - The previous URL
+     * @param {string} toUrl - The current URL
+     * @returns {boolean} - True if this transition should preserve observers for chat detection
+     */
+    isNewChatTransition: function (fromUrl, toUrl) {
+      // Regular new chat: base app URL -> chat URL
+      const isRegularNewChat =
+        this.isBaseAppUrl(fromUrl) && this.isValidChatUrl(toUrl) && !this.isGemChatUrl(toUrl);
+
+      // Gem new chat: gem homepage -> gem chat with same gem ID
+      const isGemNewChat =
+        this.isGemHomepageUrl(fromUrl) &&
+        this.isGemChatUrl(toUrl) &&
+        this.extractGemId(fromUrl) === this.extractGemId(toUrl);
+
+      return isRegularNewChat || isGemNewChat;
+    },
   };
 
   window.GeminiHistory_Utils = Utils;
