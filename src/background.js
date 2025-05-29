@@ -2,6 +2,7 @@
  * Gemini History Manager - Background Script
  * Manages background events and browser action functionality
  */
+import "./lib/polyfill.js"; // Browser compatibility polyfill
 import { Logger } from "./lib/utils.js";
 
 // Initialize logger with background context
@@ -149,7 +150,7 @@ browser.runtime.onStartup.addListener(() => {
 /**
  * Log errors that occur in the background script context
  */
-window.addEventListener("error", (event) => {
+self.addEventListener("error", (event) => {
   Logger.error("background", `Uncaught error: ${event.message}`, {
     filename: event.filename,
     lineno: event.lineno,

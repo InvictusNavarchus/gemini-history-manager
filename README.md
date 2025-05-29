@@ -113,10 +113,114 @@ The extension operates through several key components:
 
 ## 🧑‍💻 Development
 
-Note: The primary development and testing workflow for this extension is centered around Mozilla Firefox, utilizing `web-ext` for streamlined development.
+Note: The extension now supports both Mozilla Firefox and Google Chrome/Chromium-based browsers with separate build targets.
 
 <details>
 <summary>See how to build the Extension</summary>
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- pnpm (recommended) or npm
+
+### Setup
+
+1. Clone the repository:
+
+   ```bash
+   git clone <repository-url>
+   cd gemini-history-manager
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+### Building
+
+#### Build for both browsers:
+
+```bash
+pnpm run build:all
+```
+
+#### Build for Firefox only:
+
+```bash
+pnpm run build:firefox
+```
+
+#### Build for Chrome only:
+
+```bash
+pnpm run build:chrome
+```
+
+This will create optimized builds in `dist-firefox/` and `dist-chrome/` directories respectively.
+
+### Development
+
+#### For Firefox development:
+
+```bash
+pnpm run dev
+```
+
+This starts a watch mode for Firefox and automatically opens Firefox with the extension loaded.
+
+#### For Chrome development:
+
+```bash
+pnpm run dev:chrome
+```
+
+This starts a watch mode for Chrome. You'll need to manually load the extension from `dist-chrome/` in Chrome's developer mode.
+
+### Packaging
+
+#### Create distribution packages for both browsers:
+
+```bash
+pnpm run package
+```
+
+#### Create packages individually:
+
+```bash
+pnpm run package:firefox
+pnpm run package:chrome
+```
+
+This creates ZIP files in `dist-zip/`:
+
+- `gemini_history_manager_firefox-<version>.zip` for Firefox
+- `gemini_history_manager_chrome-<version>.zip` for Chrome
+
+### Linting
+
+#### Lint Firefox build:
+
+```bash
+pnpm run lint
+```
+
+#### Lint Chrome build:
+
+```bash
+pnpm run lint:chrome
+```
+
+> **Note**: The Chrome build may show lint errors when using `web-ext lint` since it's primarily designed for Firefox. This is expected and doesn't affect the extension's functionality in Chrome.
+
+### Browser Compatibility
+
+The extension uses a browser compatibility shim that automatically handles API differences between Chrome and Firefox:
+
+- **Firefox**: Uses native `browser` API
+- **Chrome**: Automatically polyfills `browser` API using Chrome's `chrome` API
+
+</details>
 
 ### Prerequisites
 
@@ -229,21 +333,34 @@ Note: The primary development and testing workflow for this extension is centere
 ## 📥 Installation
 
 > [!IMPORTANT]
-> **Web Store Availability**: This extension is not yet available on the Chrome Web Store (as Chrome is not currently supported) or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
+> **Web Store Availability**: This extension is not yet available on the Chrome Web Store or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
 
 ### Manual Installation (Developer Mode)
 
 #### For Google Chrome/Chromium-based browsers:
 
-Google Chrome is not officially supported at this time. We plan to work on Chrome compatibility in the future.
+1.  Clone this repository or download and extract the ZIP file.
+2.  Build the Chrome version of the project:
+    ```bash
+    pnpm install
+    pnpm run build:chrome
+    ```
+3.  Open Chrome and navigate to `chrome://extensions/`.
+4.  Enable **Developer mode** (toggle in the top right).
+5.  Click on **Load unpacked**.
+6.  Select the `dist-chrome` directory.
 
 #### For Mozilla Firefox:
 
-1.  Clone this repository or download and extract the ZIP file (as above).
-2.  Build the project (as above).
+1.  Clone this repository or download and extract the ZIP file.
+2.  Build the Firefox version of the project:
+    ```bash
+    pnpm install
+    pnpm run build:firefox
+    ```
 3.  Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
 4.  Click on **Load Temporary Add-on...**.
-5.  Select the `manifest.json` file located inside the `dist` directory.
+5.  Select the `manifest.json` file located inside the `dist-firefox` directory.
 
 The extension icon should now appear in your browser's toolbar.
 

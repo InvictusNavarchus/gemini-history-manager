@@ -7,9 +7,12 @@ import vue from "@vitejs/plugin-vue"; // Import the Vue plugin
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Get the target browser from environment variable or default to 'firefox'
+const TARGET_BROWSER = process.env.TARGET_BROWSER || "firefox";
+
 export default defineConfig({
   build: {
-    outDir: "dist",
+    outDir: TARGET_BROWSER === "chrome" ? "dist-chrome" : "dist-firefox",
     emptyOutDir: true,
     minify: false, // Keeping minify false as per original config
     // Remove directory structure prefix from output
@@ -58,19 +61,27 @@ export default defineConfig({
         sequential: true,
         handler: async () => {
           // Changed to async to allow for potential async operations
-          // Copy manifest.json
-          fs.copySync(
-            path.resolve(__dirname, "src/manifest.json"),
-            path.resolve(__dirname, "dist/manifest.json")
-          );
-          console.log("Copied manifest.json");
+          const outDir = TARGET_BROWSER === "chrome" ? "dist-chrome" : "dist-firefox";
+          console.log(`Building for ${TARGET_BROWSER} in ${outDir}...`);
+
+          // Copy appropriate manifest file
+          const manifestSource =
+            TARGET_BROWSER === "chrome"
+              ? path.resolve(__dirname, "src/manifest-chrome.json")
+              : path.resolve(__dirname, "src/manifest-firefox.json");
+
+          fs.copySync(manifestSource, path.resolve(__dirname, `${outDir}/manifest.json`));
+          console.log(`Copied ${TARGET_BROWSER} manifest file`);
 
           // Copy icons
           const icons = globSync("src/icons/*.png");
-          fs.ensureDirSync(path.resolve(__dirname, "dist/icons"));
+          fs.ensureDirSync(path.resolve(__dirname, `${outDir}/icons`));
           icons.forEach((icon) => {
             const filename = path.basename(icon);
-            fs.copySync(path.resolve(__dirname, icon), path.resolve(__dirname, `dist/icons/${filename}`));
+            fs.copySync(
+              path.resolve(__dirname, icon),
+              path.resolve(__dirname, `${outDir}/icons/${filename}`)
+            );
           });
           console.log("Copied icons");
 
@@ -78,7 +89,7 @@ export default defineConfig({
           const htmlFiles = globSync("src/{popup,dashboard}/*.html");
           htmlFiles.forEach((file) => {
             const relativePath = file.replace(/^src\//, ""); // e.g., popup/popup.html
-            const targetPath = path.resolve(__dirname, `dist/${relativePath}`);
+            const targetPath = path.resolve(__dirname, `${outDir}/${relativePath}`);
             const dirName = path.basename(path.dirname(file)); // 'popup' or 'dashboard'
 
             // Make sure the directory exists
@@ -101,7 +112,7 @@ export default defineConfig({
           const contentScriptsPaths = globSync(`${contentScriptSourceBasePath}/**/*.js`, { cwd: __dirname });
 
           if (contentScriptsPaths.length > 0) {
-            fs.ensureDirSync(path.resolve(__dirname, "dist/content-scripts")); // Ensure base dir exists
+            fs.ensureDirSync(path.resolve(__dirname, `${outDir}/content-scripts`)); // Ensure base dir exists
           }
 
           contentScriptsPaths.forEach((scriptPath) => {
@@ -111,15 +122,16 @@ export default defineConfig({
             const relativePathToCopy = path.relative(contentScriptSourceBasePath, scriptPath);
 
             const sourceFullPath = path.resolve(__dirname, scriptPath);
-            const targetFullPath = path.resolve(__dirname, "dist/content-scripts", relativePathToCopy);
+            const targetFullPath = path.resolve(__dirname, `${outDir}/content-scripts`, relativePathToCopy);
 
             // Ensure the target directory structure exists (e.g., dist/content-scripts/gemini-tracker/)
             fs.ensureDirSync(path.dirname(targetFullPath));
 
+            // Copy content script files directly without modification
             fs.copySync(sourceFullPath, targetFullPath);
           });
           if (contentScriptsPaths.length > 0) {
-            console.log("Copied content scripts, preserving subdirectory structure.");
+            console.log(`Copied content scripts for ${TARGET_BROWSER}, preserving subdirectory structure.`);
           } else {
             console.log("No content scripts found to copy.");
           }
@@ -130,19 +142,26 @@ export default defineConfig({
           const cssFiles = globSync("src/{popup,dashboard}/*.css");
           cssFiles.forEach((file) => {
             const relativePath = file.replace(/^src\//, ""); // e.g., popup/popup.css
-            const targetPath = path.resolve(__dirname, `dist/${relativePath}`);
+            const targetPath = path.resolve(__dirname, `${outDir}/${relativePath}`);
             fs.ensureDirSync(path.dirname(targetPath));
             fs.copySync(path.resolve(__dirname, file), targetPath);
             console.log(`Copied CSS: ${relativePath}`);
           });
 
+          // Copy background script with browser shim for Chrome
+          const backgroundSource = path.resolve(__dirname, "src/background.js");
+          const backgroundTarget = path.resolve(__dirname, `${outDir}/background.js`);
+
+          // Background script is already processed by Vite build, so we don't need to modify it here
+          console.log("Background script processed by Vite build process");
+
           // Clean up unwanted directories
-          if (fs.existsSync(path.resolve(__dirname, "dist/src"))) {
-            fs.removeSync(path.resolve(__dirname, "dist/src"));
-            console.log("Cleaned up dist/src directory");
+          if (fs.existsSync(path.resolve(__dirname, `${outDir}/src`))) {
+            fs.removeSync(path.resolve(__dirname, `${outDir}/src`));
+            console.log(`Cleaned up ${outDir}/src directory`);
           }
 
-          console.log("Extension files copied successfully!");
+          console.log(`Extension files copied successfully for ${TARGET_BROWSER}!`);
         },
       },
     },

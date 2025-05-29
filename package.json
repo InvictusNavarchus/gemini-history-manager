@@ -4,11 +4,18 @@
   "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch && web-ext run --firefox-profile=development --source-dir ./dist/",
+    "build": "pnpm run build:firefox",
+    "build:firefox": "TARGET_BROWSER=firefox vite build --outDir dist-firefox",
+    "build:chrome": "TARGET_BROWSER=chrome vite build --outDir dist-chrome",
+    "build:all": "pnpm run build:firefox && pnpm run build:chrome",
+    "dev": "TARGET_BROWSER=firefox vite build --watch --outDir dist-firefox && web-ext run --firefox-profile=development --source-dir ./dist-firefox/",
+    "dev:chrome": "TARGET_BROWSER=chrome vite build --watch --outDir dist-chrome",
     "preview": "vite preview",
-    "lint": "web-ext lint --source-dir ./dist/",
-    "package": "vite build && web-ext build --config ./web-ext-config.cjs",
+    "lint": "web-ext lint --source-dir ./dist-firefox/",
+    "lint:chrome": "web-ext lint --source-dir ./dist-chrome/",
+    "package": "pnpm run build:all && pnpm run package:firefox && pnpm run package:chrome",
+    "package:firefox": "web-ext build --config ./web-ext-config-firefox.cjs",
+    "package:chrome": "web-ext build --config ./web-ext-config-chrome.cjs",
     "record-build": "node scripts/record-build.js",
     "package-record": "pnpm run package && pnpm run record-build",
     "compare-checksums": "node scripts/compare-checksums-wrapper.js",
@@ -22,6 +29,7 @@
     "history",
     "browser-extension",
     "firefox-addon",
+    "chrome-extension",
     "vue"
   ],
   "author": "InvictusNavarchus",
@@ -40,6 +48,7 @@
     "chart.js": "^4.4.0",
     "dayjs": "^1.11.10",
     "minisearch": "^7.1.2",
-    "vue": "^3.4.27"
+    "vue": "^3.4.27",
+    "webextension-polyfill": "^0.12.0"
   }
 }
