@@ -512,7 +512,7 @@
         STATE.titleObserver = new MutationObserver(() => {
           const titleElement = conversationItem.querySelector(".conversation-title");
           const placeholderPrompt = STATE.pendingPrompt;
-          if (isSidebarCollapsed() && titleElement) {
+          if (DomObserver.isSidebarCollapsed() && titleElement) {
             const currentTitle = titleElement.textContent.trim();
             if (placeholderPrompt && currentTitle === placeholderPrompt) {
               // Wait for the title to change from the placeholder
