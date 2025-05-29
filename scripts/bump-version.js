@@ -65,7 +65,16 @@ function updateFile(file, newVersion) {
 /**
  * Main entry point: parses arguments, bumps version, and updates all relevant files.
  */
+/**
+ * Throws an error if more than one CLI argument is provided (excluding node and script path).
+ * Ensures only one version bump argument is allowed.
+ */
 function main() {
+  const userArgs = process.argv.slice(2).filter((a) => a.startsWith("-"));
+  if (userArgs.length > 1) {
+    console.error("Error: Only one argument is allowed.");
+    process.exit(1);
+  }
   const type = parseArgs();
   if (!type) {
     console.error("Usage: pnpm bump --[major|minor|patch] or -[M|m|p]");
