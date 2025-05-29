@@ -59,7 +59,7 @@ def compare_checksums(builds: List[str]) -> Tuple[Dict, Dict]:
         build_number = os.path.basename(build_path).replace("build-", "")
         
         # Process browser-specific directories
-        for browser, dirname in [("firefox", "dist-firefox"), ("chrome", "dist-chrome")]:
+        for _browser, dirname in [("firefox", "dist-firefox"), ("chrome", "dist-chrome")]:
             dist_dir = os.path.join(build_path, dirname)
             if os.path.exists(dist_dir):
                 for file_path in get_all_files(dist_dir):
