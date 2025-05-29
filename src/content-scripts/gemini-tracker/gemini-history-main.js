@@ -216,11 +216,22 @@
      * Handles page visibility changes (e.g., tab switch).
      * Cleans up observers when hidden to prevent memory leaks,
      * and re-initializes them when visible again to restore functionality.
+     * Does not cleanup if a title observer is active (Gemini is currently responding).
      *
      * @returns {void}
      */
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
+        // Check if a title observer is active (Gemini is currently responding to chat)
+        const STATE = window.GeminiHistory_STATE;
+        if (STATE && (STATE.titleObserver || STATE.secondaryTitleObserver)) {
+          Logger.log(
+            "gemini-tracker",
+            "Page hidden, but title observer is active (Gemini responding). Skipping cleanup to preserve chat tracking."
+          );
+          return;
+        }
+
         Logger.log("gemini-tracker", "Page hidden, cleaning up all observers");
         DomObserver.cleanupAllObservers();
       } else {
