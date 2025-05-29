@@ -97,10 +97,7 @@
      */
     extractTitleFromSidebarItem: function (conversationItem) {
       Logger.log("gemini-tracker", "Attempting to extract title from sidebar item:", conversationItem);
-      if (conversationItem.offsetParent === null) {
-        Logger.log("Conversation item not visible (hidden). Skipping title extraction.");
-        return null;
-      }
+
       const titleElement = conversationItem.querySelector(".conversation-title");
       if (!titleElement) {
         Logger.warn("gemini-tracker", "Could not find title element (.conversation-title).");
@@ -108,7 +105,7 @@
       }
       Logger.log("gemini-tracker", "Found title container element:", titleElement);
 
-      // Special logic for collapsed sidebar
+      // Special logic for collapsed sidebar - execute first
       if (this.isSidebarCollapsed()) {
         Logger.log("gemini-tracker", "Sidebar is collapsed. Waiting for placeholder...");
         const placeholderPrompt = STATE.pendingPrompt;
@@ -135,9 +132,15 @@
         }
         Logger.warn("gemini-tracker", "Collapsed sidebar: Title was empty.");
         return null;
-      } else {
-        Logger.log("gemini-tracker", "Sidebar is not collapsed. Proceeding with normal extraction logic...");
       }
+
+      // Regular extraction logic - visibility check and normal processing
+      if (conversationItem.offsetParent === null) {
+        Logger.log("Conversation item not visible (hidden). Skipping title extraction.");
+        return null;
+      }
+
+      Logger.log("gemini-tracker", "Sidebar is not collapsed. Proceeding with normal extraction logic...");
 
       // Normal extraction logic (sidebar not collapsed)
       try {
