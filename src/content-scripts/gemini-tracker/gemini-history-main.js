@@ -14,6 +14,47 @@
   const Utils = window.GeminiHistory_Utils;
 
   /**
+   * Re-initializes observers after they have been cleaned up.
+   * Used when the page becomes visible again after being hidden.
+   *
+   * @returns {void}
+   */ function reinitializeObservers() {
+    Logger.log("gemini-tracker", "Re-initializing observers after page became visible...");
+
+    // Re-initialize GemDetector for current URL
+    const GemDetector = window.GeminiHistory_GemDetector;
+    if (GemDetector) {
+      const url = window.location.href;
+      if (Utils.isGemHomepageUrl(url) || Utils.isGemChatUrl(url)) {
+        Logger.log("gemini-tracker", "Re-detecting Gem information for current URL...");
+        GemDetector.reset();
+      }
+    }
+
+    // Check if we're currently tracking a chat
+    const STATE = window.GeminiHistory_STATE;
+    const isTrackingChat = STATE && STATE.isNewChatPending;
+
+    // Handle status indicator based on tracking state
+    if (isTrackingChat) {
+      Logger.log("gemini-tracker", "Returning during active chat tracking, restoring status indicator");
+      StatusIndicator.show("Tracking new chat...", "info");
+    } else {
+      // Re-establish sidebar watcher with loading status
+      StatusIndicator.show("Reconnecting to Gemini sidebar...", "loading", 0);
+    }
+
+    DomObserver.watchForSidebar((sidebar) => {
+      Logger.log("gemini-tracker", "Sidebar re-detected after page visibility change. Manager fully active.");
+
+      // Only show "active" status if we're not tracking a chat
+      if (!isTrackingChat) {
+        StatusIndicator.show("Gemini History Manager active", "success");
+      }
+    });
+  }
+
+  /**
    * Initializes the Gemini history manager.
    * Sets up DOM observers, event listeners, and background communication.
    *
@@ -64,6 +105,7 @@
     /**
      * Observes URL changes to detect navigation to/from Gem pages.
      * Resets the Gem detector when navigating away from a Gem page.
+     * Preserves observers during new chat creation workflows.
      *
      * @returns {void}
      */
@@ -72,8 +114,10 @@
       if (currentUrl !== lastUrl) {
         Logger.log("gemini-tracker", `URL changed: ${lastUrl} -> ${currentUrl}`);
 
-        // Special case: If we're transitioning from a Gem homepage to a Gem chat page,
-        // we don't want to reset the Gem detector as we're still in the same Gem context
+        // Check if this is a new chat creation transition that should preserve observers
+        const isNewChatTransition = Utils.isNewChatTransition(lastUrl, currentUrl);
+
+        // Special case: If we're transitioning within the same Gem context
         const isTransitionWithinGem =
           Utils.isGemHomepageUrl(lastUrl) &&
           Utils.isGemChatUrl(currentUrl) &&
@@ -84,8 +128,23 @@
             "gemini-tracker",
             "URL change is within the same Gem context, maintaining Gem detection"
           );
-        } else if (GemDetector) {
-          GemDetector.reset();
+        } else if (isNewChatTransition) {
+          Logger.log(
+            "gemini-tracker",
+            "URL change indicates new chat creation, preserving observers for chat detection"
+          );
+          // Don't cleanup observers - they're needed to capture the new conversation
+        } else {
+          // Clean up all observers when navigating to a different context
+          Logger.log(
+            "gemini-tracker",
+            "URL change indicates navigation away from chat context, cleaning up observers"
+          );
+          DomObserver.cleanupAllObservers();
+
+          if (GemDetector) {
+            GemDetector.reset();
+          }
         }
 
         lastUrl = currentUrl;
@@ -154,6 +213,46 @@
     });
 
     Logger.log("Gemini History Manager initialization complete.");
+
+    // Add cleanup for page unload to prevent memory leaks
+    /**
+     * Cleans up all observers when the page is being unloaded.
+     * Prevents memory leaks from dangling DOM observers.
+     *
+     * @returns {void}
+     */
+    window.addEventListener("beforeunload", () => {
+      Logger.log("gemini-tracker", "Page unloading, cleaning up all observers");
+      DomObserver.cleanupAllObservers();
+    });
+
+    /**
+     * Handles page visibility changes (e.g., tab switch).
+     * Completely skips all observer cleanup and re-initialization when a chat is in progress.
+     * Only processes visibility changes when no chat tracking is active.
+     *
+     * @returns {void}
+     */
+    document.addEventListener("visibilitychange", () => {
+      // Check if Gemini is currently processing a new chat - if so, do NOTHING
+      const STATE = window.GeminiHistory_STATE;
+      if (STATE && STATE.isNewChatPending) {
+        Logger.log(
+          "gemini-tracker",
+          `Page visibility changed, but new chat is pending. Doing absolutely nothing to preserve chat tracking.`
+        );
+        return;
+      }
+
+      // Only handle visibility changes when no chat is in progress
+      if (document.hidden) {
+        Logger.log("gemini-tracker", "Page hidden, cleaning up all observers");
+        DomObserver.cleanupAllObservers();
+      } else {
+        Logger.log("gemini-tracker", "Page became visible, re-initializing observers");
+        reinitializeObservers();
+      }
+    });
   }
 
   // Start the script

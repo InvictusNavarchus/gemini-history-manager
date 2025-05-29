@@ -14,6 +14,7 @@
     pendingGemUrl: null,
     sidebarObserver: null,
     titleObserver: null,
+    secondaryTitleObserver: null,
   };
 
   window.GeminiHistory_STATE = STATE;
