@@ -18,8 +18,7 @@
    * Used when the page becomes visible again after being hidden.
    *
    * @returns {void}
-   */
-  function reinitializeObservers() {
+   */ function reinitializeObservers() {
     Logger.log("gemini-tracker", "Re-initializing observers after page became visible...");
 
     // Re-initialize GemDetector for current URL
@@ -36,8 +35,12 @@
     const STATE = window.GeminiHistory_STATE;
     const isTrackingChat = STATE && STATE.isNewChatPending;
 
-    // Re-establish sidebar watcher
-    if (!isTrackingChat) {
+    // Handle status indicator based on tracking state
+    if (isTrackingChat) {
+      Logger.log("gemini-tracker", "Returning during active chat tracking, restoring status indicator");
+      StatusIndicator.show("Tracking new chat...", "info");
+    } else {
+      // Re-establish sidebar watcher with loading status
       StatusIndicator.show("Reconnecting to Gemini sidebar...", "loading", 0);
     }
 
@@ -246,15 +249,7 @@
         Logger.log("gemini-tracker", "Page hidden, cleaning up all observers");
         DomObserver.cleanupAllObservers();
       } else {
-        const STATE = window.GeminiHistory_STATE;
         Logger.log("gemini-tracker", "Page became visible, re-initializing observers");
-
-        // Check if we're returning during an active chat tracking session
-        if (STATE && STATE.isNewChatPending) {
-          Logger.log("gemini-tracker", "Returning during active chat tracking, restoring status indicator");
-          StatusIndicator.show("Tracking new chat...", "info");
-        }
-
         reinitializeObservers();
       }
     });
