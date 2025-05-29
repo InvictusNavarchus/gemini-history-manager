@@ -24,6 +24,20 @@
     },
 
     /**
+     * Cleans up all active observers to prevent memory leaks.
+     * Disconnects sidebar, title, and secondary title observers.
+     */
+    cleanupAllObservers: function () {
+      Logger.log("gemini-tracker", "Cleaning up all DOM observers...");
+
+      STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
+      STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
+      STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
+
+      Logger.log("gemini-tracker", "All DOM observers cleaned up");
+    },
+
+    /**
      * Watches for the sidebar element to appear in the DOM.
      * Calls the provided callback once the sidebar is found.
      *
@@ -323,6 +337,7 @@
       // Disconnect previous observers if they exist
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
       STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
+      STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
 
       STATE.sidebarObserver = new MutationObserver((mutationsList) => {
         this.processSidebarMutations(mutationsList);
@@ -362,6 +377,7 @@
         Logger.log("gemini-tracker", `Title found for ${expectedUrl}! Attempting to add history entry.`);
         StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
         STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
+        STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
 
         // Get the Gemini Plan from the state
         const geminiPlan = STATE.pendingGeminiPlan;
@@ -450,8 +466,9 @@
     ) {
       // Abort if URL changed
       if (window.location.href !== expectedUrl) {
-        Logger.warn("gemini-tracker", "URL changed; disconnecting TITLE observer.");
+        Logger.warn("gemini-tracker", "URL changed; disconnecting all title observers.");
         STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
+        STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
         return true;
       }
 
@@ -517,6 +534,28 @@
 
         // Enhanced observer for collapsed sidebar placeholder logic
         STATE.titleObserver = new MutationObserver(() => {
+          // Check if URL changed during observation
+          if (window.location.href !== expectedUrl) {
+            Logger.warn(
+              "gemini-tracker",
+              `URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Cleaning up all title observers.`
+            );
+            STATE.titleObserver = DomObserver.cleanupObserver(STATE.titleObserver);
+            STATE.secondaryTitleObserver = DomObserver.cleanupObserver(STATE.secondaryTitleObserver);
+            return;
+          }
+
+          // Check if the conversation item was removed from DOM (conversation deleted)
+          if (!document.contains(conversationItem)) {
+            Logger.warn(
+              "gemini-tracker",
+              "Conversation item removed from DOM. Cleaning up all title observers."
+            );
+            STATE.titleObserver = DomObserver.cleanupObserver(STATE.titleObserver);
+            STATE.secondaryTitleObserver = DomObserver.cleanupObserver(STATE.secondaryTitleObserver);
+            return;
+          }
+
           const titleElement = conversationItem.querySelector(".conversation-title");
           if (DomObserver.isSidebarCollapsed() && titleElement) {
             const currentTitle = titleElement.textContent.trim();
@@ -534,6 +573,38 @@
                 const titleToWaitFor = currentTitle || "";
 
                 STATE.secondaryTitleObserver = new MutationObserver(() => {
+                  // Check if URL changed during secondary observation
+                  if (window.location.href !== expectedUrl) {
+                    Logger.warn(
+                      "gemini-tracker",
+                      "URL changed during secondary observer. Cleaning up all title observers."
+                    );
+                    STATE.titleObserver = DomObserver.cleanupObserver(STATE.titleObserver);
+                    STATE.secondaryTitleObserver = DomObserver.cleanupObserver(STATE.secondaryTitleObserver);
+                    return;
+                  }
+
+                  // Check if the conversation item was removed from DOM (conversation deleted)
+                  if (!document.contains(conversationItem) || !document.contains(titleElement)) {
+                    Logger.warn(
+                      "gemini-tracker",
+                      "Conversation item or title element removed from DOM. Cleaning up all title observers."
+                    );
+                    STATE.titleObserver = DomObserver.cleanupObserver(STATE.titleObserver);
+                    STATE.secondaryTitleObserver = DomObserver.cleanupObserver(STATE.secondaryTitleObserver);
+                    return;
+                  }
+
+                  // Check if sidebar expanded (secondary observer no longer needed)
+                  if (!DomObserver.isSidebarCollapsed()) {
+                    Logger.log(
+                      "gemini-tracker",
+                      "Sidebar expanded while secondary observer active. Cleaning up secondary observer."
+                    );
+                    STATE.secondaryTitleObserver = DomObserver.cleanupObserver(STATE.secondaryTitleObserver);
+                    return;
+                  }
+
                   const newTitle = titleElement.textContent.trim();
 
                   // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
@@ -573,6 +644,8 @@
               Logger.log("gemini-tracker", `Collapsed sidebar: Found real title: "${currentTitle}"`);
               STATE.titleObserver.disconnect();
               STATE.titleObserver = null;
+              // Clean up secondary observer if it exists
+              STATE.secondaryTitleObserver = DomObserver.cleanupObserver(STATE.secondaryTitleObserver);
               DomObserver.processTitleAndAddHistory(
                 currentTitle,
                 expectedUrl,
@@ -585,6 +658,13 @@
               );
               return;
             }
+          } else if (STATE.secondaryTitleObserver) {
+            // Sidebar is not collapsed but secondary observer exists - clean it up
+            Logger.log(
+              "gemini-tracker",
+              "Sidebar not collapsed but secondary observer exists. Cleaning up secondary observer."
+            );
+            STATE.secondaryTitleObserver = DomObserver.cleanupObserver(STATE.secondaryTitleObserver);
           }
 
           // Normal processing for non-collapsed sidebar
@@ -638,9 +718,10 @@
       if (window.location.href !== expectedUrl) {
         Logger.warn(
           "gemini-tracker",
-          `URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting TITLE observer.`
+          `URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting all title observers.`
         );
         STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
+        STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
         return true; // Return true to indicate we should stop trying (observer is disconnected)
       }
 

@@ -84,8 +84,13 @@
             "gemini-tracker",
             "URL change is within the same Gem context, maintaining Gem detection"
           );
-        } else if (GemDetector) {
-          GemDetector.reset();
+        } else {
+          // Clean up all observers when navigating to a different context
+          DomObserver.cleanupAllObservers();
+
+          if (GemDetector) {
+            GemDetector.reset();
+          }
         }
 
         lastUrl = currentUrl;
@@ -154,6 +159,31 @@
     });
 
     Logger.log("Gemini History Manager initialization complete.");
+
+    // Add cleanup for page unload to prevent memory leaks
+    /**
+     * Cleans up all observers when the page is being unloaded.
+     * Prevents memory leaks from dangling DOM observers.
+     *
+     * @returns {void}
+     */
+    window.addEventListener("beforeunload", () => {
+      Logger.log("gemini-tracker", "Page unloading, cleaning up all observers");
+      DomObserver.cleanupAllObservers();
+    });
+
+    /**
+     * Cleans up all observers when the page visibility changes (e.g., tab switch).
+     * Additional safety measure for observer cleanup.
+     *
+     * @returns {void}
+     */
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        Logger.log("gemini-tracker", "Page hidden, cleaning up all observers");
+        DomObserver.cleanupAllObservers();
+      }
+    });
   }
 
   // Start the script
