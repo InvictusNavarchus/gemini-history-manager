@@ -32,11 +32,22 @@
       }
     }
 
+    // Check if we're currently tracking a chat
+    const STATE = window.GeminiHistory_STATE;
+    const isTrackingChat = STATE && STATE.isNewChatPending;
+
     // Re-establish sidebar watcher
-    StatusIndicator.show("Reconnecting to Gemini sidebar...", "loading", 0);
+    if (!isTrackingChat) {
+      StatusIndicator.show("Reconnecting to Gemini sidebar...", "loading", 0);
+    }
+
     DomObserver.watchForSidebar((sidebar) => {
       Logger.log("gemini-tracker", "Sidebar re-detected after page visibility change. Manager fully active.");
-      StatusIndicator.show("Gemini History Manager active", "success");
+
+      // Only show "active" status if we're not tracking a chat
+      if (!isTrackingChat) {
+        StatusIndicator.show("Gemini History Manager active", "success");
+      }
     });
   }
 
