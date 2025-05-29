@@ -24,6 +24,25 @@
     },
 
     /**
+     * Helper function to cleanup title observers and clear the new chat pending flag.
+     * Only clears the flag when both title observers are cleaned up.
+     *
+     * @returns {void}
+     */
+    cleanupTitleObservers: function () {
+      const hadTitleObservers = STATE.titleObserver || STATE.secondaryTitleObserver;
+
+      STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
+      STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
+
+      // Clear the new chat pending flag only if we had title observers
+      if (hadTitleObservers && STATE.isNewChatPending) {
+        STATE.isNewChatPending = false;
+        Logger.log("gemini-tracker", "Title observers cleaned up, cleared isNewChatPending flag");
+      }
+    },
+
+    /**
      * Cleans up all active observers to prevent memory leaks.
      * Disconnects sidebar, title, and secondary title observers.
      */
@@ -31,8 +50,7 @@
       Logger.log("gemini-tracker", "Cleaning up all DOM observers...");
 
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
-      STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
-      STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
+      this.cleanupTitleObservers();
 
       Logger.log("gemini-tracker", "All DOM observers cleaned up");
     },
@@ -276,8 +294,8 @@
         // Stage 1 Complete: Found the Item - Disconnect the MAIN observer
         STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
 
-        // Clear pending flags
-        STATE.isNewChatPending = false;
+        // Clear most pending flags, but keep isNewChatPending until title is captured
+        // This ensures page visibility changes don't cleanup observers while title capture is in progress
         STATE.pendingModelName = null;
         STATE.pendingPrompt = null;
         STATE.pendingAttachedFiles = [];
@@ -336,8 +354,7 @@
 
       // Disconnect previous observers if they exist
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
-      STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
-      STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
+      this.cleanupTitleObservers();
 
       STATE.sidebarObserver = new MutationObserver((mutationsList) => {
         this.processSidebarMutations(mutationsList);
@@ -376,8 +393,7 @@
       if (title) {
         Logger.log("gemini-tracker", `Title found for ${expectedUrl}! Attempting to add history entry.`);
         StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
-        STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
-        STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
+        this.cleanupTitleObservers();
 
         // Get the Gemini Plan from the state
         const geminiPlan = STATE.pendingGeminiPlan;
@@ -436,6 +452,10 @@
           StatusIndicator.update("Chat not saved (already exists or invalid)", "info");
         }
 
+        // Note: We don't clear isNewChatPending here because this function is called
+        // immediately when title is found, but observers may still be active.
+        // The flag will be cleared when observers are actually cleaned up.
+
         return true;
       }
       return false;
@@ -467,8 +487,7 @@
       // Abort if URL changed
       if (window.location.href !== expectedUrl) {
         Logger.warn("gemini-tracker", "URL changed; disconnecting all title observers.");
-        STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
-        STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
+        this.cleanupTitleObservers();
         return true;
       }
 
@@ -541,8 +560,7 @@
               "gemini-tracker",
               `URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Cleaning up all title observers.`
             );
-            STATE.titleObserver = self.cleanupObserver(STATE.titleObserver);
-            STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
+            self.cleanupTitleObservers();
             return;
           }
 
@@ -552,8 +570,7 @@
               "gemini-tracker",
               "Conversation item removed from DOM. Cleaning up all title observers."
             );
-            STATE.titleObserver = self.cleanupObserver(STATE.titleObserver);
-            STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
+            self.cleanupTitleObservers();
             return;
           }
 
@@ -580,8 +597,7 @@
                       "gemini-tracker",
                       "URL changed during secondary observer. Cleaning up all title observers."
                     );
-                    STATE.titleObserver = self.cleanupObserver(STATE.titleObserver);
-                    STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
+                    self.cleanupTitleObservers();
                     return;
                   }
 
@@ -591,8 +607,7 @@
                       "gemini-tracker",
                       "Conversation item or title element removed from DOM. Cleaning up all title observers."
                     );
-                    STATE.titleObserver = self.cleanupObserver(STATE.titleObserver);
-                    STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
+                    self.cleanupTitleObservers();
                     return;
                   }
 
@@ -616,10 +631,7 @@
                   ) {
                     Logger.log("gemini-tracker", `Secondary observer: Real title detected: "${newTitle}"`);
                     // Clean up observers
-                    STATE.secondaryTitleObserver.disconnect();
-                    STATE.secondaryTitleObserver = null;
-                    STATE.titleObserver.disconnect();
-                    STATE.titleObserver = null;
+                    self.cleanupTitleObservers();
                     // Continue with chat data extraction as usual
                     self.processTitleAndAddHistory(
                       newTitle,
@@ -643,10 +655,7 @@
             } else {
               // We have a title that's different from placeholder, use it
               Logger.log("gemini-tracker", `Collapsed sidebar: Found real title: "${currentTitle}"`);
-              STATE.titleObserver.disconnect();
-              STATE.titleObserver = null;
-              // Clean up secondary observer if it exists
-              STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
+              self.cleanupTitleObservers();
               self.processTitleAndAddHistory(
                 currentTitle,
                 expectedUrl,
