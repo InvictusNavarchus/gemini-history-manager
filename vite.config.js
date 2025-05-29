@@ -64,14 +64,14 @@ export default defineConfig({
           const outDir = TARGET_BROWSER === "chrome" ? "dist-chrome" : "dist-firefox";
           console.log(`Building for ${TARGET_BROWSER} in ${outDir}...`);
 
-          // Copy appropriate manifest.json
+          // Copy appropriate manifest file
           const manifestSource =
             TARGET_BROWSER === "chrome"
               ? path.resolve(__dirname, "src/manifest-chrome.json")
-              : path.resolve(__dirname, "src/manifest.json");
+              : path.resolve(__dirname, "src/manifest-firefox.json");
 
           fs.copySync(manifestSource, path.resolve(__dirname, `${outDir}/manifest.json`));
-          console.log(`Copied ${TARGET_BROWSER} manifest.json`);
+          console.log(`Copied ${TARGET_BROWSER} manifest file`);
 
           // Copy icons
           const icons = globSync("src/icons/*.png");
