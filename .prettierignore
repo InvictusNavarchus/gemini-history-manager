@@ -1,6 +1,10 @@
 # Build output
 dist/
 dist-zip/
+dist-chrome/
+dist-firefox/
+dist-record/
+dist-stable/
 
 # gitingest dump
 gitingest-dump/
