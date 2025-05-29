@@ -228,24 +228,24 @@
 
     /**
      * Handles page visibility changes (e.g., tab switch).
-     * Cleans up observers when hidden to prevent memory leaks,
-     * and re-initializes them when visible again to restore functionality.
-     * Does not cleanup if a new chat is pending (Gemini is currently responding).
+     * Completely skips all observer cleanup and re-initialization when a chat is in progress.
+     * Only processes visibility changes when no chat tracking is active.
      *
      * @returns {void}
      */
     document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        // Check if Gemini is currently processing a new chat
-        const STATE = window.GeminiHistory_STATE;
-        if (STATE && STATE.isNewChatPending) {
-          Logger.log(
-            "gemini-tracker",
-            "Page hidden, but new chat is pending (Gemini responding). Skipping cleanup to preserve chat tracking."
-          );
-          return;
-        }
+      // Check if Gemini is currently processing a new chat - if so, do NOTHING
+      const STATE = window.GeminiHistory_STATE;
+      if (STATE && STATE.isNewChatPending) {
+        Logger.log(
+          "gemini-tracker",
+          `Page visibility changed, but new chat is pending. Doing absolutely nothing to preserve chat tracking.`
+        );
+        return;
+      }
 
+      // Only handle visibility changes when no chat is in progress
+      if (document.hidden) {
         Logger.log("gemini-tracker", "Page hidden, cleaning up all observers");
         DomObserver.cleanupAllObservers();
       } else {
