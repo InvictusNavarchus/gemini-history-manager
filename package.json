@@ -22,7 +22,8 @@
     "format": "pretty-quick --staged",
     "format:check": "pretty-quick --check --staged",
     "format:all": "prettier --write \"**/*.{js,vue,json,css,md,html}\"",
-    "format:check:all": "prettier --check \"**/*.{js,vue,json,css,md,html}\""
+    "format:check:all": "prettier --check \"**/*.{js,vue,json,css,md,html}\"",
+    "bump": "node scripts/bump-version.js"
   },
   "keywords": [
     "gemini",
