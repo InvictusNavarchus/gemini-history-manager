@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Gemini History Manager",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
-  "permissions": ["storage", "unlimitedStorage"],
+  "permissions": [
+    "storage",
+    "unlimitedStorage"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -20,7 +23,9 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://gemini.google.com/*"],
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
       "js": [
         "content-scripts/polyfill-content.js",
         "content-scripts/logger-inject.js",
