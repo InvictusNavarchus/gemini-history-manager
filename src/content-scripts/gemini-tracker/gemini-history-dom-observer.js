@@ -157,15 +157,17 @@
         }
 
         // If we have a placeholder prompt and the current title is different AND non-empty, return it
-        // But only if it's not a truncated version of the placeholder (using startsWith to detect truncation)
-        if (
-          currentTitle &&
-          placeholderPrompt &&
-          currentTitle !== placeholderPrompt &&
-          !placeholderPrompt.startsWith(currentTitle)
-        ) {
-          Logger.log("gemini-tracker", `Collapsed sidebar: Extracted real title: "${currentTitle}"`);
-          return currentTitle;
+        // But only if it's not a truncated version of the placeholder
+        // Normalize both strings by collapsing whitespace to handle line breaks properly
+        if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
+          const normalizedTitle = currentTitle.replace(/\s+/g, " ").trim();
+          const normalizedPrompt = placeholderPrompt.replace(/\s+/g, " ").trim();
+
+          // Check if the title is NOT a truncated version of the prompt
+          if (!normalizedPrompt.startsWith(normalizedTitle)) {
+            Logger.log("gemini-tracker", `Collapsed sidebar: Extracted real title: "${currentTitle}"`);
+            return currentTitle;
+          }
         }
 
         // Otherwise, always return null to trigger the secondary observer setup
