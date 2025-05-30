@@ -64,6 +64,7 @@
         },
       };
     }
-    console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [Content Script Polyfill] Browser API polyfill loaded`);
+    const getPrefix = () => `[${new Date().toTimeString().slice(0, 8)}] [GHM] [Content Script Polyfill]`;
+    console.log(`${getPrefix()} Browser API polyfill loaded`);
   }
 })();

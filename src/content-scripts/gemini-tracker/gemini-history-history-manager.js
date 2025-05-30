@@ -12,22 +12,22 @@
      * @returns {Promise<Array>} - Promise resolving to array of history entries or empty array if none found or on error
      */
     loadHistory: function () {
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Loading history from storage...`);
+      console.log(`${window.GeminiHistory_Utils.getPrefix()} Loading history from storage...`);
       return new Promise((resolve) => {
         browser.storage.local
           .get(CONFIG.STORAGE_KEY)
           .then((data) => {
             const history = data[CONFIG.STORAGE_KEY] || [];
             if (Array.isArray(history)) {
-              console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] History loaded successfully. Found ${history.length} entries.`);
+              console.log(`${window.GeminiHistory_Utils.getPrefix()} History loaded successfully. Found ${history.length} entries.`);
               resolve(history);
             } else {
-              console.warn(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Stored history data is not an array. Returning empty history.`);
+              console.warn(`${window.GeminiHistory_Utils.getPrefix()} Stored history data is not an array. Returning empty history.`);
               resolve([]);
             }
           })
           .catch((error) => {
-            console.error(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error loading history:`, error);
+            console.error(`${window.GeminiHistory_Utils.getPrefix()} Error loading history:`, error);
             StatusIndicator.show("Error loading chat history", "error");
             resolve([]);
           });
@@ -40,9 +40,9 @@
      * @returns {Promise} Promise resolving when save is complete.
      */
     saveHistory: function (history) {
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Attempting to save history with ${history.length} entries...`);
+      console.log(`${window.GeminiHistory_Utils.getPrefix()} Attempting to save history with ${history.length} entries...`);
       if (!Array.isArray(history)) {
-        console.error(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Attempted to save non-array data. Aborting save.`);
+        console.error(`${window.GeminiHistory_Utils.getPrefix()} Attempted to save non-array data. Aborting save.`);
         StatusIndicator.show("Error saving history data", "error");
         return Promise.reject(new Error("Cannot save non-array data"));
       }
@@ -50,17 +50,17 @@
       return browser.storage.local
         .set({ [CONFIG.STORAGE_KEY]: history })
         .then(() => {
-          console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] History saved successfully.`);
+          console.log(`${window.GeminiHistory_Utils.getPrefix()} History saved successfully.`);
           // Send message to background script to update badge
           browser.runtime
             .sendMessage({
               action: "updateHistoryCount",
               count: history.length,
             })
-            .catch((err) => console.error(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error sending message to background:`, err));
+            .catch((err) => console.error(`${window.GeminiHistory_Utils.getPrefix()} Error sending message to background:`, err));
         })
         .catch((error) => {
-          console.error(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error saving history:`, error);
+          console.error(`${window.GeminiHistory_Utils.getPrefix()} Error saving history:`, error);
           StatusIndicator.show("Error saving chat history", "error");
           throw error;
         });
@@ -112,7 +112,7 @@
         gemName,
         gemUrl,
       };
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Attempting to add history entry:`, entryData);
+      console.log(`${window.GeminiHistory_Utils.getPrefix()} Attempting to add history entry:`, entryData);
 
       // Basic validation (Title, URL, Timestamp, Model are still required)
       if (!timestamp || !url || !title || !model) {
@@ -138,18 +138,18 @@
 
         // Prevent duplicates based on URL
         if (history.some((entry) => entry.url === url)) {
-          console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Duplicate URL detected, skipping entry:`, url);
+          console.log(`${window.GeminiHistory_Utils.getPrefix()} Duplicate URL detected, skipping entry:`, url);
           StatusIndicator.show("Chat already in history", "info");
           return false; // Indicate failure (or already added)
         }
 
         history.unshift(entryData); // Add to beginning
         await this.saveHistory(history);
-        console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Successfully added history entry.`);
+        console.log(`${window.GeminiHistory_Utils.getPrefix()} Successfully added history entry.`);
         StatusIndicator.show(`Chat "${title}" saved to history`, "success");
         return true; // Indicate success
       } catch (error) {
-        console.error(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error adding history entry:`, error);
+        console.error(`${window.GeminiHistory_Utils.getPrefix()} Error adding history entry:`, error);
         StatusIndicator.show("Failed to add chat to history", "error");
         return false;
       }

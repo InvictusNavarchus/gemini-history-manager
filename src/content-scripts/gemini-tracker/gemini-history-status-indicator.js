@@ -160,7 +160,7 @@
       document.body.appendChild(indicator);
 
       this.element = indicator;
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Status indicator initialized`);
+      console.log(`${window.GeminiHistory_Utils.getPrefix()} Status indicator initialized`);
     },
 
     /**
