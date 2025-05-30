@@ -6,7 +6,6 @@
 (function () {
   "use strict";
 
-  const Logger = window.GeminiHistoryLogger;
   const StatusIndicator = window.GeminiHistory_StatusIndicator;
   const LogConfig = window.GeminiHistory_LogConfig;
   const DomObserver = window.GeminiHistory_DomObserver;
@@ -19,14 +18,14 @@
    *
    * @returns {void}
    */ function reinitializeObservers() {
-    Logger.log("gemini-tracker", "Re-initializing observers after page became visible...");
+    console.log(`${Utils.getPrefix()} Re-initializing observers after page became visible...`);
 
     // Re-initialize GemDetector for current URL
     const GemDetector = window.GeminiHistory_GemDetector;
     if (GemDetector) {
       const url = window.location.href;
       if (Utils.isGemHomepageUrl(url) || Utils.isGemChatUrl(url)) {
-        Logger.log("gemini-tracker", "Re-detecting Gem information for current URL...");
+        console.log(`${Utils.getPrefix()} Re-detecting Gem information for current URL...`);
         GemDetector.reset();
       }
     }
@@ -37,7 +36,7 @@
 
     // Handle status indicator based on tracking state
     if (isTrackingChat) {
-      Logger.log("gemini-tracker", "Returning during active chat tracking, restoring status indicator");
+      console.log(`${Utils.getPrefix()} Returning during active chat tracking, restoring status indicator`);
       StatusIndicator.show("Tracking new chat...", "info");
     } else {
       // Re-establish sidebar watcher with loading status
@@ -45,7 +44,9 @@
     }
 
     DomObserver.watchForSidebar((sidebar) => {
-      Logger.log("gemini-tracker", "Sidebar re-detected after page visibility change. Manager fully active.");
+      console.log(
+        `${Utils.getPrefix()} Sidebar re-detected after page visibility change. Manager fully active.`
+      );
 
       // Only show "active" status if we're not tracking a chat
       if (!isTrackingChat) {
@@ -61,7 +62,7 @@
    * @returns {void}
    */
   function init() {
-    Logger.log("gemini-tracker", "Initializing Gemini History Manager...");
+    console.log(`${Utils.getPrefix()} Initializing Gemini History Manager...`);
 
     // Initialize status indicator
     /**
@@ -82,7 +83,10 @@
      */
     window.addEventListener("storage", (event) => {
       if (event.key === LogConfig.CONFIG_STORAGE_KEY) {
-        Logger.debug("ContentScript", "Logging configuration changed in localStorage, invalidating cache");
+        // Log config change using standard prefix
+        console.debug(
+          `${Utils.getPrefix()} [ContentScript] Logging configuration changed in localStorage, invalidating cache`
+        );
         LogConfig.invalidateConfigCache();
       }
     });
@@ -95,7 +99,7 @@
     if (GemDetector) {
       const url = window.location.href;
       if (Utils.isGemHomepageUrl(url) || Utils.isGemChatUrl(url)) {
-        Logger.log("gemini-tracker", "Detected Gem URL. Starting Gem detection...");
+        console.log(`${Utils.getPrefix()} Detected Gem URL. Starting Gem detection...`);
         GemDetector.reset();
       }
     }
@@ -112,7 +116,7 @@
     new MutationObserver(() => {
       const currentUrl = window.location.href;
       if (currentUrl !== lastUrl) {
-        Logger.log("gemini-tracker", `URL changed: ${lastUrl} -> ${currentUrl}`);
+        console.log(`${Utils.getPrefix()} URL changed: ${lastUrl} -> ${currentUrl}`);
 
         // Check if this is a new chat creation transition that should preserve observers
         const isNewChatTransition = Utils.isNewChatTransition(lastUrl, currentUrl);
@@ -124,21 +128,21 @@
           Utils.extractGemId(lastUrl) === Utils.extractGemId(currentUrl);
 
         if (isTransitionWithinGem) {
-          Logger.log(
-            "gemini-tracker",
-            "URL change is within the same Gem context, maintaining Gem detection"
+          // Log URL change using standard prefix
+          console.log(
+            `${Utils.getPrefix()} URL change is within the same Gem context, maintaining Gem detection`
           );
         } else if (isNewChatTransition) {
-          Logger.log(
-            "gemini-tracker",
-            "URL change indicates new chat creation, preserving observers for chat detection"
+          // Log URL change using standard prefix
+          console.log(
+            `${Utils.getPrefix()} URL change indicates new chat creation, preserving observers for chat detection`
           );
           // Don't cleanup observers - they're needed to capture the new conversation
         } else {
           // Clean up all observers when navigating to a different context
-          Logger.log(
-            "gemini-tracker",
-            "URL change indicates navigation away from chat context, cleaning up observers"
+          // Log URL change using standard prefix
+          console.log(
+            `${Utils.getPrefix()} URL change indicates navigation away from chat context, cleaning up observers`
           );
           DomObserver.cleanupAllObservers();
 
@@ -160,12 +164,12 @@
      * @returns {void}
      */
     DomObserver.watchForSidebar((sidebar) => {
-      Logger.log("gemini-tracker", "Sidebar confirmed available. Manager fully active.");
+      console.log(`${Utils.getPrefix()} Sidebar confirmed available. Manager fully active.`);
       StatusIndicator.show("Gemini History Manager active", "success");
     });
 
     // Attach main click listener
-    Logger.log("gemini-tracker", "Attaching main click listener to document body...");
+    console.log(`${Utils.getPrefix()} Attaching main click listener to document body...`);
     /**
      * Handles click events on the document body.
      * Triggers the send click handler when a click event is detected.
@@ -206,13 +210,17 @@
 
       // Handle invalidate cache message from dashboard or popup
       if (message.action === "invalidateLogConfigCache") {
-        Logger.debug("ContentScript", "Received request to invalidate logging config cache");
+        // Log cache invalidate using standard prefix
+        console.debug(
+          `${Utils.getPrefix()} [ContentScript] Received request to invalidate logging config cache`
+        );
         LogConfig.invalidateConfigCache();
         return Promise.resolve({ success: true });
       }
     });
 
-    Logger.log("Gemini History Manager initialization complete.");
+    // Log initialization using standard prefix
+    console.log(`${Utils.getPrefix()} [Gemini History Manager initialization complete.`);
 
     // Add cleanup for page unload to prevent memory leaks
     /**
@@ -222,7 +230,7 @@
      * @returns {void}
      */
     window.addEventListener("beforeunload", () => {
-      Logger.log("gemini-tracker", "Page unloading, cleaning up all observers");
+      console.log(`${Utils.getPrefix()} Page unloading, cleaning up all observers`);
       DomObserver.cleanupAllObservers();
     });
 
@@ -237,19 +245,18 @@
       // Check if Gemini is currently processing a new chat - if so, do NOTHING
       const STATE = window.GeminiHistory_STATE;
       if (STATE && STATE.isNewChatPending) {
-        Logger.log(
-          "gemini-tracker",
-          `Page visibility changed, but new chat is pending. Doing absolutely nothing to preserve chat tracking.`
+        console.log(
+          `[${Utils.getPrefix()}] Page visibility changed, but new chat is pending. Doing absolutely nothing to preserve chat tracking.`
         );
         return;
       }
 
       // Only handle visibility changes when no chat is in progress
       if (document.hidden) {
-        Logger.log("gemini-tracker", "Page hidden, cleaning up all observers");
+        console.log(`${Utils.getPrefix()} Page hidden, cleaning up all observers`);
         DomObserver.cleanupAllObservers();
       } else {
-        Logger.log("gemini-tracker", "Page became visible, re-initializing observers");
+        console.log(`${Utils.getPrefix()} Page became visible, re-initializing observers`);
         reinitializeObservers();
       }
     });

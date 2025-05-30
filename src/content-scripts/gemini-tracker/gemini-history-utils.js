@@ -1,10 +1,18 @@
 (function () {
   "use strict";
 
-  const Logger = window.GeminiHistoryLogger;
   const CONFIG = window.GeminiHistory_CONFIG;
 
   const Utils = {
+    /**
+     * Gets a formatted prefix for console logging.
+     *
+     * @returns {string} - Formatted prefix with time and tracker name: [HH:MM:SS] [gemini-tracker]
+     */
+    getPrefix: function () {
+      return `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker]`;
+    },
+
     /**
      * Gets the current timestamp in ISO 8601 UTC format.
      *
@@ -14,7 +22,7 @@
       try {
         return new Date().toISOString(); // Returns ISO 8601 format with UTC timezone
       } catch (e) {
-        Logger.error("gemini-tracker", "Error getting ISO UTC timestamp:", e);
+        console.error(`${Utils.getPrefix()} Error getting ISO UTC timestamp:`, e);
         return new Date().toISOString(); // Same fallback since it's the primary method
       }
     },
@@ -149,24 +157,24 @@
      * @returns {boolean} - True if truncatedText appears to be a truncated version of originalText
      */
     isTruncatedVersion: function (originalText, truncatedText) {
-      Logger.log("gemini-tracker", "--- Standard isTruncatedVersion called ---");
-      Logger.log("gemini-tracker", `Standard originalText: "${originalText}"`);
-      Logger.log("gemini-tracker", `Standard truncatedText: "${truncatedText}"`);
+      console.log(`${Utils.getPrefix()} --- Standard isTruncatedVersion called ---`);
+      console.log(`${Utils.getPrefix()} Standard originalText: "${originalText}"`);
+      console.log(`${Utils.getPrefix()} Standard truncatedText: "${truncatedText}"`);
 
       if (!originalText || !truncatedText) {
-        Logger.log("gemini-tracker", "Standard: Early return false - missing text");
+        console.log(`${Utils.getPrefix()} Standard: Early return false - missing text`);
         return false;
       }
 
       const normalizedOriginal = this.normalizeWhitespace(originalText);
       const normalizedTruncated = this.normalizeWhitespace(truncatedText);
 
-      Logger.log("gemini-tracker", `Standard normalized original: "${normalizedOriginal}"`);
-      Logger.log("gemini-tracker", `Standard normalized truncated: "${normalizedTruncated}"`);
+      console.log(`${Utils.getPrefix()} Standard normalized original: "${normalizedOriginal}"`);
+      console.log(`${Utils.getPrefix()} Standard normalized truncated: "${normalizedTruncated}"`);
 
       const result = normalizedOriginal.startsWith(normalizedTruncated);
-      Logger.log("gemini-tracker", `Standard startsWith result: ${result}`);
-      Logger.log("gemini-tracker", "--- Standard comparison complete ---");
+      console.log(`${Utils.getPrefix()} Standard startsWith result: ${result}`);
+      console.log(`${Utils.getPrefix()} --- Standard comparison complete ---`);
 
       return result;
     },
@@ -182,45 +190,45 @@
      * @returns {boolean} - True if truncatedText appears to be a truncated version of the original (should be ignored as placeholder)
      */
     isTruncatedVersionEnhanced: function (originalText, truncatedText, realOriginalText = null) {
-      Logger.log("gemini-tracker", "=== isTruncatedVersionEnhanced called ===");
-      Logger.log("gemini-tracker", `Input originalText: "${originalText}"`);
-      Logger.log("gemini-tracker", `Input truncatedText: "${truncatedText}"`);
-      Logger.log("gemini-tracker", `Input realOriginalText: "${realOriginalText}"`);
+      console.log(`${Utils.getPrefix()} === isTruncatedVersionEnhanced called ===`);
+      console.log(`${Utils.getPrefix()} Input originalText: "${originalText}"`);
+      console.log(`${Utils.getPrefix()} Input truncatedText: "${truncatedText}"`);
+      console.log(`${Utils.getPrefix()} Input realOriginalText: "${realOriginalText}"`);
 
       if (!originalText || !truncatedText) {
-        Logger.log("gemini-tracker", "Early return: missing originalText or truncatedText");
+        console.log(`${Utils.getPrefix()} Early return: missing originalText or truncatedText`);
         return false;
       }
 
       // If we have the real original text, use it for comparison instead of the placeholder
       if (realOriginalText && realOriginalText.trim()) {
-        Logger.log("gemini-tracker", "Using realOriginalText for enhanced comparison");
+        console.log(`${Utils.getPrefix()} Using realOriginalText for enhanced comparison`);
 
         const normalizedRealOriginal = this.normalizeWhitespace(realOriginalText);
         const normalizedTruncated = this.normalizeWhitespace(truncatedText);
 
-        Logger.log("gemini-tracker", `Normalized realOriginal: "${normalizedRealOriginal}"`);
-        Logger.log("gemini-tracker", `Normalized truncated: "${normalizedTruncated}"`);
+        console.log(`${Utils.getPrefix()} Normalized realOriginal: "${normalizedRealOriginal}"`);
+        console.log(`${Utils.getPrefix()} Normalized truncated: "${normalizedTruncated}"`);
 
         // If the real original text starts with the truncated text, then the title is a placeholder
         const startsWithResult = normalizedRealOriginal.startsWith(normalizedTruncated);
-        Logger.log("gemini-tracker", `realOriginal.startsWith(truncated): ${startsWithResult}`);
+        console.log(`${Utils.getPrefix()} realOriginal.startsWith(truncated): ${startsWithResult}`);
 
         if (startsWithResult) {
-          Logger.log("gemini-tracker", "DECISION: Title is a PLACEHOLDER (should be ignored)");
+          console.log(`${Utils.getPrefix()} DECISION: Title is a PLACEHOLDER (should be ignored)`);
         } else {
-          Logger.log("gemini-tracker", "DECISION: Title is a REAL TITLE (should be kept)");
+          console.log(`${Utils.getPrefix()} DECISION: Title is a REAL TITLE (should be kept)`);
         }
 
-        Logger.log("gemini-tracker", "=== Enhanced comparison complete ===");
+        console.log(`${Utils.getPrefix()} === Enhanced comparison complete ===`);
         return startsWithResult;
       }
 
       // Fallback to the standard comparison
-      Logger.log("gemini-tracker", "No realOriginalText available, falling back to standard comparison");
+      console.log(`${Utils.getPrefix()} No realOriginalText available, falling back to standard comparison`);
       const standardResult = this.isTruncatedVersion(originalText, truncatedText);
-      Logger.log("gemini-tracker", `Standard comparison result: ${standardResult}`);
-      Logger.log("gemini-tracker", "=== Fallback comparison complete ===");
+      console.log(`${Utils.getPrefix()} Standard comparison result: ${standardResult}`);
+      console.log(`${Utils.getPrefix()} === Fallback comparison complete ===`);
 
       return standardResult;
     },

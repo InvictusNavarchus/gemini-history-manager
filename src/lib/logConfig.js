@@ -22,7 +22,6 @@ const DEFAULT_CONFIG = {
     // Core modules
     App: true,
     Background: true,
-    ContentScript: true,
 
     // Dashboard components
     ConversationDetail: true,
@@ -94,6 +93,10 @@ export function loadLogConfig(forceRefresh = false) {
                 ...(parsedConfig.components || {}),
               },
             };
+            // Remove ContentScript from loaded config if it exists from an old storage
+            if (configCache.components && configCache.components.ContentScript) {
+              delete configCache.components.ContentScript;
+            }
           }
         })
         .catch((error) => {
@@ -128,6 +131,10 @@ export function loadLogConfig(forceRefresh = false) {
           ...(parsedConfig.components || {}),
         },
       };
+      // Remove ContentScript from loaded config if it exists from an old storage
+      if (configCache.components && configCache.components.ContentScript) {
+        delete configCache.components.ContentScript;
+      }
       return configCache;
     }
   } catch (error) {

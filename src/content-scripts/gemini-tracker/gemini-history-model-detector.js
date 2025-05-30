@@ -1,9 +1,7 @@
 (function () {
   "use strict";
-
-  const Logger = window.GeminiHistoryLogger;
+  const Utils = window.GeminiHistory_Utils;
   const MODEL_NAMES = window.GeminiHistory_MODEL_NAMES;
-
   const ModelDetector = {
     /**
      * Detects the current Gemini plan based on UI elements.
@@ -74,20 +72,20 @@
         const tooltips = tooltipContainer.querySelectorAll("[role='tooltip']");
         for (const tooltip of tooltips) {
           const tooltipText = tooltip.textContent.trim();
-          Logger.log("gemini-tracker", `Found tooltip with text: "${tooltipText}"`);
+          console.log(`${Utils.getPrefix()} Found tooltip with text: "${tooltipText}"`);
 
           if (tooltipText.includes("Veo 3")) {
-            Logger.log("gemini-tracker", "Veo 3 is detected via tooltip");
+            console.log(`${Utils.getPrefix()} Veo 3 is detected via tooltip`);
             return "Veo 3";
           } else if (tooltipText.includes("Veo 2")) {
-            Logger.log("gemini-tracker", "Veo 2 is detected via tooltip");
+            console.log(`${Utils.getPrefix()} Veo 2 is detected via tooltip`);
             return "Veo 2";
           }
         }
       }
 
       // Fallback to Veo 2 if tooltip detection fails
-      Logger.log("gemini-tracker", "Could not determine Veo version, defaulting to Veo 2");
+      console.log(`${Utils.getPrefix()} Could not determine Veo version, defaulting to Veo 2`);
       return "Veo 2";
     },
 
@@ -98,13 +96,13 @@
      * @returns {string|null} - Returns the special model name if detected, or null if none detected
      */
     checkForSpecialTools: function () {
-      Logger.log("gemini-tracker", "Checking for special tools (Deep Research, Veo)...");
+      console.log(`${Utils.getPrefix()} Checking for special tools (Deep Research, Veo)...`);
 
       // Get all activated tools in the toolbox drawer
       const activatedButtons = document.querySelectorAll(
         'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
       );
-      Logger.log("gemini-tracker", `Found ${activatedButtons.length} activated tool buttons`);
+      console.log(`${Utils.getPrefix()} Found ${activatedButtons.length} activated tool buttons`);
 
       // Check each button to see if it's one of our special tools
       for (const button of activatedButtons) {
@@ -112,15 +110,15 @@
         if (!labelElement) continue;
 
         const buttonText = labelElement.textContent.trim();
-        Logger.log("gemini-tracker", `Found activated button with text: "${buttonText}"`);
+        console.log(`${Utils.getPrefix()} Found activated button with text: "${buttonText}"`);
 
         if (buttonText.includes("Deep Research")) {
-          Logger.log("gemini-tracker", "Deep Research tool is activated");
+          console.log(`${Utils.getPrefix()} Deep Research tool is activated`);
           return "Deep Research";
         }
 
         if (buttonText.includes("Video")) {
-          Logger.log("gemini-tracker", "Video tool is activated, checking for Veo version...");
+          console.log(`${Utils.getPrefix()} Video tool is activated, checking for Veo version...`);
           return this.detectVeoVersion();
         }
       }
@@ -135,7 +133,7 @@
             'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
           );
           if (deepResearchButton) {
-            Logger.log("gemini-tracker", "Deep Research tool is activated (detected via icon)");
+            console.log(`${Utils.getPrefix()} Deep Research tool is activated (detected via icon)`);
             return "Deep Research";
           }
         }
@@ -147,9 +145,9 @@
             'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
           );
           if (videoButton) {
-            Logger.log(
-              "gemini-tracker",
-              "Video tool is activated (detected via icon), checking for Veo version..."
+            // Log activation using standard prefix
+            console.log(
+              `${Utils.getPrefix()} Video tool is activated (detected via icon), checking for Veo version...`
             );
             return this.detectVeoVersion();
           }
@@ -167,12 +165,12 @@
      * @returns {string} - The detected model name or 'Unknown' if not found
      */
     getCurrentModelName: function () {
-      Logger.log("gemini-tracker", "Attempting to get current model name...");
+      console.log(`${Utils.getPrefix()} Attempting to get current model name...`);
 
       // First, check for special tools that override the model name
       const specialTool = this.checkForSpecialTools();
       if (specialTool) {
-        Logger.log("gemini-tracker", `Special tool activated: ${specialTool}`);
+        console.log(`${Utils.getPrefix()} Special tool activated: ${specialTool}`);
         return specialTool;
       }
 
@@ -186,9 +184,9 @@
       if (modelButton && modelButton.textContent) {
         rawText = modelButton.textContent.trim();
         foundVia = "New Button Structure";
-        Logger.log("gemini-tracker", `Model raw text found via ${foundVia}: "${rawText}"`);
+        console.log(`${Utils.getPrefix()} Model raw text found via ${foundVia}: "${rawText}"`);
       } else {
-        Logger.log("gemini-tracker", "Model not found via New Button Structure.");
+        console.log(`${Utils.getPrefix()} Model not found via New Button Structure.`);
         // Try #2: data-test-id
         const modelElement = document.querySelector(
           'bard-mode-switcher [data-test-id="attribution-text"] span'
@@ -196,17 +194,17 @@
         if (modelElement && modelElement.textContent) {
           rawText = modelElement.textContent.trim();
           foundVia = "Data-Test-ID";
-          Logger.log("gemini-tracker", `Model raw text found via ${foundVia}: "${rawText}"`);
+          console.log(`${Utils.getPrefix()} Model raw text found via ${foundVia}: "${rawText}"`);
         } else {
-          Logger.log("gemini-tracker", "Model not found via Data-Test-ID.");
+          console.log(`${Utils.getPrefix()} Model not found via Data-Test-ID.`);
           // Try #3: Fallback selector
           const fallbackElement = document.querySelector(".current-mode-title span");
           if (fallbackElement && fallbackElement.textContent) {
             rawText = fallbackElement.textContent.trim();
             foundVia = "Fallback Selector (.current-mode-title)";
-            Logger.log("gemini-tracker", `Model raw text found via ${foundVia}: "${rawText}"`);
+            console.log(`${Utils.getPrefix()} Model raw text found via ${foundVia}: "${rawText}"`);
           } else {
-            Logger.log("gemini-tracker", "Model not found via Fallback Selector.");
+            console.log(`${Utils.getPrefix()} Model not found via Fallback Selector.`);
           }
         }
       }
@@ -216,18 +214,19 @@
         for (const key of sortedKeys) {
           if (rawText.startsWith(key)) {
             const model = MODEL_NAMES[key];
-            Logger.log("gemini-tracker", `Matched known model: "${model}" from raw text "${rawText}"`);
+            console.log(`${Utils.getPrefix()} Matched known model: "${model}" from raw text "${rawText}"`);
             return model;
           }
         }
-        Logger.log(
-          "gemini-tracker",
-          `Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`
+        // Log fallback to raw text with standard prefix
+        console.log(
+          `${Utils.getPrefix()} Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`
         );
         return rawText; // Return raw text if no prefix matches
       }
 
-      Logger.warn("gemini-tracker", "Could not determine current model name from any known selector.");
+      // Log warning using standard prefix
+      console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
       return "Unknown";
     },
   };
