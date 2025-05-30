@@ -636,12 +636,11 @@
 
                   // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
                   // AND not a truncated version of the placeholder (using startsWith to detect truncation)
-                  if (
-                    newTitle &&
-                    (!placeholderPrompt ||
-                      (newTitle !== placeholderPrompt && !placeholderPrompt.startsWith(newTitle))) &&
-                    newTitle !== titleToWaitFor
-                  ) {
+                  const isNotPlaceholder = !placeholderPrompt || newTitle !== placeholderPrompt;
+                  const isNotTruncated = !placeholderPrompt?.startsWith(newTitle);
+                  const isDifferentFromWaiting = newTitle !== titleToWaitFor;
+
+                  if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
                     Logger.log("gemini-tracker", `Secondary observer: Real title detected: "${newTitle}"`);
                     // Clean up observers
                     self.cleanupTitleObservers();
