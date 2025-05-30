@@ -154,10 +154,7 @@
             currentTitle = titleElement.textContent.trim();
           }
         } catch (e) {
-          console.error(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error during title extraction (collapsed mode):`,
-            e
-          );
+          console.error(`[${Utils.getPrefix()}] Error during title extraction (collapsed mode):`, e);
           return null;
         }
 
@@ -176,7 +173,7 @@
 
         // Otherwise, always return null to trigger the secondary observer setup
         console.log(
-          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Collapsed sidebar: Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
+          `[${Utils.getPrefix()}] Collapsed sidebar: Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
         );
         return null; // Signal to set up secondary observer
       }
@@ -283,7 +280,7 @@
 
       if (!Utils.isValidChatUrl(currentUrl)) {
         console.log(
-          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL "${currentUrl}" does not match the expected chat pattern. Waiting...`
+          `[${Utils.getPrefix()}] URL "${currentUrl}" does not match the expected chat pattern. Waiting...`
         );
         return false; // URL still not a valid chat URL
       }
@@ -320,7 +317,7 @@
         STATE.pendingAccountEmail = null;
         // We don't clear Gem-related state here since we still need it for the history entry
         console.log(
-          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Cleared pending flags. Waiting for title associated with URL: ${context.url}`
+          `[${Utils.getPrefix()}] Cleared pending flags. Waiting for title associated with URL: ${context.url}`
         );
 
         // Stage 2: Wait for the Title
@@ -350,7 +347,7 @@
 
       if (!conversationListElement) {
         console.warn(
-          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`
+          `[${Utils.getPrefix()}] Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`
         );
         StatusIndicator.show("Could not track chat (UI element not found)", "warning");
         STATE.isNewChatPending = false; // Reset flag
@@ -429,7 +426,7 @@
           const GemDetector = window.GeminiHistory_GemDetector;
           if (GemDetector && typeof GemDetector.extractGemNameFromResponses === "function") {
             console.log(
-              `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] No gem name was detected earlier. Attempting to extract from response containers...`
+              `[${Utils.getPrefix()}] No gem name was detected earlier. Attempting to extract from response containers...`
             );
             // Try to extract the gem name from response containers which appear after responses are completed
             const extractedName = GemDetector.extractGemNameFromResponses();
@@ -437,7 +434,7 @@
               gemName = extractedName;
               STATE.pendingGemName = extractedName;
               console.log(
-                `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Successfully extracted gem name "${gemName}" from response container`
+                `[${Utils.getPrefix()}] Successfully extracted gem name "${gemName}" from response container`
               );
             }
           }
@@ -445,7 +442,7 @@
 
         if (gemId) {
           console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`
+            `[${Utils.getPrefix()}] Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`
           );
         }
 
@@ -577,7 +574,7 @@
           // Check if URL changed during observation
           if (window.location.href !== expectedUrl) {
             console.warn(
-              `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Cleaning up all title observers.`
+              `[${Utils.getPrefix()}] URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Cleaning up all title observers.`
             );
             self.cleanupTitleObservers();
             return;
@@ -586,7 +583,7 @@
           // Check if the conversation item was removed from DOM (conversation deleted)
           if (!document.contains(conversationItem)) {
             console.warn(
-              `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Conversation item removed from DOM. Cleaning up all title observers.`
+              `[${Utils.getPrefix()}] Conversation item removed from DOM. Cleaning up all title observers.`
             );
             self.cleanupTitleObservers();
             return;
@@ -607,7 +604,7 @@
             ) {
               if (!STATE.secondaryTitleObserver) {
                 console.log(
-                  `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Setting up secondary observer to wait for real title change (avoiding truncated titles)...`
+                  `[${Utils.getPrefix()}] Setting up secondary observer to wait for real title change (avoiding truncated titles)...`
                 );
 
                 // Capture the current title state to compare against
@@ -617,7 +614,7 @@
                   // Check if URL changed during secondary observation
                   if (window.location.href !== expectedUrl) {
                     console.warn(
-                      `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL changed during secondary observer. Cleaning up all title observers.`
+                      `[${Utils.getPrefix()}] URL changed during secondary observer. Cleaning up all title observers.`
                     );
                     self.cleanupTitleObservers();
                     return;
@@ -626,7 +623,7 @@
                   // Check if the conversation item was removed from DOM (conversation deleted)
                   if (!document.contains(conversationItem) || !document.contains(titleElement)) {
                     console.warn(
-                      `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Conversation item or title element removed from DOM. Cleaning up all title observers.`
+                      `[${Utils.getPrefix()}] Conversation item or title element removed from DOM. Cleaning up all title observers.`
                     );
                     self.cleanupTitleObservers();
                     return;
@@ -635,7 +632,7 @@
                   // Check if sidebar expanded (secondary observer no longer needed)
                   if (!self.isSidebarCollapsed()) {
                     console.log(
-                      `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Sidebar expanded while secondary observer active. Cleaning up secondary observer.`
+                      `[${Utils.getPrefix()}] Sidebar expanded while secondary observer active. Cleaning up secondary observer.`
                     );
                     STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
                     return;
@@ -673,7 +670,7 @@
                     Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt)
                   ) {
                     console.log(
-                      `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
+                      `[${Utils.getPrefix()}] Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
                     );
                   }
                 });
@@ -703,7 +700,7 @@
           } else if (STATE.secondaryTitleObserver) {
             // Sidebar is not collapsed but secondary observer exists - clean it up
             console.log(
-              `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Sidebar not collapsed but secondary observer exists. Cleaning up secondary observer.`
+              `[${Utils.getPrefix()}] Sidebar not collapsed but secondary observer exists. Cleaning up secondary observer.`
             );
             STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
           }
@@ -761,7 +758,7 @@
       // Check if we are still on the page this observer was created for
       if (window.location.href !== expectedUrl) {
         console.warn(
-          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting all title observers.`
+          `[${Utils.getPrefix()}] URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting all title observers.`
         );
         STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
         STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);

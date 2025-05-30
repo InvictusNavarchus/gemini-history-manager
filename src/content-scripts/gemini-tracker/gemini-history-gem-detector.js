@@ -101,9 +101,7 @@
           );
 
           // Log the HTML content to help with debugging
-          console.debug(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Primary gem container HTML: ${gemNameElement.innerHTML}`
-          );
+          console.debug(`[${Utils.getPrefix()}] Primary gem container HTML: ${gemNameElement.innerHTML}`);
         }
       }
 
@@ -147,7 +145,7 @@
 
           // Log the HTML content to help with debugging
           console.debug(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Response gem container HTML: ${responseGemElement.innerHTML}`
+            `[${Utils.getPrefix()}] Response gem container HTML: ${responseGemElement.innerHTML}`
           );
         }
       }
@@ -246,7 +244,7 @@
       // Look for potential bot name containers with different selectors
       const potentialContainers = document.querySelectorAll("[class*='bot-name'], [class*='name-container']");
       console.log(
-        `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Found ${potentialContainers.length} potential name containers with alternative selectors`
+        `[${Utils.getPrefix()}] Found ${potentialContainers.length} potential name containers with alternative selectors`
       );
 
       for (let i = 0; i < Math.min(potentialContainers.length, 5); i++) {

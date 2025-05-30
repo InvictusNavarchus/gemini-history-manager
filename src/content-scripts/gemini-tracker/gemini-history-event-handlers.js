@@ -41,7 +41,7 @@
     prepareNewChatTracking: function () {
       const url = window.location.href;
       console.log(
-        `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL ${url} matches valid Gemini pattern. This is potentially a new chat.`
+        `[${Utils.getPrefix()}] URL ${url} matches valid Gemini pattern. This is potentially a new chat.`
       );
       STATE.isNewChatPending = true;
       console.log(
@@ -65,7 +65,7 @@
           STATE.pendingGemName = gemInfo.gemName;
           STATE.pendingGemUrl = gemInfo.gemUrl;
           console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured Gem information: ID=${gemInfo.gemId}, Name=${gemInfo.gemName || "Not detected yet"}`
+            `[${Utils.getPrefix()}] Captured Gem information: ID=${gemInfo.gemId}, Name=${gemInfo.gemName || "Not detected yet"}`
           );
         }
       }
@@ -116,7 +116,7 @@
           this.prepareNewChatTracking();
         } else {
           console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL is not a valid starting point for new chats. Ignoring click for history tracking.`
+            `[${Utils.getPrefix()}] URL is not a valid starting point for new chats. Ignoring click for history tracking.`
           );
         }
       }
