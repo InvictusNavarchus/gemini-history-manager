@@ -5,8 +5,6 @@
     STORAGE_KEY: "geminiChatHistory",
     BASE_URL: "https://gemini.google.com/app",
     GEM_BASE_URL: "https://gemini.google.com/gem",
-    LOG_PREFIX: "[Gemini History]",
-    CONTEXT_PREFIX: "[CONTENT]", // Add context prefix for content script
   };
 
   // Known model names that might appear in the UI
