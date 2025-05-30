@@ -149,12 +149,26 @@
      * @returns {boolean} - True if truncatedText appears to be a truncated version of originalText
      */
     isTruncatedVersion: function (originalText, truncatedText) {
-      if (!originalText || !truncatedText) return false;
+      Logger.log("gemini-tracker", "--- Standard isTruncatedVersion called ---");
+      Logger.log("gemini-tracker", `Standard originalText: "${originalText}"`);
+      Logger.log("gemini-tracker", `Standard truncatedText: "${truncatedText}"`);
+
+      if (!originalText || !truncatedText) {
+        Logger.log("gemini-tracker", "Standard: Early return false - missing text");
+        return false;
+      }
 
       const normalizedOriginal = this.normalizeWhitespace(originalText);
       const normalizedTruncated = this.normalizeWhitespace(truncatedText);
 
-      return normalizedOriginal.startsWith(normalizedTruncated);
+      Logger.log("gemini-tracker", `Standard normalized original: "${normalizedOriginal}"`);
+      Logger.log("gemini-tracker", `Standard normalized truncated: "${normalizedTruncated}"`);
+
+      const result = normalizedOriginal.startsWith(normalizedTruncated);
+      Logger.log("gemini-tracker", `Standard startsWith result: ${result}`);
+      Logger.log("gemini-tracker", "--- Standard comparison complete ---");
+
+      return result;
     },
 
     /**
@@ -168,19 +182,47 @@
      * @returns {boolean} - True if truncatedText appears to be a truncated version of the original (should be ignored as placeholder)
      */
     isTruncatedVersionEnhanced: function (originalText, truncatedText, realOriginalText = null) {
-      if (!originalText || !truncatedText) return false;
+      Logger.log("gemini-tracker", "=== isTruncatedVersionEnhanced called ===");
+      Logger.log("gemini-tracker", `Input originalText: "${originalText}"`);
+      Logger.log("gemini-tracker", `Input truncatedText: "${truncatedText}"`);
+      Logger.log("gemini-tracker", `Input realOriginalText: "${realOriginalText}"`);
+
+      if (!originalText || !truncatedText) {
+        Logger.log("gemini-tracker", "Early return: missing originalText or truncatedText");
+        return false;
+      }
 
       // If we have the real original text, use it for comparison instead of the placeholder
       if (realOriginalText && realOriginalText.trim()) {
+        Logger.log("gemini-tracker", "Using realOriginalText for enhanced comparison");
+
         const normalizedRealOriginal = this.normalizeWhitespace(realOriginalText);
         const normalizedTruncated = this.normalizeWhitespace(truncatedText);
 
+        Logger.log("gemini-tracker", `Normalized realOriginal: "${normalizedRealOriginal}"`);
+        Logger.log("gemini-tracker", `Normalized truncated: "${normalizedTruncated}"`);
+
         // If the real original text starts with the truncated text, then the title is a placeholder
-        return normalizedRealOriginal.startsWith(normalizedTruncated);
+        const startsWithResult = normalizedRealOriginal.startsWith(normalizedTruncated);
+        Logger.log("gemini-tracker", `realOriginal.startsWith(truncated): ${startsWithResult}`);
+
+        if (startsWithResult) {
+          Logger.log("gemini-tracker", "DECISION: Title is a PLACEHOLDER (should be ignored)");
+        } else {
+          Logger.log("gemini-tracker", "DECISION: Title is a REAL TITLE (should be kept)");
+        }
+
+        Logger.log("gemini-tracker", "=== Enhanced comparison complete ===");
+        return startsWithResult;
       }
 
       // Fallback to the standard comparison
-      return this.isTruncatedVersion(originalText, truncatedText);
+      Logger.log("gemini-tracker", "No realOriginalText available, falling back to standard comparison");
+      const standardResult = this.isTruncatedVersion(originalText, truncatedText);
+      Logger.log("gemini-tracker", `Standard comparison result: ${standardResult}`);
+      Logger.log("gemini-tracker", "=== Fallback comparison complete ===");
+
+      return standardResult;
     },
   };
 
