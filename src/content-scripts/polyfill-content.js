@@ -4,7 +4,6 @@
  */
 
 // Import the webextension-polyfill module dynamically for content scripts
-const Utils = window.GeminiHistory_Utils;
 (function () {
   // Check if we're in a browser extension environment
   if (typeof chrome !== "undefined" || typeof browser !== "undefined") {
@@ -65,6 +64,6 @@ const Utils = window.GeminiHistory_Utils;
         },
       };
     }
-    console.log(`${Utils.getPrefix()} Browser API polyfill loaded`);
+    console.log(`[${new Date().toTimeString().slice(0, 8)}] Browser API polyfill loaded for content scripts`);
   }
 })();
