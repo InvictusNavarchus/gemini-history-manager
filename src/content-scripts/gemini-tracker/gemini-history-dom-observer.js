@@ -125,10 +125,11 @@
      *   - Uses the new title once it changes.
      *
      * @param {Element} conversationItem - The DOM element representing a conversation item
-     * @param {string} [prompt] - The original user prompt to compare against for placeholder detection
+     * @param {string} [prompt] - The user prompt to compare against for placeholder detection (may be truncated with [attached blockcode])
+     * @param {string} [originalPrompt] - The original user prompt without modifications (for better comparison)
      * @returns {string|null} - The extracted title or null if not found
      */
-    extractTitleFromSidebarItem: function (conversationItem, prompt = null) {
+    extractTitleFromSidebarItem: function (conversationItem, prompt = null, originalPrompt = null) {
       Logger.log("gemini-tracker", "Attempting to extract title from sidebar item:", conversationItem);
 
       const titleElement = conversationItem.querySelector(".conversation-title");
@@ -159,8 +160,8 @@
         // If we have a placeholder prompt and the current title is different AND non-empty, return it
         // But only if it's not a truncated version of the placeholder
         if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
-          // Get the original prompt text for better comparison when there are code blocks
-          const originalPromptText = STATE.pendingOriginalPrompt;
+          // Use the passed original prompt text for better comparison when there are code blocks
+          const originalPromptText = originalPrompt;
 
           // Check if the title is NOT a truncated version of the prompt using enhanced comparison
           if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
@@ -323,6 +324,7 @@
           context.timestamp,
           context.model,
           context.prompt,
+          context.originalPrompt,
           context.attachedFiles,
           context.accountName,
           context.accountEmail
@@ -478,7 +480,8 @@
      * @param {string} expectedUrl - The URL associated with this conversation
      * @param {string} timestamp - ISO-formatted timestamp for the chat
      * @param {string} model - Model name used for the chat
-     * @param {string} prompt - User prompt text
+     * @param {string} prompt - User prompt text (may be truncated with [attached blockcode])
+     * @param {string} originalPrompt - Original prompt text without modifications
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
      * @param {string} accountEmail - Email of the user account
@@ -490,6 +493,7 @@
       timestamp,
       model,
       prompt,
+      originalPrompt,
       attachedFiles,
       accountName,
       accountEmail
@@ -502,7 +506,7 @@
       }
 
       // Extract title and process if found
-      const title = this.extractTitleFromSidebarItem(conversationItem, prompt);
+      const title = this.extractTitleFromSidebarItem(conversationItem, prompt, originalPrompt);
       const geminiPlan = STATE.pendingGeminiPlan;
       if (
         await this.processTitleAndAddHistory(
@@ -542,6 +546,7 @@
       timestamp,
       model,
       prompt,
+      originalPrompt,
       attachedFiles,
       accountName,
       accountEmail
@@ -553,6 +558,7 @@
         timestamp,
         model,
         prompt,
+        originalPrompt,
         attachedFiles,
         accountName,
         accountEmail
@@ -595,11 +601,7 @@
               !currentTitle ||
               (placeholderPrompt && currentTitle === placeholderPrompt) ||
               (placeholderPrompt &&
-                Utils.isTruncatedVersionEnhanced(
-                  placeholderPrompt,
-                  currentTitle,
-                  STATE.pendingOriginalPrompt
-                ))
+                Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
             ) {
               if (!STATE.secondaryTitleObserver) {
                 Logger.log(
@@ -648,11 +650,7 @@
                   const isNotPlaceholder = !placeholderPrompt || newTitle !== placeholderPrompt;
                   const isNotTruncated =
                     !placeholderPrompt ||
-                    !Utils.isTruncatedVersionEnhanced(
-                      placeholderPrompt,
-                      newTitle,
-                      STATE.pendingOriginalPrompt
-                    );
+                    !Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt);
                   const isDifferentFromWaiting = newTitle !== titleToWaitFor;
 
                   if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
@@ -672,7 +670,7 @@
                     );
                   } else if (
                     placeholderPrompt &&
-                    Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, STATE.pendingOriginalPrompt)
+                    Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt)
                   ) {
                     Logger.log(
                       "gemini-tracker",
@@ -719,6 +717,7 @@
             timestamp,
             model,
             prompt,
+            originalPrompt,
             attachedFiles,
             accountName,
             accountEmail
@@ -743,7 +742,8 @@
      * @param {string} expectedUrl - The URL associated with this conversation
      * @param {string} timestamp - ISO-formatted timestamp for the chat
      * @param {string} model - Model name used for the chat
-     * @param {string} prompt - User prompt text
+     * @param {string} prompt - User prompt text (may be truncated with [attached blockcode])
+     * @param {string} originalPrompt - Original prompt text without modifications
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
      * @param {string} accountEmail - Email of the user account
@@ -755,6 +755,7 @@
       timestamp,
       model,
       prompt,
+      originalPrompt,
       attachedFiles,
       accountName,
       accountEmail
@@ -770,7 +771,7 @@
         return true; // Return true to indicate we should stop trying (observer is disconnected)
       }
 
-      const title = this.extractTitleFromSidebarItem(item, prompt);
+      const title = this.extractTitleFromSidebarItem(item, prompt, originalPrompt);
       Logger.log("gemini-tracker", `TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
 
       // Get the Gemini Plan from the state
