@@ -36,7 +36,8 @@ _Interactive charts showing model usage over time_
 - **🤖 Automatic Chat Tracking**:
   - Captures chat URL, title, and an ISO 8601 UTC timestamp.
   - Identifies the Gemini model used (e.g., "2.5 Pro", "2.0 Flash", "Deep Research", "Veo 2").
-  - **Custom Gem Detection**: Identifies chats occurring within a custom Gem environment, capturing the Gem's name and ID when available.
+  **Custom Gem Detection**:
+  - Identifies chats occurring within a custom Gem environment, capturing the Gem's name and ID when available.
   - Records the initial prompt and a list of any attached filenames.
   - Attempts to extract the Google account name and email associated with the chat.
   - Prevents duplicate entries based on chat URL.
