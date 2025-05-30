@@ -39,6 +39,7 @@ _Interactive charts showing model usage over time_
   **Custom Gem Detection**:
   - Identifies chats occurring within a custom Gem environment, capturing the Gem's name and ID when available.
   - Records the initial prompt and a list of any attached filenames.
+  - **Intelligent Codeblock Detection**: Automatically identifies and processes multiple code blocks within prompts using regex-based parsing, replacing them with numbered placeholders (e.g., `[codeblock-1]`, `[codeblock-2]`) while preserving all non-code text content.
   - Attempts to extract the Google account name and email associated with the chat.
   - Prevents duplicate entries based on chat URL.
 - **🚦 Status Indicator**:
