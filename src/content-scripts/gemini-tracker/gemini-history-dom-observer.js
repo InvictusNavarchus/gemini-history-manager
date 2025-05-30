@@ -157,7 +157,13 @@
         }
 
         // If we have a placeholder prompt and the current title is different AND non-empty, return it
-        if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
+        // But only if it's not a truncated version of the placeholder (using startsWith to detect truncation)
+        if (
+          currentTitle &&
+          placeholderPrompt &&
+          currentTitle !== placeholderPrompt &&
+          !placeholderPrompt.startsWith(currentTitle)
+        ) {
           Logger.log("gemini-tracker", `Collapsed sidebar: Extracted real title: "${currentTitle}"`);
           return currentTitle;
         }
@@ -165,7 +171,7 @@
         // Otherwise, always return null to trigger the secondary observer setup
         Logger.log(
           "gemini-tracker",
-          `Collapsed sidebar: Current title "${currentTitle}" is placeholder or empty. Will wait for real title...`
+          `Collapsed sidebar: Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
         );
         return null; // Signal to set up secondary observer
       }
@@ -580,11 +586,16 @@
             const placeholderPrompt = prompt; // Use the passed prompt parameter instead of STATE.pendingPrompt
 
             // Set up secondary observer if we detect placeholder or empty title
-            if (!currentTitle || (placeholderPrompt && currentTitle === placeholderPrompt)) {
+            // OR if the current title appears to be a truncated version of the placeholder
+            if (
+              !currentTitle ||
+              (placeholderPrompt && currentTitle === placeholderPrompt) ||
+              (placeholderPrompt && placeholderPrompt.startsWith(currentTitle))
+            ) {
               if (!STATE.secondaryTitleObserver) {
                 Logger.log(
                   "gemini-tracker",
-                  "Setting up secondary observer to wait for real title change..."
+                  "Setting up secondary observer to wait for real title change (avoiding truncated titles)..."
                 );
 
                 // Capture the current title state to compare against
@@ -624,11 +635,12 @@
                   const newTitle = titleElement.textContent.trim();
 
                   // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
-                  if (
-                    newTitle &&
-                    (!placeholderPrompt || newTitle !== placeholderPrompt) &&
-                    newTitle !== titleToWaitFor
-                  ) {
+                  // AND not a truncated version of the placeholder (using startsWith to detect truncation)
+                  const isNotPlaceholder = !placeholderPrompt || newTitle !== placeholderPrompt;
+                  const isNotTruncated = !placeholderPrompt?.startsWith(newTitle);
+                  const isDifferentFromWaiting = newTitle !== titleToWaitFor;
+
+                  if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
                     Logger.log("gemini-tracker", `Secondary observer: Real title detected: "${newTitle}"`);
                     // Clean up observers
                     self.cleanupTitleObservers();
@@ -643,6 +655,11 @@
                       accountName,
                       accountEmail
                     );
+                  } else if (placeholderPrompt && placeholderPrompt.startsWith(newTitle)) {
+                    Logger.log(
+                      "gemini-tracker",
+                      `Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
+                    );
                   }
                 });
                 STATE.secondaryTitleObserver.observe(titleElement, {
@@ -653,7 +670,7 @@
               }
               return; // Keep waiting
             } else {
-              // We have a title that's different from placeholder, use it
+              // We have a title that's different from placeholder AND not a truncated version, use it
               Logger.log("gemini-tracker", `Collapsed sidebar: Found real title: "${currentTitle}"`);
               self.cleanupTitleObservers();
               self.processTitleAndAddHistory(
