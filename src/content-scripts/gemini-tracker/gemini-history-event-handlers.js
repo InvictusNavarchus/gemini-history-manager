@@ -39,7 +39,7 @@
     prepareNewChatTracking: function () {
       const url = window.location.href;
       console.log(
-        `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL ${url} matches valid Gemini pattern. This is potentially a new chat.`
+        `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL ${url} matches valid Gemini pattern. This is potentially a new chat.`
       );
       STATE.isNewChatPending = true;
       console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [EventHandlers] Set isNewChatPending = true`);
@@ -61,7 +61,7 @@
           STATE.pendingGemName = gemInfo.gemName;
           STATE.pendingGemUrl = gemInfo.gemUrl;
           console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured Gem information: ID=${gemInfo.gemId}, Name=${gemInfo.gemName || "Not detected yet"}`
+            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured Gem information: ID=${gemInfo.gemId}, Name=${gemInfo.gemName || "Not detected yet"}`
           );
         }
       }
@@ -74,13 +74,13 @@
       // Capture the Gemini plan (Pro, Free, etc.)
       STATE.pendingGeminiPlan = ModelDetector.detectGeminiPlan();
 
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured pending model name: "${STATE.pendingModelName}"`);
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured pending prompt: "${STATE.pendingPrompt}"`);
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured pending original prompt: "${STATE.pendingOriginalPrompt}"`);
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured pending files:`, STATE.pendingAttachedFiles);
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured account name: "${STATE.pendingAccountName}"`);
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured account email: "${STATE.pendingAccountEmail}"`);
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured Gemini plan: "${STATE.pendingGeminiPlan}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured pending model name: "${STATE.pendingModelName}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured pending prompt: "${STATE.pendingPrompt}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured pending original prompt: "${STATE.pendingOriginalPrompt}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured pending files:`, STATE.pendingAttachedFiles);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured account name: "${STATE.pendingAccountName}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured account email: "${STATE.pendingAccountEmail}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Captured Gemini plan: "${STATE.pendingGeminiPlan}"`);
 
       StatusIndicator.update(`Capturing chat with ${STATE.pendingModelName}...`, "info");
 
@@ -97,20 +97,20 @@
      * @param {Event} event - The click event.
      */
     handleSendClick: function (event) {
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Click detected on body (capture phase). Target:`, event.target);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Click detected on body (capture phase). Target:`, event.target);
       const sendButton = this.isSendButton(event.target);
 
       if (sendButton) {
-        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Click target is (or is inside) a potential send button.`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Click target is (or is inside) a potential send button.`);
         const currentUrl = window.location.href;
-        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Current URL at time of click: ${currentUrl}`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Current URL at time of click: ${currentUrl}`);
 
         // Check if we are on the main app page or a Gem homepage (starting a NEW chat)
         if (Utils.isBaseAppUrl(currentUrl) || Utils.isGemHomepageUrl(currentUrl)) {
           this.prepareNewChatTracking();
         } else {
           console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL is not a valid starting point for new chats. Ignoring click for history tracking.`
+            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL is not a valid starting point for new chats. Ignoring click for history tracking.`
           );
         }
       }

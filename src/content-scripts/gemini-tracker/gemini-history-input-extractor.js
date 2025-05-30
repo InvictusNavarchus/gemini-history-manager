@@ -18,17 +18,17 @@
         const backtickIndex = text.indexOf("```");
         if (backtickIndex !== -1) {
           const truncatedText = text.substring(0, backtickIndex).trim();
-          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found code block in prompt. Truncating at index ${backtickIndex}`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Found code block in prompt. Truncating at index ${backtickIndex}`);
           console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted prompt text (truncated): "${truncatedText} [attached blockcode]"`
+            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Extracted prompt text (truncated): "${truncatedText} [attached blockcode]"`
           );
           return `${truncatedText} [attached blockcode]`;
         }
 
-        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted prompt text: "${text}"`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Extracted prompt text: "${text}"`);
         return text;
       } else {
-        console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Could not find prompt input element ('rich-textarea .ql-editor').`);
+        console.warn(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Could not find prompt input element ('rich-textarea .ql-editor').`);
         return ""; // Return empty string if not found
       }
     },
@@ -49,11 +49,11 @@
         const limitedText = text.length > 200 ? text.substring(0, 200) : text;
 
         console.log(
-          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted original prompt text (limited to 200 chars): "${limitedText}"`
+          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Extracted original prompt text (limited to 200 chars): "${limitedText}"`
         );
         return limitedText;
       } else {
-        console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Could not find prompt input element for original text extraction.`);
+        console.warn(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Could not find prompt input element for original text extraction.`);
         return "";
       }
     },
@@ -72,10 +72,10 @@
           // Prefer the 'title' attribute as it usually contains the full name
           return el.getAttribute("title") || el.innerText.trim();
         });
-        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted attached filenames:`, filenames);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Extracted attached filenames:`, filenames);
         return filenames;
       } else {
-        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] No attached file elements found.`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] No attached file elements found.`);
         return []; // Return empty array if none found
       }
     },
@@ -86,7 +86,7 @@
      * @returns {Object} - Object with name and email properties
      */
     getAccountInfo: function () {
-      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Attempting to extract account information...`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Attempting to extract account information...`);
 
       // Strategy 1: Find by link to accounts.google.com with aria-label containing email
       const accountLinks = Array.from(document.querySelectorAll('a[href*="accounts.google.com"]'));
@@ -100,7 +100,7 @@
           accountElement = link;
           ariaLabel = label;
           console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found account element via accounts.google.com link with email in aria-label`
+            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Found account element via accounts.google.com link with email in aria-label`
           );
           break;
         }
@@ -117,7 +117,7 @@
               accountElement = parent;
               ariaLabel = label;
               console.log(
-                `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found account element via profile image with parent having email in aria-label`
+                `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Found account element via profile image with parent having email in aria-label`
               );
               break;
             }
@@ -136,7 +136,7 @@
             if (label && label.indexOf("@") !== -1) {
               accountElement = accountLink;
               ariaLabel = label;
-              console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found account element via container class structure`);
+              console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Found account element via container class structure`);
               break;
             }
           }
@@ -154,7 +154,7 @@
           if (label && emailRegex.test(label)) {
             accountElement = el;
             ariaLabel = label;
-            console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found account element via generic aria-label search`);
+            console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Found account element via generic aria-label search`);
             break;
           }
         }
@@ -162,14 +162,14 @@
 
       // If we found an element with account info, parse it
       if (accountElement && ariaLabel) {
-        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found aria-label with potential account info: "${ariaLabel}"`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Found aria-label with potential account info: "${ariaLabel}"`);
         try {
           // Extract email using regex
           const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
           const emailMatch = ariaLabel.match(emailRegex);
 
           if (!emailMatch) {
-            console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Could not find email in aria-label`);
+            console.warn(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Could not find email in aria-label`);
             return { name: "Unknown", email: "Unknown" };
           }
 
@@ -195,16 +195,16 @@
           }
 
           console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Successfully extracted account info - Name: "${name}", Email: "${email}"`
+            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Successfully extracted account info - Name: "${name}", Email: "${email}"`
           );
           return { name, email };
         } catch (e) {
-          console.error(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Error parsing account information:`, e);
+          console.error(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error parsing account information:`, e);
           return { name: "Unknown", email: "Unknown" };
         }
       }
 
-      console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Could not find any element with account information`);
+      console.warn(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Could not find any element with account information`);
       return { name: "Unknown", email: "Unknown" };
     },
   };
