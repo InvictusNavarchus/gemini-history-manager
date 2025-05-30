@@ -160,7 +160,7 @@
       document.body.appendChild(indicator);
 
       this.element = indicator;
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Status indicator initialized`);
+      console.log(`${Utils.getPrefix()} Status indicator initialized`);
     },
 
     /**

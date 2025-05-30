@@ -18,17 +18,17 @@
         const backtickIndex = text.indexOf("```");
         if (backtickIndex !== -1) {
           const truncatedText = text.substring(0, backtickIndex).trim();
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Found code block in prompt. Truncating at index ${backtickIndex}`);
+          console.log(`${Utils.getPrefix()} Found code block in prompt. Truncating at index ${backtickIndex}`);
           console.log(
-            `${window.GeminiHistory_Utils.getPrefix()} Extracted prompt text (truncated): "${truncatedText} [attached blockcode]"`
+            `${Utils.getPrefix()} Extracted prompt text (truncated): "${truncatedText} [attached blockcode]"`
           );
           return `${truncatedText} [attached blockcode]`;
         }
 
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Extracted prompt text: "${text}"`);
+        console.log(`${Utils.getPrefix()} Extracted prompt text: "${text}"`);
         return text;
       } else {
-        console.warn(`${window.GeminiHistory_Utils.getPrefix()} Could not find prompt input element ('rich-textarea .ql-editor').`);
+        console.warn(`${Utils.getPrefix()} Could not find prompt input element ('rich-textarea .ql-editor').`);
         return ""; // Return empty string if not found
       }
     },
@@ -53,7 +53,7 @@
         );
         return limitedText;
       } else {
-        console.warn(`${window.GeminiHistory_Utils.getPrefix()} Could not find prompt input element for original text extraction.`);
+        console.warn(`${Utils.getPrefix()} Could not find prompt input element for original text extraction.`);
         return "";
       }
     },
@@ -72,10 +72,10 @@
           // Prefer the 'title' attribute as it usually contains the full name
           return el.getAttribute("title") || el.innerText.trim();
         });
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Extracted attached filenames:`, filenames);
+        console.log(`${Utils.getPrefix()} Extracted attached filenames:`, filenames);
         return filenames;
       } else {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} No attached file elements found.`);
+        console.log(`${Utils.getPrefix()} No attached file elements found.`);
         return []; // Return empty array if none found
       }
     },
@@ -86,7 +86,7 @@
      * @returns {Object} - Object with name and email properties
      */
     getAccountInfo: function () {
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Attempting to extract account information...`);
+      console.log(`${Utils.getPrefix()} Attempting to extract account information...`);
 
       // Strategy 1: Find by link to accounts.google.com with aria-label containing email
       const accountLinks = Array.from(document.querySelectorAll('a[href*="accounts.google.com"]'));
@@ -100,7 +100,7 @@
           accountElement = link;
           ariaLabel = label;
           console.log(
-            `${window.GeminiHistory_Utils.getPrefix()} Found account element via accounts.google.com link with email in aria-label`
+            `${Utils.getPrefix()} Found account element via accounts.google.com link with email in aria-label`
           );
           break;
         }
@@ -136,7 +136,7 @@
             if (label && label.indexOf("@") !== -1) {
               accountElement = accountLink;
               ariaLabel = label;
-              console.log(`${window.GeminiHistory_Utils.getPrefix()} Found account element via container class structure`);
+              console.log(`${Utils.getPrefix()} Found account element via container class structure`);
               break;
             }
           }
@@ -154,7 +154,7 @@
           if (label && emailRegex.test(label)) {
             accountElement = el;
             ariaLabel = label;
-            console.log(`${window.GeminiHistory_Utils.getPrefix()} Found account element via generic aria-label search`);
+            console.log(`${Utils.getPrefix()} Found account element via generic aria-label search`);
             break;
           }
         }
@@ -162,14 +162,14 @@
 
       // If we found an element with account info, parse it
       if (accountElement && ariaLabel) {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Found aria-label with potential account info: "${ariaLabel}"`);
+        console.log(`${Utils.getPrefix()} Found aria-label with potential account info: "${ariaLabel}"`);
         try {
           // Extract email using regex
           const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
           const emailMatch = ariaLabel.match(emailRegex);
 
           if (!emailMatch) {
-            console.warn(`${window.GeminiHistory_Utils.getPrefix()} Could not find email in aria-label`);
+            console.warn(`${Utils.getPrefix()} Could not find email in aria-label`);
             return { name: "Unknown", email: "Unknown" };
           }
 
@@ -195,7 +195,7 @@
           }
 
           console.log(
-            `${window.GeminiHistory_Utils.getPrefix()} Successfully extracted account info - Name: "${name}", Email: "${email}"`
+            `${Utils.getPrefix()} Successfully extracted account info - Name: "${name}", Email: "${email}"`
           );
           return { name, email };
         } catch (e) {
@@ -204,7 +204,7 @@
         }
       }
 
-      console.warn(`${window.GeminiHistory_Utils.getPrefix()} Could not find any element with account information`);
+      console.warn(`${Utils.getPrefix()} Could not find any element with account information`);
       return { name: "Unknown", email: "Unknown" };
     },
   };

@@ -74,13 +74,13 @@
       // Capture the Gemini plan (Pro, Free, etc.)
       STATE.pendingGeminiPlan = ModelDetector.detectGeminiPlan();
 
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Captured pending model name: "${STATE.pendingModelName}"`);
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Captured pending prompt: "${STATE.pendingPrompt}"`);
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Captured pending original prompt: "${STATE.pendingOriginalPrompt}"`);
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Captured pending files:`, STATE.pendingAttachedFiles);
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Captured account name: "${STATE.pendingAccountName}"`);
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Captured account email: "${STATE.pendingAccountEmail}"`);
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Captured Gemini plan: "${STATE.pendingGeminiPlan}"`);
+      console.log(`${Utils.getPrefix()} Captured pending model name: "${STATE.pendingModelName}"`);
+      console.log(`${Utils.getPrefix()} Captured pending prompt: "${STATE.pendingPrompt}"`);
+      console.log(`${Utils.getPrefix()} Captured pending original prompt: "${STATE.pendingOriginalPrompt}"`);
+      console.log(`${Utils.getPrefix()} Captured pending files:`, STATE.pendingAttachedFiles);
+      console.log(`${Utils.getPrefix()} Captured account name: "${STATE.pendingAccountName}"`);
+      console.log(`${Utils.getPrefix()} Captured account email: "${STATE.pendingAccountEmail}"`);
+      console.log(`${Utils.getPrefix()} Captured Gemini plan: "${STATE.pendingGeminiPlan}"`);
 
       StatusIndicator.update(`Capturing chat with ${STATE.pendingModelName}...`, "info");
 
@@ -97,13 +97,13 @@
      * @param {Event} event - The click event.
      */
     handleSendClick: function (event) {
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Click detected on body (capture phase). Target:`, event.target);
+      console.log(`${Utils.getPrefix()} Click detected on body (capture phase). Target:`, event.target);
       const sendButton = this.isSendButton(event.target);
 
       if (sendButton) {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Click target is (or is inside) a potential send button.`);
+        console.log(`${Utils.getPrefix()} Click target is (or is inside) a potential send button.`);
         const currentUrl = window.location.href;
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Current URL at time of click: ${currentUrl}`);
+        console.log(`${Utils.getPrefix()} Current URL at time of click: ${currentUrl}`);
 
         // Check if we are on the main app page or a Gem homepage (starting a NEW chat)
         if (Utils.isBaseAppUrl(currentUrl) || Utils.isGemHomepageUrl(currentUrl)) {

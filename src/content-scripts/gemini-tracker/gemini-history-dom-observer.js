@@ -37,7 +37,7 @@
       // Clear the new chat pending flag only if we had title observers
       if (hadTitleObservers && STATE.isNewChatPending) {
         STATE.isNewChatPending = false;
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Title observers cleaned up, cleared isNewChatPending flag`);
+        console.log(`${Utils.getPrefix()} Title observers cleaned up, cleared isNewChatPending flag`);
       }
     },
 
@@ -46,12 +46,12 @@
      * Disconnects sidebar, title, and secondary title observers.
      */
     cleanupAllObservers: function () {
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Cleaning up all DOM observers...`);
+      console.log(`${Utils.getPrefix()} Cleaning up all DOM observers...`);
 
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
       this.cleanupTitleObservers();
 
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} All DOM observers cleaned up`);
+      console.log(`${Utils.getPrefix()} All DOM observers cleaned up`);
     },
 
     /**
@@ -61,7 +61,7 @@
      * @param {function} callback - Function to call once the sidebar is found
      */
     watchForSidebar: function (callback) {
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Starting to watch for sidebar element...`);
+      console.log(`${Utils.getPrefix()} Starting to watch for sidebar element...`);
       // Show immediate loading status at the beginning
       StatusIndicator.show("Looking for Gemini sidebar...", "loading", 0);
 
@@ -70,18 +70,18 @@
       const existingSidebar = document.querySelector(sidebarSelector);
 
       if (existingSidebar) {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Sidebar already exists in DOM`);
+        console.log(`${Utils.getPrefix()} Sidebar already exists in DOM`);
         callback(existingSidebar);
         return;
       }
 
       // If not, set up an observer to watch for it
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Sidebar not found. Setting up observer to watch for it...`);
+      console.log(`${Utils.getPrefix()} Sidebar not found. Setting up observer to watch for it...`);
 
       const observer = new MutationObserver((mutations, obs) => {
         const sidebar = document.querySelector(sidebarSelector);
         if (sidebar) {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Sidebar element found in DOM`);
+          console.log(`${Utils.getPrefix()} Sidebar element found in DOM`);
           obs.disconnect(); // Stop observing once found
           callback(sidebar);
         }
@@ -98,7 +98,7 @@
         if (observer) {
           const sidebar = document.querySelector(sidebarSelector);
           if (!sidebar) {
-            console.warn(`${window.GeminiHistory_Utils.getPrefix()} Sidebar element not found after timeout`);
+            console.warn(`${Utils.getPrefix()} Sidebar element not found after timeout`);
             StatusIndicator.show("Warning: Gemini sidebar not detected", "warning", 0);
           }
           observer.disconnect();
@@ -129,18 +129,18 @@
      * @returns {string|null} - The extracted title or null if not found
      */
     extractTitleFromSidebarItem: function (conversationItem, prompt = null, originalPrompt = null) {
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Attempting to extract title from sidebar item:`, conversationItem);
+      console.log(`${Utils.getPrefix()} Attempting to extract title from sidebar item:`, conversationItem);
 
       const titleElement = conversationItem.querySelector(".conversation-title");
       if (!titleElement) {
-        console.warn(`${window.GeminiHistory_Utils.getPrefix()} Could not find title element (.conversation-title).`);
+        console.warn(`${Utils.getPrefix()} Could not find title element (.conversation-title).`);
         return null;
       }
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Found title container element:`, titleElement);
+      console.log(`${Utils.getPrefix()} Found title container element:`, titleElement);
 
       // Special logic for collapsed sidebar - execute first
       if (this.isSidebarCollapsed()) {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Sidebar is collapsed. Setting up observer to wait for real title...`);
+        console.log(`${Utils.getPrefix()} Sidebar is collapsed. Setting up observer to wait for real title...`);
         const placeholderPrompt = prompt; // Use the passed prompt parameter instead of STATE.pendingPrompt
         // Try direct text node
         let currentTitle = "";
@@ -164,7 +164,7 @@
 
           // Check if the title is NOT a truncated version of the prompt using enhanced comparison
           if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
-            console.log(`${window.GeminiHistory_Utils.getPrefix()} Collapsed sidebar: Extracted real title: "${currentTitle}"`);
+            console.log(`${Utils.getPrefix()} Collapsed sidebar: Extracted real title: "${currentTitle}"`);
             return currentTitle;
           }
         }
@@ -182,7 +182,7 @@
         return null;
       }
 
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Sidebar is not collapsed. Proceeding with normal extraction logic...`);
+      console.log(`${Utils.getPrefix()} Sidebar is not collapsed. Proceeding with normal extraction logic...`);
 
       // Normal extraction logic (sidebar not collapsed)
       try {
@@ -191,20 +191,20 @@
         if (first && first.nodeType === Node.TEXT_NODE) {
           const t = first.textContent.trim();
           if (t) {
-            console.log(`${window.GeminiHistory_Utils.getPrefix()} Extracted via text node: "${t}"`);
+            console.log(`${Utils.getPrefix()} Extracted via text node: "${t}"`);
             return t;
           }
-          console.warn(`${window.GeminiHistory_Utils.getPrefix()} Text node was empty, falling back.`);
+          console.warn(`${Utils.getPrefix()} Text node was empty, falling back.`);
         }
         // FALLBACK: full textContent
         const full = titleElement.textContent.trim();
         if (full) {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Fallback textContent: "${full}"`);
+          console.log(`${Utils.getPrefix()} Fallback textContent: "${full}"`);
           return full;
         }
-        console.warn(`${window.GeminiHistory_Utils.getPrefix()} titleElement.textContent was empty or whitespace.`);
+        console.warn(`${Utils.getPrefix()} titleElement.textContent was empty or whitespace.`);
       } catch (e) {
-        console.error(`${window.GeminiHistory_Utils.getPrefix()} Error during title extraction:`, e);
+        console.error(`${Utils.getPrefix()} Error during title extraction:`, e);
       }
       return null;
     },
@@ -267,10 +267,10 @@
      */
     processSidebarMutations: function (mutationsList) {
       console.log(
-        `${window.GeminiHistory_Utils.getPrefix()} MAIN Sidebar Observer Callback Triggered. ${mutationsList.length} mutations.`
+        `${Utils.getPrefix()} MAIN Sidebar Observer Callback Triggered. ${mutationsList.length} mutations.`
       );
       const currentUrl = window.location.href;
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Current URL inside MAIN observer: ${currentUrl}`);
+      console.log(`${Utils.getPrefix()} Current URL inside MAIN observer: ${currentUrl}`);
 
       if (!Utils.isValidChatUrl(currentUrl)) {
         console.log(
@@ -284,13 +284,13 @@
       );
 
       if (!STATE.isNewChatPending) {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} No new chat is pending. Ignoring mutations.`);
+        console.log(`${Utils.getPrefix()} No new chat is pending. Ignoring mutations.`);
         return false;
       }
 
       const conversationItem = this.findConversationItemInMutations(mutationsList);
       if (conversationItem) {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Found NEW conversation item container. Preparing to wait for title...`);
+        console.log(`${Utils.getPrefix()} Found NEW conversation item container. Preparing to wait for title...`);
         StatusIndicator.show("New chat detected, capturing details...", "loading", 0);
 
         // Capture context before disconnecting observer
@@ -355,7 +355,7 @@
         return;
       }
 
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Found conversation list element. Setting up MAIN sidebar observer...`);
+      console.log(`${Utils.getPrefix()} Found conversation list element. Setting up MAIN sidebar observer...`);
       StatusIndicator.show("Tracking new chat...", "info");
 
       // Disconnect previous observers if they exist
@@ -397,13 +397,13 @@
       accountEmail
     ) {
       if (title) {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Title found for ${expectedUrl}! Attempting to add history entry.`);
+        console.log(`${Utils.getPrefix()} Title found for ${expectedUrl}! Attempting to add history entry.`);
         StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
         this.cleanupTitleObservers();
 
         // Get the Gemini Plan from the state
         const geminiPlan = STATE.pendingGeminiPlan;
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Using Gemini plan: ${geminiPlan || "Unknown"}`);
+        console.log(`${Utils.getPrefix()} Using Gemini plan: ${geminiPlan || "Unknown"}`);
 
         // Get Gem information from the state
         const gemId = STATE.pendingGemId;
@@ -491,7 +491,7 @@
     ) {
       // Abort if URL changed
       if (window.location.href !== expectedUrl) {
-        console.warn(`${window.GeminiHistory_Utils.getPrefix()} URL changed; disconnecting all title observers.`);
+        console.warn(`${Utils.getPrefix()} URL changed; disconnecting all title observers.`);
         this.cleanupTitleObservers();
         return true;
       }
@@ -515,7 +515,7 @@
         return true;
       }
 
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} No title yet; continuing to observe...`);
+      console.log(`${Utils.getPrefix()} No title yet; continuing to observe...`);
       return false;
     },
 
@@ -639,7 +639,7 @@
                   const isDifferentFromWaiting = newTitle !== titleToWaitFor;
 
                   if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
-                    console.log(`${window.GeminiHistory_Utils.getPrefix()} Secondary observer: Real title detected: "${newTitle}"`);
+                    console.log(`${Utils.getPrefix()} Secondary observer: Real title detected: "${newTitle}"`);
                     // Clean up observers
                     self.cleanupTitleObservers();
                     // Continue with chat data extraction as usual
@@ -671,7 +671,7 @@
               return; // Keep waiting
             } else {
               // We have a title that's different from placeholder AND not a truncated version, use it
-              console.log(`${window.GeminiHistory_Utils.getPrefix()} Collapsed sidebar: Found real title: "${currentTitle}"`);
+              console.log(`${Utils.getPrefix()} Collapsed sidebar: Found real title: "${currentTitle}"`);
               self.cleanupTitleObservers();
               self.processTitleAndAddHistory(
                 currentTitle,
@@ -714,7 +714,7 @@
           subtree: true,
           attributeOldValue: true,
         });
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} TITLE observer active for URL: ${expectedUrl}`);
+        console.log(`${Utils.getPrefix()} TITLE observer active for URL: ${expectedUrl}`);
       });
     },
 
@@ -754,11 +754,11 @@
       }
 
       const title = this.extractTitleFromSidebarItem(item, prompt, originalPrompt);
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
+      console.log(`${Utils.getPrefix()} TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
 
       // Get the Gemini Plan from the state
       const geminiPlan = STATE.pendingGeminiPlan;
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Using Gemini plan: ${geminiPlan || "Unknown"}`);
+      console.log(`${Utils.getPrefix()} Using Gemini plan: ${geminiPlan || "Unknown"}`);
 
       return await this.processTitleAndAddHistory(
         title,

@@ -42,7 +42,7 @@
       // First try: Get the entire text content of the element
       const fullText = element.textContent.trim();
       if (fullText) {
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Extracted gem name from full text content: "${fullText}"`);
+        console.log(`${Utils.getPrefix()} Extracted gem name from full text content: "${fullText}"`);
         return fullText;
       }
 
@@ -52,7 +52,7 @@
         if (node.nodeType === Node.TEXT_NODE) {
           const trimmedText = node.textContent.trim();
           if (trimmedText) {
-            console.log(`${window.GeminiHistory_Utils.getPrefix()} Extracted gem name from direct text node: "${trimmedText}"`);
+            console.log(`${Utils.getPrefix()} Extracted gem name from direct text node: "${trimmedText}"`);
             return trimmedText;
           }
         }
@@ -62,7 +62,7 @@
       for (const child of element.children) {
         const childText = child.textContent.trim();
         if (childText) {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Extracted gem name from child element: "${childText}"`);
+          console.log(`${Utils.getPrefix()} Extracted gem name from child element: "${childText}"`);
           return childText;
         }
       }
@@ -84,7 +84,7 @@
       for (const selector of GEM_NAME_SELECTORS) {
         gemNameElement = document.querySelector(selector);
         if (gemNameElement) {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Found gem name element using primary selector: ${selector}`);
+          console.log(`${Utils.getPrefix()} Found gem name element using primary selector: ${selector}`);
           break;
         }
       }
@@ -93,11 +93,11 @@
         const detectedName = this.getGemName(gemNameElement);
 
         if (detectedName) {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Extracted Gem name from primary source: "${detectedName}"`);
+          console.log(`${Utils.getPrefix()} Extracted Gem name from primary source: "${detectedName}"`);
           return detectedName;
         } else {
           console.warn(
-            `${window.GeminiHistory_Utils.getPrefix()} Primary gem name container found, but the name text could not be extracted as expected.`
+            `${Utils.getPrefix()} Primary gem name container found, but the name text could not be extracted as expected.`
           );
 
           // Log the HTML content to help with debugging
@@ -127,7 +127,7 @@
         if (elements && elements.length > 0) {
           // Use the most recent (last) response
           responseGemElement = elements[elements.length - 1];
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Found gem name in response using selector: ${selector}`);
+          console.log(`${Utils.getPrefix()} Found gem name in response using selector: ${selector}`);
           break;
         }
       }
@@ -136,11 +136,11 @@
         const detectedName = this.getGemName(responseGemElement);
 
         if (detectedName) {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Extracted Gem name from response: "${detectedName}"`);
+          console.log(`${Utils.getPrefix()} Extracted Gem name from response: "${detectedName}"`);
           return detectedName;
         } else {
           console.warn(
-            `${window.GeminiHistory_Utils.getPrefix()} Response gem name container found, but the name text could not be extracted as expected.`
+            `${Utils.getPrefix()} Response gem name container found, but the name text could not be extracted as expected.`
           );
 
           // Log the HTML content to help with debugging
@@ -156,7 +156,7 @@
      * This method is kept for compatibility but doesn't start any observer.
      */
     startObserver: function () {
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Gem detection observer not needed with on-demand extraction approach.`);
+      console.log(`${Utils.getPrefix()} Gem detection observer not needed with on-demand extraction approach.`);
       // No longer using an observer - we'll extract the gem name when needed
     },
 
@@ -168,7 +168,7 @@
       if (this.observer) {
         this.observer.disconnect();
         this.observer = null;
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Gem detection observer reset.`);
+        console.log(`${Utils.getPrefix()} Gem detection observer reset.`);
       }
     },
 
@@ -194,7 +194,7 @@
 
         // If name couldn't be extracted, try the debug scan
         if (!gemName) {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Gem name could not be extracted, performing debug scan`);
+          console.log(`${Utils.getPrefix()} Gem name could not be extracted, performing debug scan`);
           this.debugGemDetection();
         }
 
@@ -209,31 +209,31 @@
      * Logs detailed information about potential gem name elements.
      */
     debugGemDetection: function () {
-      console.log(`${window.GeminiHistory_Utils.getPrefix()} Running gem detection debug scan...`);
+      console.log(`${Utils.getPrefix()} Running gem detection debug scan...`);
 
       // Try all selectors and log what we find
       for (const selector of GEM_NAME_SELECTORS) {
         const element = document.querySelector(selector);
         if (element) {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Found element matching selector: ${selector}`);
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Element textContent: "${element.textContent.trim()}"`);
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Element innerHTML: ${element.innerHTML}`);
+          console.log(`${Utils.getPrefix()} Found element matching selector: ${selector}`);
+          console.log(`${Utils.getPrefix()} Element textContent: "${element.textContent.trim()}"`);
+          console.log(`${Utils.getPrefix()} Element innerHTML: ${element.innerHTML}`);
 
           // Manually check for the name using various methods
           for (const node of element.childNodes) {
             if (node.nodeType === Node.TEXT_NODE) {
               const text = node.textContent.trim();
               if (text) {
-                console.log(`${window.GeminiHistory_Utils.getPrefix()} Direct text node found: "${text}"`);
+                console.log(`${Utils.getPrefix()} Direct text node found: "${text}"`);
               }
             }
           }
 
           // Try to extract using our method
           const extractedName = this.getGemName(element);
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} Extraction result: ${extractedName || "No name extracted"}`);
+          console.log(`${Utils.getPrefix()} Extraction result: ${extractedName || "No name extracted"}`);
         } else {
-          console.log(`${window.GeminiHistory_Utils.getPrefix()} No element found for selector: ${selector}`);
+          console.log(`${Utils.getPrefix()} No element found for selector: ${selector}`);
         }
       }
 
@@ -245,9 +245,9 @@
 
       for (let i = 0; i < Math.min(potentialContainers.length, 5); i++) {
         const container = potentialContainers[i];
-        console.log(`${window.GeminiHistory_Utils.getPrefix()} Alternative container ${i + 1} class: ${container.className}`);
+        console.log(`${Utils.getPrefix()} Alternative container ${i + 1} class: ${container.className}`);
         console.log(
-          `${window.GeminiHistory_Utils.getPrefix()} Alternative container ${i + 1} text: "${container.textContent.trim()}"`
+          `${Utils.getPrefix()} Alternative container ${i + 1} text: "${container.textContent.trim()}"`
         );
       }
     },
