@@ -158,13 +158,9 @@
 
         // If we have a placeholder prompt and the current title is different AND non-empty, return it
         // But only if it's not a truncated version of the placeholder
-        // Normalize both strings by collapsing whitespace to handle line breaks properly
         if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
-          const normalizedTitle = currentTitle.replace(/\s+/g, " ").trim();
-          const normalizedPrompt = placeholderPrompt.replace(/\s+/g, " ").trim();
-
-          // Check if the title is NOT a truncated version of the prompt
-          if (!normalizedPrompt.startsWith(normalizedTitle)) {
+          // Check if the title is NOT a truncated version of the prompt using normalized comparison
+          if (!Utils.isTruncatedVersion(placeholderPrompt, currentTitle)) {
             Logger.log("gemini-tracker", `Collapsed sidebar: Extracted real title: "${currentTitle}"`);
             return currentTitle;
           }
@@ -592,7 +588,7 @@
             if (
               !currentTitle ||
               (placeholderPrompt && currentTitle === placeholderPrompt) ||
-              (placeholderPrompt && placeholderPrompt.startsWith(currentTitle))
+              (placeholderPrompt && Utils.isTruncatedVersion(placeholderPrompt, currentTitle))
             ) {
               if (!STATE.secondaryTitleObserver) {
                 Logger.log(
@@ -637,9 +633,10 @@
                   const newTitle = titleElement.textContent.trim();
 
                   // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
-                  // AND not a truncated version of the placeholder (using startsWith to detect truncation)
+                  // AND not a truncated version of the placeholder (using normalized comparison to detect truncation)
                   const isNotPlaceholder = !placeholderPrompt || newTitle !== placeholderPrompt;
-                  const isNotTruncated = !placeholderPrompt?.startsWith(newTitle);
+                  const isNotTruncated =
+                    !placeholderPrompt || !Utils.isTruncatedVersion(placeholderPrompt, newTitle);
                   const isDifferentFromWaiting = newTitle !== titleToWaitFor;
 
                   if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
@@ -657,7 +654,7 @@
                       accountName,
                       accountEmail
                     );
-                  } else if (placeholderPrompt && placeholderPrompt.startsWith(newTitle)) {
+                  } else if (placeholderPrompt && Utils.isTruncatedVersion(placeholderPrompt, newTitle)) {
                     Logger.log(
                       "gemini-tracker",
                       `Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`

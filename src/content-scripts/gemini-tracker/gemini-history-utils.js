@@ -124,6 +124,38 @@
 
       return isRegularNewChat || isGemNewChat;
     },
+
+    /**
+     * Normalizes whitespace in a string by collapsing all consecutive whitespace
+     * characters (including line breaks, spaces, tabs) into single spaces and trims the result.
+     * This is useful for consistent comparison of strings that may have different
+     * whitespace formatting (e.g., prompts vs titles with different line break patterns).
+     *
+     * @param {string} str - The string to normalize
+     * @returns {string} - The normalized string with collapsed whitespace
+     */
+    normalizeWhitespace: function (str) {
+      if (!str) return "";
+      return str.replace(/\s+/g, " ").trim();
+    },
+
+    /**
+     * Checks if a text is a truncated version of another text by comparing
+     * their normalized whitespace versions. This handles cases where line breaks
+     * might be different between the original and truncated versions.
+     *
+     * @param {string} originalText - The original, potentially longer text
+     * @param {string} truncatedText - The potentially truncated text to check
+     * @returns {boolean} - True if truncatedText appears to be a truncated version of originalText
+     */
+    isTruncatedVersion: function (originalText, truncatedText) {
+      if (!originalText || !truncatedText) return false;
+
+      const normalizedOriginal = this.normalizeWhitespace(originalText);
+      const normalizedTruncated = this.normalizeWhitespace(truncatedText);
+
+      return normalizedOriginal.startsWith(normalizedTruncated);
+    },
   };
 
   window.GeminiHistory_Utils = Utils;
