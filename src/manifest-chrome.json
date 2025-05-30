@@ -22,11 +22,11 @@
     {
       "matches": ["https://gemini.google.com/*"],
       "js": [
+        "content-scripts/gemini-tracker/gemini-history-utils.js",
         "content-scripts/polyfill-content.js",
         "content-scripts/gemini-tracker/gemini-history-config.js",
         "content-scripts/gemini-tracker/gemini-history-state.js",
         "content-scripts/gemini-tracker/gemini-history-status-indicator.js",
-        "content-scripts/gemini-tracker/gemini-history-utils.js",
         "content-scripts/gemini-tracker/gemini-history-model-detector.js",
         "content-scripts/gemini-tracker/gemini-history-input-extractor.js",
         "content-scripts/gemini-tracker/gemini-history-history-manager.js",
