@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-
+  const Utils = window.GeminiHistory_Utils;
   const StatusIndicator = {
     element: null,
     timeout: null,

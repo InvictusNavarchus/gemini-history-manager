@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-
+  const Utils = window.GeminiHistory_Utils;
   const InputExtractor = {
     /**
      * Extracts the prompt text from the input area.

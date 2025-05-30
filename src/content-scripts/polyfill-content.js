@@ -4,6 +4,7 @@
  */
 
 // Import the webextension-polyfill module dynamically for content scripts
+const Utils = window.GeminiHistory_Utils;
 (function () {
   // Check if we're in a browser extension environment
   if (typeof chrome !== "undefined" || typeof browser !== "undefined") {

@@ -1,8 +1,7 @@
 (function () {
   "use strict";
-
+  const Utils = window.GeminiHistory_Utils;
   const MODEL_NAMES = window.GeminiHistory_MODEL_NAMES;
-
   const ModelDetector = {
     /**
      * Detects the current Gemini plan based on UI elements.
