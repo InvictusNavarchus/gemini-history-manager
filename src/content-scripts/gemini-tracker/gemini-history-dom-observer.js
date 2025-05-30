@@ -159,8 +159,11 @@
         // If we have a placeholder prompt and the current title is different AND non-empty, return it
         // But only if it's not a truncated version of the placeholder
         if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
-          // Check if the title is NOT a truncated version of the prompt using normalized comparison
-          if (!Utils.isTruncatedVersion(placeholderPrompt, currentTitle)) {
+          // Get the original prompt text for better comparison when there are code blocks
+          const originalPromptText = STATE.pendingOriginalPrompt;
+
+          // Check if the title is NOT a truncated version of the prompt using enhanced comparison
+          if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
             Logger.log("gemini-tracker", `Collapsed sidebar: Extracted real title: "${currentTitle}"`);
             return currentTitle;
           }
@@ -246,6 +249,7 @@
         url: window.location.href,
         model: STATE.pendingModelName,
         prompt: STATE.pendingPrompt,
+        originalPrompt: STATE.pendingOriginalPrompt,
         attachedFiles: STATE.pendingAttachedFiles,
         accountName: accountInfo.name,
         accountEmail: accountInfo.email,
@@ -302,6 +306,7 @@
         // This ensures page visibility changes don't cleanup observers while title capture is in progress
         STATE.pendingModelName = null;
         STATE.pendingPrompt = null;
+        STATE.pendingOriginalPrompt = null;
         STATE.pendingAttachedFiles = [];
         STATE.pendingAccountName = null;
         STATE.pendingAccountEmail = null;
@@ -344,6 +349,7 @@
         STATE.isNewChatPending = false; // Reset flag
         STATE.pendingModelName = null;
         STATE.pendingPrompt = null;
+        STATE.pendingOriginalPrompt = null;
         STATE.pendingAttachedFiles = [];
         STATE.pendingAccountName = null;
         STATE.pendingAccountEmail = null;
@@ -588,7 +594,12 @@
             if (
               !currentTitle ||
               (placeholderPrompt && currentTitle === placeholderPrompt) ||
-              (placeholderPrompt && Utils.isTruncatedVersion(placeholderPrompt, currentTitle))
+              (placeholderPrompt &&
+                Utils.isTruncatedVersionEnhanced(
+                  placeholderPrompt,
+                  currentTitle,
+                  STATE.pendingOriginalPrompt
+                ))
             ) {
               if (!STATE.secondaryTitleObserver) {
                 Logger.log(
@@ -633,10 +644,15 @@
                   const newTitle = titleElement.textContent.trim();
 
                   // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
-                  // AND not a truncated version of the placeholder (using normalized comparison to detect truncation)
+                  // AND not a truncated version of the placeholder (using enhanced comparison to detect truncation)
                   const isNotPlaceholder = !placeholderPrompt || newTitle !== placeholderPrompt;
                   const isNotTruncated =
-                    !placeholderPrompt || !Utils.isTruncatedVersion(placeholderPrompt, newTitle);
+                    !placeholderPrompt ||
+                    !Utils.isTruncatedVersionEnhanced(
+                      placeholderPrompt,
+                      newTitle,
+                      STATE.pendingOriginalPrompt
+                    );
                   const isDifferentFromWaiting = newTitle !== titleToWaitFor;
 
                   if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
@@ -654,7 +670,10 @@
                       accountName,
                       accountEmail
                     );
-                  } else if (placeholderPrompt && Utils.isTruncatedVersion(placeholderPrompt, newTitle)) {
+                  } else if (
+                    placeholderPrompt &&
+                    Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, STATE.pendingOriginalPrompt)
+                  ) {
                     Logger.log(
                       "gemini-tracker",
                       `Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`

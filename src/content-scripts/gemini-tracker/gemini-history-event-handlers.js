@@ -51,6 +51,7 @@
       // Capture model, prompt, and files BEFORE navigating or starting observation
       STATE.pendingModelName = ModelDetector.getCurrentModelName();
       STATE.pendingPrompt = InputExtractor.getPromptText();
+      STATE.pendingOriginalPrompt = InputExtractor.getOriginalPromptText(); // Capture original for better comparison
       STATE.pendingAttachedFiles = InputExtractor.getAttachedFiles();
 
       // Capture Gem information if applicable
@@ -78,6 +79,7 @@
 
       Logger.log("gemini-tracker", `Captured pending model name: "${STATE.pendingModelName}"`);
       Logger.log("gemini-tracker", `Captured pending prompt: "${STATE.pendingPrompt}"`);
+      Logger.log("gemini-tracker", `Captured pending original prompt: "${STATE.pendingOriginalPrompt}"`);
       Logger.log("gemini-tracker", `Captured pending files:`, STATE.pendingAttachedFiles);
       Logger.log("gemini-tracker", `Captured account name: "${STATE.pendingAccountName}"`);
       Logger.log("gemini-tracker", `Captured account email: "${STATE.pendingAccountEmail}"`);

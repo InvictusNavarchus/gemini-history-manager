@@ -5,6 +5,7 @@
     isNewChatPending: false,
     pendingModelName: null,
     pendingPrompt: null,
+    pendingOriginalPrompt: null,
     pendingAttachedFiles: [],
     pendingAccountName: null,
     pendingAccountEmail: null,
