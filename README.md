@@ -36,7 +36,8 @@ _Interactive charts showing model usage over time_
 - **🤖 Automatic Chat Tracking**:
   - Captures chat URL, title, and an ISO 8601 UTC timestamp.
   - Identifies the Gemini model used (e.g., "2.5 Pro", "2.0 Flash", "Deep Research", "Veo 2").
-  - **Custom Gem Detection**: Identifies chats occurring within a custom Gem environment, capturing the Gem's name and ID when available.
+  **Custom Gem Detection**:
+  - Identifies chats occurring within a custom Gem environment, capturing the Gem's name and ID when available.
   - Records the initial prompt and a list of any attached filenames.
   - Attempts to extract the Google account name and email associated with the chat.
   - Prevents duplicate entries based on chat URL.
@@ -471,38 +472,26 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 
 ### Data Capture
 
-- **DOM Dependent & Fragile**: Chat detection and data extraction heavily rely on the current HTML structure of the Gemini website. Changes made by Google to the Gemini interface can break the extension's tracking capabilities, requiring updates to the extension.
 - **Initial Prompt Focus**: The extension primarily captures the _initial_ prompt of a conversation. Subsequent edits to the prompt, or the nuances of multi-turn interactions within a single chat session, may not be fully captured.
 - **No Inline Image Content**: Only the _filenames_ of uploaded images are recorded, not the image content itself.
 
 ### Feature Set
 
 - **Manual Data Management**: Backup and transfer of history rely on manual export and import of JSON files. No automatic backup or cloud synchronization features are currently implemented.
-- **Search Functionality**:
-  - **Advanced Search Engine**: The extension now uses MiniSearch, a powerful full-text search engine with the following capabilities:
-    - **Fuzzy Search**: Find results even with slight misspellings or typos
-    - **Prefix Matching**: Search for partial words (e.g., searching "program" will find "programming")
-    - **Relevance Scoring**: Results are ranked by relevance, with a new sort option to display most relevant matches first
-    - **Boosted Fields**: Title matches are prioritized over prompt matches for more intuitive results
-    - **Fast Performance**: Utilizes an optimized search index for quick results even with large history collections
-  - **Potential Future Enhancements**:
-    - Implementing full-text search across entire multi-turn conversation content (if the scope of data capture were expanded beyond initial prompts)
-    - Adding support for explicit advanced search operators (AND, OR, NOT) and exact phrase matching
-    - Providing user options for case-sensitive and case-insensitive searching.
-    - Integrating metadata filters (e.g., date ranges, models used) more directly into the search query syntax.
+- **Search Functionality**: Limited to title and initial prompt content only. No support for advanced search operators (AND, OR, NOT), case-sensitive options, or searching across full multi-turn conversation content.
 - **Pre-defined Visualizations**: The dashboard offers a set of pre-defined charts and statistics. User-customizable reporting or visualization options are not currently supported.
 - **No Collaborative Features**: The extension is designed for individual use. There are no features for sharing history or collaborating with other users.
 - **Gemini Specific**: Designed exclusively for Google Gemini. It does not support other LLM platforms yet (e.g., ChatGPT, Claude).
 
 ### Performance
 
-- **Large Dataset Impact**: With large datasets of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching, due to lack of indexing and efficient searching algorithm.
+- **Large Dataset Impact**: With extremely large datasets of stored conversations (tens of thousands), users might experience slowdowns in the dashboard when loading and rendering all conversations simultaneously.
 - **DOM Observation Overhead**: The continuous observation of the Gemini page for new chats can have a minor performance footprint.
 
 ### Platform & Browser Compatibility
 
-- **Firefox Prioritized**: Primary development and testing are done on Mozilla Firefox.
-- **Can't run on Chrome yet:** Google Chrome has a slightly different Manifest structure and Web Extension API.
+- **Cross-Browser Support**: The extension supports both Mozilla Firefox and Google Chrome/Chromium-based browsers with separate build targets.
+- **Firefox Prioritized**: Primary development and testing are done on Mozilla Firefox, though Chrome compatibility is maintained.
 - **No Mobile Support**: The extension is designed for desktop browsers and is unlikely to work on mobile browsers.
 
 ### Security & Privacy
