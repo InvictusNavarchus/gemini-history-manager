@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  const Logger = window.GeminiHistoryLogger;
   const Utils = window.GeminiHistory_Utils;
 
   // Selectors for the container holding the Gem's name.
@@ -43,7 +42,7 @@
       // First try: Get the entire text content of the element
       const fullText = element.textContent.trim();
       if (fullText) {
-        Logger.log("gemini-tracker", `Extracted gem name from full text content: "${fullText}"`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted gem name from full text content: "${fullText}"`);
         return fullText;
       }
 
@@ -53,7 +52,7 @@
         if (node.nodeType === Node.TEXT_NODE) {
           const trimmedText = node.textContent.trim();
           if (trimmedText) {
-            Logger.log("gemini-tracker", `Extracted gem name from direct text node: "${trimmedText}"`);
+            console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted gem name from direct text node: "${trimmedText}"`);
             return trimmedText;
           }
         }
@@ -63,7 +62,7 @@
       for (const child of element.children) {
         const childText = child.textContent.trim();
         if (childText) {
-          Logger.log("gemini-tracker", `Extracted gem name from child element: "${childText}"`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted gem name from child element: "${childText}"`);
           return childText;
         }
       }
@@ -85,7 +84,7 @@
       for (const selector of GEM_NAME_SELECTORS) {
         gemNameElement = document.querySelector(selector);
         if (gemNameElement) {
-          Logger.log("gemini-tracker", `Found gem name element using primary selector: ${selector}`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found gem name element using primary selector: ${selector}`);
           break;
         }
       }
@@ -94,16 +93,15 @@
         const detectedName = this.getGemName(gemNameElement);
 
         if (detectedName) {
-          Logger.log("gemini-tracker", `Extracted Gem name from primary source: "${detectedName}"`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted Gem name from primary source: "${detectedName}"`);
           return detectedName;
         } else {
-          Logger.warn(
-            "gemini-tracker",
-            "Primary gem name container found, but the name text could not be extracted as expected."
+          console.warn(
+            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Primary gem name container found, but the name text could not be extracted as expected.`
           );
 
           // Log the HTML content to help with debugging
-          Logger.debug("gemini-tracker", `Primary gem container HTML: ${gemNameElement.innerHTML}`);
+          console.debug(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Primary gem container HTML: ${gemNameElement.innerHTML}`);
         }
       }
 
@@ -129,7 +127,7 @@
         if (elements && elements.length > 0) {
           // Use the most recent (last) response
           responseGemElement = elements[elements.length - 1];
-          Logger.log("gemini-tracker", `Found gem name in response using selector: ${selector}`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found gem name in response using selector: ${selector}`);
           break;
         }
       }
@@ -138,16 +136,15 @@
         const detectedName = this.getGemName(responseGemElement);
 
         if (detectedName) {
-          Logger.log("gemini-tracker", `Extracted Gem name from response: "${detectedName}"`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted Gem name from response: "${detectedName}"`);
           return detectedName;
         } else {
-          Logger.warn(
-            "gemini-tracker",
-            "Response gem name container found, but the name text could not be extracted as expected."
+          console.warn(
+            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Response gem name container found, but the name text could not be extracted as expected.`
           );
 
           // Log the HTML content to help with debugging
-          Logger.debug("gemini-tracker", `Response gem container HTML: ${responseGemElement.innerHTML}`);
+          console.debug(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Response gem container HTML: ${responseGemElement.innerHTML}`);
         }
       }
 
@@ -159,7 +156,7 @@
      * This method is kept for compatibility but doesn't start any observer.
      */
     startObserver: function () {
-      Logger.log("gemini-tracker", "Gem detection observer not needed with on-demand extraction approach.");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Gem detection observer not needed with on-demand extraction approach.`);
       // No longer using an observer - we'll extract the gem name when needed
     },
 
@@ -171,7 +168,7 @@
       if (this.observer) {
         this.observer.disconnect();
         this.observer = null;
-        Logger.log("gemini-tracker", "Gem detection observer reset.");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Gem detection observer reset.`);
       }
     },
 
@@ -197,7 +194,7 @@
 
         // If name couldn't be extracted, try the debug scan
         if (!gemName) {
-          Logger.log("gemini-tracker", "Gem name could not be extracted, performing debug scan");
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Gem name could not be extracted, performing debug scan`);
           this.debugGemDetection();
         }
 
@@ -212,47 +209,45 @@
      * Logs detailed information about potential gem name elements.
      */
     debugGemDetection: function () {
-      Logger.log("gemini-tracker", "Running gem detection debug scan...");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Running gem detection debug scan...`);
 
       // Try all selectors and log what we find
       for (const selector of GEM_NAME_SELECTORS) {
         const element = document.querySelector(selector);
         if (element) {
-          Logger.log("gemini-tracker", `Found element matching selector: ${selector}`);
-          Logger.log("gemini-tracker", `Element textContent: "${element.textContent.trim()}"`);
-          Logger.log("gemini-tracker", `Element innerHTML: ${element.innerHTML}`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found element matching selector: ${selector}`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Element textContent: "${element.textContent.trim()}"`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Element innerHTML: ${element.innerHTML}`);
 
           // Manually check for the name using various methods
           for (const node of element.childNodes) {
             if (node.nodeType === Node.TEXT_NODE) {
               const text = node.textContent.trim();
               if (text) {
-                Logger.log("gemini-tracker", `Direct text node found: "${text}"`);
+                console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Direct text node found: "${text}"`);
               }
             }
           }
 
           // Try to extract using our method
           const extractedName = this.getGemName(element);
-          Logger.log("gemini-tracker", `Extraction result: ${extractedName || "No name extracted"}`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extraction result: ${extractedName || "No name extracted"}`);
         } else {
-          Logger.log("gemini-tracker", `No element found for selector: ${selector}`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] No element found for selector: ${selector}`);
         }
       }
 
       // Look for potential bot name containers with different selectors
       const potentialContainers = document.querySelectorAll("[class*='bot-name'], [class*='name-container']");
-      Logger.log(
-        "gemini-tracker",
-        `Found ${potentialContainers.length} potential name containers with alternative selectors`
+      console.log(
+        `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found ${potentialContainers.length} potential name containers with alternative selectors`
       );
 
       for (let i = 0; i < Math.min(potentialContainers.length, 5); i++) {
         const container = potentialContainers[i];
-        Logger.log("gemini-tracker", `Alternative container ${i + 1} class: ${container.className}`);
-        Logger.log(
-          "gemini-tracker",
-          `Alternative container ${i + 1} text: "${container.textContent.trim()}"`
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Alternative container ${i + 1} class: ${container.className}`);
+        console.log(
+          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Alternative container ${i + 1} text: "${container.textContent.trim()}"`
         );
       }
     },

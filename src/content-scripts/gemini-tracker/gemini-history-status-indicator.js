@@ -1,9 +1,6 @@
 (function () {
   "use strict";
 
-  // Use the injected Logger from logger-inject.js
-  const Logger = window.GeminiHistoryLogger;
-
   const StatusIndicator = {
     element: null,
     timeout: null,
@@ -163,7 +160,7 @@
       document.body.appendChild(indicator);
 
       this.element = indicator;
-      Logger.log("gemini-tracker", "Status indicator initialized");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Status indicator initialized`);
     },
 
     /**

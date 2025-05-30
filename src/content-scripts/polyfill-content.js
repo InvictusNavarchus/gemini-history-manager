@@ -64,6 +64,6 @@
         },
       };
     }
-    console.log("[Content Script Polyfill] Browser API polyfill loaded");
+    console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [Content Script Polyfill] Browser API polyfill loaded`);
   }
 })();

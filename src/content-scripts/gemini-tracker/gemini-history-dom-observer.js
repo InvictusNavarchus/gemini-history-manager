@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  const Logger = window.GeminiHistoryLogger;
   const StatusIndicator = window.GeminiHistory_StatusIndicator;
   const STATE = window.GeminiHistory_STATE;
   const Utils = window.GeminiHistory_Utils;
@@ -38,7 +37,7 @@
       // Clear the new chat pending flag only if we had title observers
       if (hadTitleObservers && STATE.isNewChatPending) {
         STATE.isNewChatPending = false;
-        Logger.log("gemini-tracker", "Title observers cleaned up, cleared isNewChatPending flag");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Title observers cleaned up, cleared isNewChatPending flag`);
       }
     },
 
@@ -47,12 +46,12 @@
      * Disconnects sidebar, title, and secondary title observers.
      */
     cleanupAllObservers: function () {
-      Logger.log("gemini-tracker", "Cleaning up all DOM observers...");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Cleaning up all DOM observers...`);
 
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
       this.cleanupTitleObservers();
 
-      Logger.log("gemini-tracker", "All DOM observers cleaned up");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] All DOM observers cleaned up`);
     },
 
     /**
@@ -62,7 +61,7 @@
      * @param {function} callback - Function to call once the sidebar is found
      */
     watchForSidebar: function (callback) {
-      Logger.log("gemini-tracker", "Starting to watch for sidebar element...");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Starting to watch for sidebar element...`);
       // Show immediate loading status at the beginning
       StatusIndicator.show("Looking for Gemini sidebar...", "loading", 0);
 
@@ -71,18 +70,18 @@
       const existingSidebar = document.querySelector(sidebarSelector);
 
       if (existingSidebar) {
-        Logger.log("gemini-tracker", "Sidebar already exists in DOM");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Sidebar already exists in DOM`);
         callback(existingSidebar);
         return;
       }
 
       // If not, set up an observer to watch for it
-      Logger.log("gemini-tracker", "Sidebar not found. Setting up observer to watch for it...");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Sidebar not found. Setting up observer to watch for it...`);
 
       const observer = new MutationObserver((mutations, obs) => {
         const sidebar = document.querySelector(sidebarSelector);
         if (sidebar) {
-          Logger.log("gemini-tracker", "Sidebar element found in DOM");
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Sidebar element found in DOM`);
           obs.disconnect(); // Stop observing once found
           callback(sidebar);
         }
@@ -99,7 +98,7 @@
         if (observer) {
           const sidebar = document.querySelector(sidebarSelector);
           if (!sidebar) {
-            Logger.warn("gemini-tracker", "Sidebar element not found after timeout");
+            console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Sidebar element not found after timeout`);
             StatusIndicator.show("Warning: Gemini sidebar not detected", "warning", 0);
           }
           observer.disconnect();
@@ -130,18 +129,18 @@
      * @returns {string|null} - The extracted title or null if not found
      */
     extractTitleFromSidebarItem: function (conversationItem, prompt = null, originalPrompt = null) {
-      Logger.log("gemini-tracker", "Attempting to extract title from sidebar item:", conversationItem);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Attempting to extract title from sidebar item:`, conversationItem);
 
       const titleElement = conversationItem.querySelector(".conversation-title");
       if (!titleElement) {
-        Logger.warn("gemini-tracker", "Could not find title element (.conversation-title).");
+        console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Could not find title element (.conversation-title).`);
         return null;
       }
-      Logger.log("gemini-tracker", "Found title container element:", titleElement);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found title container element:`, titleElement);
 
       // Special logic for collapsed sidebar - execute first
       if (this.isSidebarCollapsed()) {
-        Logger.log("gemini-tracker", "Sidebar is collapsed. Setting up observer to wait for real title...");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Sidebar is collapsed. Setting up observer to wait for real title...`);
         const placeholderPrompt = prompt; // Use the passed prompt parameter instead of STATE.pendingPrompt
         // Try direct text node
         let currentTitle = "";
@@ -153,7 +152,7 @@
             currentTitle = titleElement.textContent.trim();
           }
         } catch (e) {
-          Logger.error("gemini-tracker", "Error during title extraction (collapsed mode):", e);
+          console.error(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Error during title extraction (collapsed mode):`, e);
           return null;
         }
 
@@ -165,26 +164,25 @@
 
           // Check if the title is NOT a truncated version of the prompt using enhanced comparison
           if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
-            Logger.log("gemini-tracker", `Collapsed sidebar: Extracted real title: "${currentTitle}"`);
+            console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Collapsed sidebar: Extracted real title: "${currentTitle}"`);
             return currentTitle;
           }
         }
 
         // Otherwise, always return null to trigger the secondary observer setup
-        Logger.log(
-          "gemini-tracker",
-          `Collapsed sidebar: Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
+        console.log(
+          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Collapsed sidebar: Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
         );
         return null; // Signal to set up secondary observer
       }
 
       // Regular extraction logic - visibility check and normal processing
       if (conversationItem.offsetParent === null) {
-        Logger.log("Conversation item not visible (hidden). Skipping title extraction.");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [Conversation item not visible (hidden). Skipping title extraction.`);
         return null;
       }
 
-      Logger.log("gemini-tracker", "Sidebar is not collapsed. Proceeding with normal extraction logic...");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Sidebar is not collapsed. Proceeding with normal extraction logic...`);
 
       // Normal extraction logic (sidebar not collapsed)
       try {
@@ -193,20 +191,20 @@
         if (first && first.nodeType === Node.TEXT_NODE) {
           const t = first.textContent.trim();
           if (t) {
-            Logger.log("gemini-tracker", `Extracted via text node: "${t}"`);
+            console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Extracted via text node: "${t}"`);
             return t;
           }
-          Logger.warn("gemini-tracker", "Text node was empty, falling back.");
+          console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Text node was empty, falling back.`);
         }
         // FALLBACK: full textContent
         const full = titleElement.textContent.trim();
         if (full) {
-          Logger.log("gemini-tracker", `Fallback textContent: "${full}"`);
+          console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Fallback textContent: "${full}"`);
           return full;
         }
-        Logger.warn("gemini-tracker", "titleElement.textContent was empty or whitespace.");
+        console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] titleElement.textContent was empty or whitespace.`);
       } catch (e) {
-        Logger.error("gemini-tracker", "Error during title extraction:", e);
+        console.error(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Error during title extraction:`, e);
       }
       return null;
     },
@@ -268,33 +266,31 @@
      * @returns {boolean} - True if processing was completed, false otherwise
      */
     processSidebarMutations: function (mutationsList) {
-      Logger.log(
-        "gemini-tracker",
-        `MAIN Sidebar Observer Callback Triggered. ${mutationsList.length} mutations.`
+      console.log(
+        `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] MAIN Sidebar Observer Callback Triggered. ${mutationsList.length} mutations.`
       );
       const currentUrl = window.location.href;
-      Logger.log("gemini-tracker", `Current URL inside MAIN observer: ${currentUrl}`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Current URL inside MAIN observer: ${currentUrl}`);
 
       if (!Utils.isValidChatUrl(currentUrl)) {
-        Logger.log(
-          "gemini-tracker",
-          `URL "${currentUrl}" does not match the expected chat pattern. Waiting...`
+        console.log(
+          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL "${currentUrl}" does not match the expected chat pattern. Waiting...`
         );
         return false; // URL still not a valid chat URL
       }
 
-      Logger.log(
-        "URL check passed (matches chat pattern). Processing mutations to find NEW conversation item..."
+      console.log(
+        `[${new Date().toTimeString().slice(0, 8)}] [GHM] [URL check passed (matches chat pattern). Processing mutations to find NEW conversation item...`
       );
 
       if (!STATE.isNewChatPending) {
-        Logger.log("gemini-tracker", "No new chat is pending. Ignoring mutations.");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] No new chat is pending. Ignoring mutations.`);
         return false;
       }
 
       const conversationItem = this.findConversationItemInMutations(mutationsList);
       if (conversationItem) {
-        Logger.log("gemini-tracker", "Found NEW conversation item container. Preparing to wait for title...");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found NEW conversation item container. Preparing to wait for title...`);
         StatusIndicator.show("New chat detected, capturing details...", "loading", 0);
 
         // Capture context before disconnecting observer
@@ -312,9 +308,8 @@
         STATE.pendingAccountName = null;
         STATE.pendingAccountEmail = null;
         // We don't clear Gem-related state here since we still need it for the history entry
-        Logger.log(
-          "gemini-tracker",
-          `Cleared pending flags. Waiting for title associated with URL: ${context.url}`
+        console.log(
+          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Cleared pending flags. Waiting for title associated with URL: ${context.url}`
         );
 
         // Stage 2: Wait for the Title
@@ -343,9 +338,8 @@
       const conversationListElement = document.querySelector(targetSelector);
 
       if (!conversationListElement) {
-        Logger.warn(
-          "gemini-tracker",
-          `Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`
+        console.warn(
+          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`
         );
         StatusIndicator.show("Could not track chat (UI element not found)", "warning");
         STATE.isNewChatPending = false; // Reset flag
@@ -361,7 +355,7 @@
         return;
       }
 
-      Logger.log("gemini-tracker", "Found conversation list element. Setting up MAIN sidebar observer...");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Found conversation list element. Setting up MAIN sidebar observer...`);
       StatusIndicator.show("Tracking new chat...", "info");
 
       // Disconnect previous observers if they exist
@@ -376,7 +370,7 @@
         childList: true,
         subtree: true,
       });
-      Logger.log("MAIN sidebar observer is now active.");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [MAIN sidebar observer is now active.`);
     },
 
     /**
@@ -403,13 +397,13 @@
       accountEmail
     ) {
       if (title) {
-        Logger.log("gemini-tracker", `Title found for ${expectedUrl}! Attempting to add history entry.`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Title found for ${expectedUrl}! Attempting to add history entry.`);
         StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
         this.cleanupTitleObservers();
 
         // Get the Gemini Plan from the state
         const geminiPlan = STATE.pendingGeminiPlan;
-        Logger.log("gemini-tracker", `Using Gemini plan: ${geminiPlan || "Unknown"}`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Using Gemini plan: ${geminiPlan || "Unknown"}`);
 
         // Get Gem information from the state
         const gemId = STATE.pendingGemId;
@@ -421,27 +415,24 @@
         if (gemId && !gemName) {
           const GemDetector = window.GeminiHistory_GemDetector;
           if (GemDetector && typeof GemDetector.extractGemNameFromResponses === "function") {
-            Logger.log(
-              "gemini-tracker",
-              "No gem name was detected earlier. Attempting to extract from response containers..."
+            console.log(
+              `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] No gem name was detected earlier. Attempting to extract from response containers...`
             );
             // Try to extract the gem name from response containers which appear after responses are completed
             const extractedName = GemDetector.extractGemNameFromResponses();
             if (extractedName) {
               gemName = extractedName;
               STATE.pendingGemName = extractedName;
-              Logger.log(
-                "gemini-tracker",
-                `Successfully extracted gem name "${gemName}" from response container`
+              console.log(
+                `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Successfully extracted gem name "${gemName}" from response container`
               );
             }
           }
         }
 
         if (gemId) {
-          Logger.log(
-            "gemini-tracker",
-            `Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`
+          console.log(
+            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`
           );
         }
 
@@ -500,7 +491,7 @@
     ) {
       // Abort if URL changed
       if (window.location.href !== expectedUrl) {
-        Logger.warn("gemini-tracker", "URL changed; disconnecting all title observers.");
+        console.warn(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL changed; disconnecting all title observers.`);
         this.cleanupTitleObservers();
         return true;
       }
@@ -524,7 +515,7 @@
         return true;
       }
 
-      Logger.log("gemini-tracker", "No title yet; continuing to observe...");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] No title yet; continuing to observe...`);
       return false;
     },
 
@@ -572,9 +563,8 @@
         STATE.titleObserver = new MutationObserver(() => {
           // Check if URL changed during observation
           if (window.location.href !== expectedUrl) {
-            Logger.warn(
-              "gemini-tracker",
-              `URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Cleaning up all title observers.`
+            console.warn(
+              `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Cleaning up all title observers.`
             );
             self.cleanupTitleObservers();
             return;
@@ -582,9 +572,8 @@
 
           // Check if the conversation item was removed from DOM (conversation deleted)
           if (!document.contains(conversationItem)) {
-            Logger.warn(
-              "gemini-tracker",
-              "Conversation item removed from DOM. Cleaning up all title observers."
+            console.warn(
+              `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Conversation item removed from DOM. Cleaning up all title observers.`
             );
             self.cleanupTitleObservers();
             return;
@@ -604,9 +593,8 @@
                 Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
             ) {
               if (!STATE.secondaryTitleObserver) {
-                Logger.log(
-                  "gemini-tracker",
-                  "Setting up secondary observer to wait for real title change (avoiding truncated titles)..."
+                console.log(
+                  `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Setting up secondary observer to wait for real title change (avoiding truncated titles)...`
                 );
 
                 // Capture the current title state to compare against
@@ -615,9 +603,8 @@
                 STATE.secondaryTitleObserver = new MutationObserver(() => {
                   // Check if URL changed during secondary observation
                   if (window.location.href !== expectedUrl) {
-                    Logger.warn(
-                      "gemini-tracker",
-                      "URL changed during secondary observer. Cleaning up all title observers."
+                    console.warn(
+                      `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL changed during secondary observer. Cleaning up all title observers.`
                     );
                     self.cleanupTitleObservers();
                     return;
@@ -625,9 +612,8 @@
 
                   // Check if the conversation item was removed from DOM (conversation deleted)
                   if (!document.contains(conversationItem) || !document.contains(titleElement)) {
-                    Logger.warn(
-                      "gemini-tracker",
-                      "Conversation item or title element removed from DOM. Cleaning up all title observers."
+                    console.warn(
+                      `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Conversation item or title element removed from DOM. Cleaning up all title observers.`
                     );
                     self.cleanupTitleObservers();
                     return;
@@ -635,9 +621,8 @@
 
                   // Check if sidebar expanded (secondary observer no longer needed)
                   if (!self.isSidebarCollapsed()) {
-                    Logger.log(
-                      "gemini-tracker",
-                      "Sidebar expanded while secondary observer active. Cleaning up secondary observer."
+                    console.log(
+                      `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Sidebar expanded while secondary observer active. Cleaning up secondary observer.`
                     );
                     STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
                     return;
@@ -654,7 +639,7 @@
                   const isDifferentFromWaiting = newTitle !== titleToWaitFor;
 
                   if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
-                    Logger.log("gemini-tracker", `Secondary observer: Real title detected: "${newTitle}"`);
+                    console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Secondary observer: Real title detected: "${newTitle}"`);
                     // Clean up observers
                     self.cleanupTitleObservers();
                     // Continue with chat data extraction as usual
@@ -672,9 +657,8 @@
                     placeholderPrompt &&
                     Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt)
                   ) {
-                    Logger.log(
-                      "gemini-tracker",
-                      `Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
+                    console.log(
+                      `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
                     );
                   }
                 });
@@ -687,7 +671,7 @@
               return; // Keep waiting
             } else {
               // We have a title that's different from placeholder AND not a truncated version, use it
-              Logger.log("gemini-tracker", `Collapsed sidebar: Found real title: "${currentTitle}"`);
+              console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Collapsed sidebar: Found real title: "${currentTitle}"`);
               self.cleanupTitleObservers();
               self.processTitleAndAddHistory(
                 currentTitle,
@@ -703,9 +687,8 @@
             }
           } else if (STATE.secondaryTitleObserver) {
             // Sidebar is not collapsed but secondary observer exists - clean it up
-            Logger.log(
-              "gemini-tracker",
-              "Sidebar not collapsed but secondary observer exists. Cleaning up secondary observer."
+            console.log(
+              `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Sidebar not collapsed but secondary observer exists. Cleaning up secondary observer.`
             );
             STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
           }
@@ -731,7 +714,7 @@
           subtree: true,
           attributeOldValue: true,
         });
-        Logger.log("gemini-tracker", `TITLE observer active for URL: ${expectedUrl}`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] TITLE observer active for URL: ${expectedUrl}`);
       });
     },
 
@@ -762,9 +745,8 @@
     ) {
       // Check if we are still on the page this observer was created for
       if (window.location.href !== expectedUrl) {
-        Logger.warn(
-          "gemini-tracker",
-          `URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting all title observers.`
+        console.warn(
+          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting all title observers.`
         );
         STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
         STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
@@ -772,11 +754,11 @@
       }
 
       const title = this.extractTitleFromSidebarItem(item, prompt, originalPrompt);
-      Logger.log("gemini-tracker", `TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
 
       // Get the Gemini Plan from the state
       const geminiPlan = STATE.pendingGeminiPlan;
-      Logger.log("gemini-tracker", `Using Gemini plan: ${geminiPlan || "Unknown"}`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Using Gemini plan: ${geminiPlan || "Unknown"}`);
 
       return await this.processTitleAndAddHistory(
         title,

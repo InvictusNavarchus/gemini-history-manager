@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  const Logger = window.GeminiHistoryLogger;
   const STATE = window.GeminiHistory_STATE;
   const Utils = window.GeminiHistory_Utils;
   const ModelDetector = window.GeminiHistory_ModelDetector;
@@ -26,7 +25,7 @@
       }
 
       if (sendButton.getAttribute("aria-disabled") === "true") {
-        Logger.log("Send button is disabled. Ignoring click.");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [EventHandlers] Send button is disabled. Ignoring click.`);
         return false;
       }
 
@@ -39,12 +38,11 @@
      */
     prepareNewChatTracking: function () {
       const url = window.location.href;
-      Logger.log(
-        "gemini-tracker",
-        "URL " + url + " matches valid Gemini pattern. This is potentially a new chat."
+      console.log(
+        `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL ${url} matches valid Gemini pattern. This is potentially a new chat.`
       );
       STATE.isNewChatPending = true;
-      Logger.log("Set isNewChatPending = true");
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [EventHandlers] Set isNewChatPending = true`);
 
       StatusIndicator.show("Preparing to track new chat...", "loading", 0);
 
@@ -62,9 +60,8 @@
           STATE.pendingGemId = gemInfo.gemId;
           STATE.pendingGemName = gemInfo.gemName;
           STATE.pendingGemUrl = gemInfo.gemUrl;
-          Logger.log(
-            "gemini-tracker",
-            `Captured Gem information: ID=${gemInfo.gemId}, Name=${gemInfo.gemName || "Not detected yet"}`
+          console.log(
+            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured Gem information: ID=${gemInfo.gemId}, Name=${gemInfo.gemName || "Not detected yet"}`
           );
         }
       }
@@ -77,19 +74,19 @@
       // Capture the Gemini plan (Pro, Free, etc.)
       STATE.pendingGeminiPlan = ModelDetector.detectGeminiPlan();
 
-      Logger.log("gemini-tracker", `Captured pending model name: "${STATE.pendingModelName}"`);
-      Logger.log("gemini-tracker", `Captured pending prompt: "${STATE.pendingPrompt}"`);
-      Logger.log("gemini-tracker", `Captured pending original prompt: "${STATE.pendingOriginalPrompt}"`);
-      Logger.log("gemini-tracker", `Captured pending files:`, STATE.pendingAttachedFiles);
-      Logger.log("gemini-tracker", `Captured account name: "${STATE.pendingAccountName}"`);
-      Logger.log("gemini-tracker", `Captured account email: "${STATE.pendingAccountEmail}"`);
-      Logger.log("gemini-tracker", `Captured Gemini plan: "${STATE.pendingGeminiPlan}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured pending model name: "${STATE.pendingModelName}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured pending prompt: "${STATE.pendingPrompt}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured pending original prompt: "${STATE.pendingOriginalPrompt}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured pending files:`, STATE.pendingAttachedFiles);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured account name: "${STATE.pendingAccountName}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured account email: "${STATE.pendingAccountEmail}"`);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Captured Gemini plan: "${STATE.pendingGeminiPlan}"`);
 
       StatusIndicator.update(`Capturing chat with ${STATE.pendingModelName}...`, "info");
 
       // Use setTimeout to ensure observation starts after the click event potentially triggers initial DOM changes
       setTimeout(() => {
-        Logger.log("Initiating sidebar observation via setTimeout.");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [EventHandlers] Initiating sidebar observation via setTimeout.`);
         DomObserver.observeSidebarForNewChat();
       }, 50); // Small delay
     },
@@ -100,21 +97,20 @@
      * @param {Event} event - The click event.
      */
     handleSendClick: function (event) {
-      Logger.log("gemini-tracker", "Click detected on body (capture phase). Target:", event.target);
+      console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Click detected on body (capture phase). Target:`, event.target);
       const sendButton = this.isSendButton(event.target);
 
       if (sendButton) {
-        Logger.log("gemini-tracker", "Click target is (or is inside) a potential send button.");
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Click target is (or is inside) a potential send button.`);
         const currentUrl = window.location.href;
-        Logger.log("gemini-tracker", `Current URL at time of click: ${currentUrl}`);
+        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] Current URL at time of click: ${currentUrl}`);
 
         // Check if we are on the main app page or a Gem homepage (starting a NEW chat)
         if (Utils.isBaseAppUrl(currentUrl) || Utils.isGemHomepageUrl(currentUrl)) {
           this.prepareNewChatTracking();
         } else {
-          Logger.log(
-            "gemini-tracker",
-            "URL is not a valid starting point for new chats. Ignoring click for history tracking."
+          console.log(
+            `[${new Date().toTimeString().slice(0, 8)}] [GHM] [gemini-tracker] URL is not a valid starting point for new chats. Ignoring click for history tracking.`
           );
         }
       }
