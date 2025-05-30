@@ -236,97 +236,48 @@
     /**
      * Parses text and replaces codeblocks with placeholders while preserving non-codeblock text.
      * Handles multiple codeblocks and nested backticks within codeblocks.
+     * Uses regex-based parsing for improved performance and correct newline handling.
      *
      * @param {string} text - The text to process
      * @returns {Object} - Object with processedText, hasCodeblocks, and codeblockCount properties
      */
     processCodeblocks: function (text) {
-      const result = [];
-      let position = 0;
-      let codeblockCount = 0;
+      if (!text) {
+        return { processedText: "", hasCodeblocks: false, codeblockCount: 0 };
+      }
+
+      // Global regex to find all codeblocks with proper opening and closing patterns
+      // This handles \r\n sequences correctly and validates proper markdown structure
+      const codeblockRegex = /^```[^\r\n]*(?:\r\n|\r|\n)([\s\S]*?)^```\s*$/gm;
+
       let hasCodeblocks = false;
+      let codeblockCount = 0;
+      let lastIndex = 0;
+      const result = [];
+      let match;
 
-      while (position < text.length) {
-        const nextCodeblockStart = text.indexOf("```", position);
-
-        if (nextCodeblockStart === -1) {
-          // No more codeblocks, add remaining text
-          result.push(text.substring(position));
-          break;
-        }
-
-        // Add text before the codeblock
-        result.push(text.substring(position, nextCodeblockStart));
-
-        // Find the end of this codeblock
-        let codeblockEnd = nextCodeblockStart + 3;
-        let foundClosing = false;
-
-        // Skip to end of the opening line (language identifier)
-        while (codeblockEnd < text.length && text[codeblockEnd] !== "\n" && text[codeblockEnd] !== "\r") {
-          codeblockEnd++;
-        }
-        if (codeblockEnd < text.length && (text[codeblockEnd] === "\n" || text[codeblockEnd] === "\r")) {
-          codeblockEnd++;
-        }
-
-        // Look for closing triple backticks
-        while (codeblockEnd < text.length) {
-          const nextTripleBacktick = text.indexOf("```", codeblockEnd);
-
-          if (nextTripleBacktick === -1) {
-            // No closing backticks found, treat rest as unclosed codeblock
-            break;
-          }
-
-          // Check if this is at the start of a line (proper closing)
-          const lineStart =
-            nextTripleBacktick === 0 ||
-            text[nextTripleBacktick - 1] === "\n" ||
-            text[nextTripleBacktick - 1] === "\r";
-
-          if (lineStart) {
-            // Check if there's only whitespace or newline after the closing backticks
-            let afterBackticks = nextTripleBacktick + 3;
-            while (
-              afterBackticks < text.length &&
-              text[afterBackticks] !== "\n" &&
-              text[afterBackticks] !== "\r" &&
-              /\s/.test(text[afterBackticks])
-            ) {
-              afterBackticks++;
-            }
-
-            if (
-              afterBackticks >= text.length ||
-              text[afterBackticks] === "\n" ||
-              text[afterBackticks] === "\r"
-            ) {
-              // Valid closing backticks
-              codeblockEnd = afterBackticks;
-              foundClosing = true;
-              break;
-            }
-          }
-
-          // Not a valid closing, continue searching
-          codeblockEnd = nextTripleBacktick + 3;
-        }
-
-        if (!foundClosing) {
-          // Unclosed codeblock, take everything to the end
-          codeblockEnd = text.length;
-        }
-
-        // Replace the codeblock with a placeholder
-        codeblockCount++;
-        result.push(`[codeblock-${codeblockCount}]`);
+      // Use regex.exec() in a loop to process all matches while maintaining position tracking
+      while ((match = codeblockRegex.exec(text)) !== null) {
         hasCodeblocks = true;
-        position = codeblockEnd;
+        codeblockCount++;
+
+        // Add text before this codeblock
+        result.push(text.substring(lastIndex, match.index));
+
+        // Add placeholder for the codeblock
+        result.push(`[codeblock-${codeblockCount}]`);
+
+        // Update position tracking
+        lastIndex = match.index + match[0].length;
 
         console.log(
-          `${this.getPrefix()} Found codeblock ${codeblockCount} from position ${nextCodeblockStart} to ${codeblockEnd}`
+          `${this.getPrefix()} Found codeblock ${codeblockCount} from position ${match.index} to ${lastIndex}`
         );
+      }
+
+      // Add any remaining text after the last codeblock
+      if (lastIndex < text.length) {
+        result.push(text.substring(lastIndex));
       }
 
       const processedText = result.join("").trim();
