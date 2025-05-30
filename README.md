@@ -496,13 +496,13 @@ While Gemini History Manager aims to be a comprehensive tool for tracking your G
 
 ### Performance
 
-- **Large Dataset Impact**: With large datasets of stored conversations, users might experience slowdowns in the dashboard when loading, filtering, or searching, due to lack of indexing and efficient searching algorithm.
+- **Large Dataset Impact**: With extremely large datasets of stored conversations (tens of thousands), users might experience slowdowns in the dashboard when loading and rendering all conversations simultaneously.
 - **DOM Observation Overhead**: The continuous observation of the Gemini page for new chats can have a minor performance footprint.
 
 ### Platform & Browser Compatibility
 
-- **Firefox Prioritized**: Primary development and testing are done on Mozilla Firefox.
-- **Can't run on Chrome yet:** Google Chrome has a slightly different Manifest structure and Web Extension API.
+- **Cross-Browser Support**: The extension supports both Mozilla Firefox and Google Chrome/Chromium-based browsers with separate build targets.
+- **Firefox Prioritized**: Primary development and testing are done on Mozilla Firefox, though Chrome compatibility is maintained.
 - **No Mobile Support**: The extension is designed for desktop browsers and is unlikely to work on mobile browsers.
 
 ### Security & Privacy
