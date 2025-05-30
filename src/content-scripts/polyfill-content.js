@@ -65,7 +65,6 @@ const Utils = window.GeminiHistory_Utils;
         },
       };
     }
-    const getPrefix = () => `[${new Date().toTimeString().slice(0, 8)}] [GHM] [Content Script Polyfill]`;
-    console.log(`${getPrefix()} Browser API polyfill loaded`);
+    console.log(`${Utils.getPrefix()} Browser API polyfill loaded`);
   }
 })();

@@ -199,7 +199,8 @@
           );
           return { name, email };
         } catch (e) {
-          console.error(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error parsing account information:`, e);
+          // Log error using standard prefix
+console.error(`${Utils.getPrefix()} Error parsing account information:`, e);
           return { name: "Unknown", email: "Unknown" };
         }
       }

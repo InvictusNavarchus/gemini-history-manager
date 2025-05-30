@@ -116,19 +116,16 @@
 
       // Basic validation (Title, URL, Timestamp, Model are still required)
       if (!timestamp || !url || !title || !model) {
-        console.warn(
-          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Attempted to add entry with missing essential data. Skipping.`,
-          entryData
-        );
+        // Log warning using standard prefix
+console.warn(`${Utils.getPrefix()} Attempted to add entry with missing essential data. Skipping.`, entryData);
         StatusIndicator.show("Chat history entry incomplete", "warning");
         return false; // Indicate failure
       }
 
       // Prevent adding entry if URL is invalid
       if (!Utils.isValidChatUrl(url)) {
-        console.warn(
-          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Attempted to add entry with invalid chat URL pattern "${url}". Skipping.`
-        );
+        // Log warning using standard prefix
+console.warn(`${Utils.getPrefix()} Attempted to add entry with invalid chat URL pattern "${url}". Skipping.`);
         StatusIndicator.show("Invalid chat URL", "warning");
         return false; // Indicate failure
       }

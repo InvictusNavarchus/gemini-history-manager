@@ -81,7 +81,8 @@
      */
     window.addEventListener("storage", (event) => {
       if (event.key === LogConfig.CONFIG_STORAGE_KEY) {
-        console.debug(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [ContentScript] Logging configuration changed in localStorage, invalidating cache`);
+        // Log config change using standard prefix
+console.debug(`${Utils.getPrefix()} [ContentScript] Logging configuration changed in localStorage, invalidating cache`);
         LogConfig.invalidateConfigCache();
       }
     });
@@ -123,19 +124,16 @@
           Utils.extractGemId(lastUrl) === Utils.extractGemId(currentUrl);
 
         if (isTransitionWithinGem) {
-          console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL change is within the same Gem context, maintaining Gem detection`
-          );
+          // Log URL change using standard prefix
+console.log(`${Utils.getPrefix()} URL change is within the same Gem context, maintaining Gem detection`);
         } else if (isNewChatTransition) {
-          console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL change indicates new chat creation, preserving observers for chat detection`
-          );
+          // Log URL change using standard prefix
+console.log(`${Utils.getPrefix()} URL change indicates new chat creation, preserving observers for chat detection`);
           // Don't cleanup observers - they're needed to capture the new conversation
         } else {
           // Clean up all observers when navigating to a different context
-          console.log(
-            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] URL change indicates navigation away from chat context, cleaning up observers`
-          );
+          // Log URL change using standard prefix
+console.log(`${Utils.getPrefix()} URL change indicates navigation away from chat context, cleaning up observers`);
           DomObserver.cleanupAllObservers();
 
           if (GemDetector) {
@@ -202,13 +200,15 @@
 
       // Handle invalidate cache message from dashboard or popup
       if (message.action === "invalidateLogConfigCache") {
-        console.debug(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [ContentScript] Received request to invalidate logging config cache`);
+        // Log cache invalidate using standard prefix
+console.debug(`${Utils.getPrefix()} [ContentScript] Received request to invalidate logging config cache`);
         LogConfig.invalidateConfigCache();
         return Promise.resolve({ success: true });
       }
     });
 
-    console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [Gemini History Manager initialization complete.`);
+    // Log initialization using standard prefix
+console.log(`${Utils.getPrefix()} [Gemini History Manager initialization complete.`);
 
     // Add cleanup for page unload to prevent memory leaks
     /**

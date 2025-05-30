@@ -145,9 +145,8 @@
             'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
           );
           if (videoButton) {
-            console.log(
-              `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Video tool is activated (detected via icon), checking for Veo version...`
-            );
+            // Log activation using standard prefix
+console.log(`${Utils.getPrefix()} Video tool is activated (detected via icon), checking for Veo version...`);
             return this.detectVeoVersion();
           }
         }
@@ -217,13 +216,13 @@
             return model;
           }
         }
-        console.log(
-          `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`
-        );
+        // Log fallback to raw text with standard prefix
+console.log(`${Utils.getPrefix()} Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`);
         return rawText; // Return raw text if no prefix matches
       }
 
-      console.warn(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Could not determine current model name from any known selector.`);
+      // Log warning using standard prefix
+console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
       return "Unknown";
     },
   };
