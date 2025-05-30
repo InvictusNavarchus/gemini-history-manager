@@ -232,6 +232,65 @@
 
       return standardResult;
     },
+
+    /**
+     * Parses text and replaces codeblocks with placeholders while preserving non-codeblock text.
+     * Handles multiple codeblocks and nested backticks within codeblocks.
+     * Uses regex-based parsing for improved performance and correct newline handling.
+     *
+     * @param {string} text - The text to process
+     * @returns {Object} - Object with processedText, hasCodeblocks, and codeblockCount properties
+     */
+    processCodeblocks: function (text) {
+      if (!text) {
+        return { processedText: "", hasCodeblocks: false, codeblockCount: 0 };
+      }
+
+      // Global regex to find all codeblocks with proper opening and closing patterns
+      // This handles \r\n sequences correctly and validates proper markdown structure
+      const codeblockRegex = /^```[^\r\n]*(?:\r\n|\r|\n)([\s\S]*?)^```\s*$/gm;
+
+      let hasCodeblocks = false;
+      let codeblockCount = 0;
+      let lastIndex = 0;
+      const result = [];
+      let match;
+
+      // Use regex.exec() in a loop to process all matches while maintaining position tracking
+      while ((match = codeblockRegex.exec(text)) !== null) {
+        hasCodeblocks = true;
+        codeblockCount++;
+
+        // Add text before this codeblock
+        result.push(text.substring(lastIndex, match.index));
+
+        // Add placeholder for the codeblock
+        result.push(`[codeblock-${codeblockCount}]`);
+
+        // Update position tracking
+        lastIndex = match.index + match[0].length;
+
+        console.log(
+          `${this.getPrefix()} Found codeblock ${codeblockCount} from position ${match.index} to ${lastIndex}`
+        );
+      }
+
+      // Add any remaining text after the last codeblock
+      if (lastIndex < text.length) {
+        result.push(text.substring(lastIndex));
+      }
+
+      const processedText = result.join("").trim();
+      console.log(
+        `${this.getPrefix()} Processed ${codeblockCount} codeblock(s). Final text: "${processedText}"`
+      );
+
+      return {
+        processedText,
+        hasCodeblocks,
+        codeblockCount,
+      };
+    },
   };
 
   window.GeminiHistory_Utils = Utils;

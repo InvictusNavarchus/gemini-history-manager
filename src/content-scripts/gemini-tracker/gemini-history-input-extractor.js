@@ -5,7 +5,7 @@
     /**
      * Extracts the prompt text from the input area.
      * If the prompt contains code blocks delimited by triple backticks,
-     * it will be truncated and a placeholder will be added.
+     * they will be replaced with placeholders while preserving other text.
      *
      * @returns {string} - The extracted prompt text or empty string if not found
      */
@@ -14,17 +14,14 @@
       if (promptElement) {
         const text = promptElement.innerText.trim();
 
-        // Check for triple backticks and truncate if found
-        const backtickIndex = text.indexOf("```");
-        if (backtickIndex !== -1) {
-          const truncatedText = text.substring(0, backtickIndex).trim();
+        // Process codeblocks using Utils
+        const result = Utils.processCodeblocks(text);
+
+        if (result.hasCodeblocks) {
           console.log(
-            `${Utils.getPrefix()} Found code block in prompt. Truncating at index ${backtickIndex}`
+            `${Utils.getPrefix()} Extracted prompt text with ${result.codeblockCount} codeblock(s): "${result.processedText}"`
           );
-          console.log(
-            `${Utils.getPrefix()} Extracted prompt text (truncated): "${truncatedText} [attached blockcode]"`
-          );
-          return `${truncatedText} [attached blockcode]`;
+          return result.processedText;
         }
 
         console.log(`${Utils.getPrefix()} Extracted prompt text: "${text}"`);
