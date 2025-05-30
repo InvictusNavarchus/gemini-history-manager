@@ -37,6 +37,32 @@
     },
 
     /**
+     * Extracts the original prompt text limited to 200 characters.
+     * This is useful for title comparison when the main getPromptText() returns
+     * a truncated version with [attached blockcode] placeholder.
+     *
+     * @returns {string} - The original prompt text limited to 200 characters, or empty string if not found
+     */
+    getOriginalPromptText: function () {
+      const promptElement = document.querySelector("rich-textarea .ql-editor");
+      if (promptElement) {
+        const text = promptElement.innerText.trim();
+
+        // Limit to 200 characters to avoid memory issues and provide reasonable comparison length
+        const limitedText = text.length > 200 ? text.substring(0, 200) : text;
+
+        Logger.log(
+          "gemini-tracker",
+          `Extracted original prompt text (limited to 200 chars): "${limitedText}"`
+        );
+        return limitedText;
+      } else {
+        Logger.warn("gemini-tracker", "Could not find prompt input element for original text extraction.");
+        return "";
+      }
+    },
+
+    /**
      * Extracts the filenames of attached files from the UI.
      *
      * @returns {string[]} - Array of filenames (strings) or empty array if none found

@@ -125,10 +125,11 @@
      *   - Uses the new title once it changes.
      *
      * @param {Element} conversationItem - The DOM element representing a conversation item
-     * @param {string} [prompt] - The original user prompt to compare against for placeholder detection
+     * @param {string} [prompt] - The user prompt to compare against for placeholder detection (may be truncated with [attached blockcode])
+     * @param {string} [originalPrompt] - The original user prompt without modifications (for better comparison)
      * @returns {string|null} - The extracted title or null if not found
      */
-    extractTitleFromSidebarItem: function (conversationItem, prompt = null) {
+    extractTitleFromSidebarItem: function (conversationItem, prompt = null, originalPrompt = null) {
       Logger.log("gemini-tracker", "Attempting to extract title from sidebar item:", conversationItem);
 
       const titleElement = conversationItem.querySelector(".conversation-title");
@@ -159,8 +160,11 @@
         // If we have a placeholder prompt and the current title is different AND non-empty, return it
         // But only if it's not a truncated version of the placeholder
         if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
-          // Check if the title is NOT a truncated version of the prompt using normalized comparison
-          if (!Utils.isTruncatedVersion(placeholderPrompt, currentTitle)) {
+          // Use the passed original prompt text for better comparison when there are code blocks
+          const originalPromptText = originalPrompt;
+
+          // Check if the title is NOT a truncated version of the prompt using enhanced comparison
+          if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
             Logger.log("gemini-tracker", `Collapsed sidebar: Extracted real title: "${currentTitle}"`);
             return currentTitle;
           }
@@ -246,6 +250,7 @@
         url: window.location.href,
         model: STATE.pendingModelName,
         prompt: STATE.pendingPrompt,
+        originalPrompt: STATE.pendingOriginalPrompt,
         attachedFiles: STATE.pendingAttachedFiles,
         accountName: accountInfo.name,
         accountEmail: accountInfo.email,
@@ -302,6 +307,7 @@
         // This ensures page visibility changes don't cleanup observers while title capture is in progress
         STATE.pendingModelName = null;
         STATE.pendingPrompt = null;
+        STATE.pendingOriginalPrompt = null;
         STATE.pendingAttachedFiles = [];
         STATE.pendingAccountName = null;
         STATE.pendingAccountEmail = null;
@@ -318,6 +324,7 @@
           context.timestamp,
           context.model,
           context.prompt,
+          context.originalPrompt,
           context.attachedFiles,
           context.accountName,
           context.accountEmail
@@ -344,6 +351,7 @@
         STATE.isNewChatPending = false; // Reset flag
         STATE.pendingModelName = null;
         STATE.pendingPrompt = null;
+        STATE.pendingOriginalPrompt = null;
         STATE.pendingAttachedFiles = [];
         STATE.pendingAccountName = null;
         STATE.pendingAccountEmail = null;
@@ -472,7 +480,8 @@
      * @param {string} expectedUrl - The URL associated with this conversation
      * @param {string} timestamp - ISO-formatted timestamp for the chat
      * @param {string} model - Model name used for the chat
-     * @param {string} prompt - User prompt text
+     * @param {string} prompt - User prompt text (may be truncated with [attached blockcode])
+     * @param {string} originalPrompt - Original prompt text without modifications
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
      * @param {string} accountEmail - Email of the user account
@@ -484,6 +493,7 @@
       timestamp,
       model,
       prompt,
+      originalPrompt,
       attachedFiles,
       accountName,
       accountEmail
@@ -496,7 +506,7 @@
       }
 
       // Extract title and process if found
-      const title = this.extractTitleFromSidebarItem(conversationItem, prompt);
+      const title = this.extractTitleFromSidebarItem(conversationItem, prompt, originalPrompt);
       const geminiPlan = STATE.pendingGeminiPlan;
       if (
         await this.processTitleAndAddHistory(
@@ -536,6 +546,7 @@
       timestamp,
       model,
       prompt,
+      originalPrompt,
       attachedFiles,
       accountName,
       accountEmail
@@ -547,6 +558,7 @@
         timestamp,
         model,
         prompt,
+        originalPrompt,
         attachedFiles,
         accountName,
         accountEmail
@@ -588,7 +600,8 @@
             if (
               !currentTitle ||
               (placeholderPrompt && currentTitle === placeholderPrompt) ||
-              (placeholderPrompt && Utils.isTruncatedVersion(placeholderPrompt, currentTitle))
+              (placeholderPrompt &&
+                Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
             ) {
               if (!STATE.secondaryTitleObserver) {
                 Logger.log(
@@ -633,10 +646,11 @@
                   const newTitle = titleElement.textContent.trim();
 
                   // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
-                  // AND not a truncated version of the placeholder (using normalized comparison to detect truncation)
+                  // AND not a truncated version of the placeholder (using enhanced comparison to detect truncation)
                   const isNotPlaceholder = !placeholderPrompt || newTitle !== placeholderPrompt;
                   const isNotTruncated =
-                    !placeholderPrompt || !Utils.isTruncatedVersion(placeholderPrompt, newTitle);
+                    !placeholderPrompt ||
+                    !Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt);
                   const isDifferentFromWaiting = newTitle !== titleToWaitFor;
 
                   if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
@@ -654,7 +668,10 @@
                       accountName,
                       accountEmail
                     );
-                  } else if (placeholderPrompt && Utils.isTruncatedVersion(placeholderPrompt, newTitle)) {
+                  } else if (
+                    placeholderPrompt &&
+                    Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt)
+                  ) {
                     Logger.log(
                       "gemini-tracker",
                       `Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
@@ -700,6 +717,7 @@
             timestamp,
             model,
             prompt,
+            originalPrompt,
             attachedFiles,
             accountName,
             accountEmail
@@ -724,7 +742,8 @@
      * @param {string} expectedUrl - The URL associated with this conversation
      * @param {string} timestamp - ISO-formatted timestamp for the chat
      * @param {string} model - Model name used for the chat
-     * @param {string} prompt - User prompt text
+     * @param {string} prompt - User prompt text (may be truncated with [attached blockcode])
+     * @param {string} originalPrompt - Original prompt text without modifications
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
      * @param {string} accountEmail - Email of the user account
@@ -736,6 +755,7 @@
       timestamp,
       model,
       prompt,
+      originalPrompt,
       attachedFiles,
       accountName,
       accountEmail
@@ -751,7 +771,7 @@
         return true; // Return true to indicate we should stop trying (observer is disconnected)
       }
 
-      const title = this.extractTitleFromSidebarItem(item, prompt);
+      const title = this.extractTitleFromSidebarItem(item, prompt, originalPrompt);
       Logger.log("gemini-tracker", `TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
 
       // Get the Gemini Plan from the state
