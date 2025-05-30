@@ -165,24 +165,18 @@
      * @param {string} originalText - The original, potentially longer text (may be placeholder with [attached blockcode])
      * @param {string} truncatedText - The potentially truncated text to check
      * @param {string} [realOriginalText] - The actual original text without placeholders, if available
-     * @returns {boolean} - True if truncatedText appears to be a truncated version of the original (should be ignored)
+     * @returns {boolean} - True if truncatedText appears to be a truncated version of the original (should be ignored as placeholder)
      */
     isTruncatedVersionEnhanced: function (originalText, truncatedText, realOriginalText = null) {
       if (!originalText || !truncatedText) return false;
 
-      // If we have the real original text, use it for comparison
+      // If we have the real original text, use it for comparison instead of the placeholder
       if (realOriginalText && realOriginalText.trim()) {
         const normalizedRealOriginal = this.normalizeWhitespace(realOriginalText);
         const normalizedTruncated = this.normalizeWhitespace(truncatedText);
 
-        // If the title is a truncated version of the real original prompt,
-        // then it's a legitimate title (not a placeholder), so return false
-        if (normalizedRealOriginal.startsWith(normalizedTruncated)) {
-          return false;
-        }
-
-        // If the title doesn't match the beginning of the real original,
-        // fall back to checking against the placeholder prompt
+        // If the real original text starts with the truncated text, then the title is a placeholder
+        return normalizedRealOriginal.startsWith(normalizedTruncated);
       }
 
       // Fallback to the standard comparison
