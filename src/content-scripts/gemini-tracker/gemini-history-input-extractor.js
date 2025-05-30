@@ -18,7 +18,9 @@
         const backtickIndex = text.indexOf("```");
         if (backtickIndex !== -1) {
           const truncatedText = text.substring(0, backtickIndex).trim();
-          console.log(`${Utils.getPrefix()} Found code block in prompt. Truncating at index ${backtickIndex}`);
+          console.log(
+            `${Utils.getPrefix()} Found code block in prompt. Truncating at index ${backtickIndex}`
+          );
           console.log(
             `${Utils.getPrefix()} Extracted prompt text (truncated): "${truncatedText} [attached blockcode]"`
           );
@@ -28,7 +30,9 @@
         console.log(`${Utils.getPrefix()} Extracted prompt text: "${text}"`);
         return text;
       } else {
-        console.warn(`${Utils.getPrefix()} Could not find prompt input element ('rich-textarea .ql-editor').`);
+        console.warn(
+          `${Utils.getPrefix()} Could not find prompt input element ('rich-textarea .ql-editor').`
+        );
         return ""; // Return empty string if not found
       }
     },
@@ -53,7 +57,9 @@
         );
         return limitedText;
       } else {
-        console.warn(`${Utils.getPrefix()} Could not find prompt input element for original text extraction.`);
+        console.warn(
+          `${Utils.getPrefix()} Could not find prompt input element for original text extraction.`
+        );
         return "";
       }
     },
@@ -200,7 +206,7 @@
           return { name, email };
         } catch (e) {
           // Log error using standard prefix
-console.error(`${Utils.getPrefix()} Error parsing account information:`, e);
+          console.error(`${Utils.getPrefix()} Error parsing account information:`, e);
           return { name: "Unknown", email: "Unknown" };
         }
       }

@@ -146,7 +146,9 @@
           );
           if (videoButton) {
             // Log activation using standard prefix
-console.log(`${Utils.getPrefix()} Video tool is activated (detected via icon), checking for Veo version...`);
+            console.log(
+              `${Utils.getPrefix()} Video tool is activated (detected via icon), checking for Veo version...`
+            );
             return this.detectVeoVersion();
           }
         }
@@ -217,12 +219,14 @@ console.log(`${Utils.getPrefix()} Video tool is activated (detected via icon), c
           }
         }
         // Log fallback to raw text with standard prefix
-console.log(`${Utils.getPrefix()} Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`);
+        console.log(
+          `${Utils.getPrefix()} Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`
+        );
         return rawText; // Return raw text if no prefix matches
       }
 
       // Log warning using standard prefix
-console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
+      console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
       return "Unknown";
     },
   };

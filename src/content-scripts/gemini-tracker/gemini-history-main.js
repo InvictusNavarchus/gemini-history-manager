@@ -44,7 +44,9 @@
     }
 
     DomObserver.watchForSidebar((sidebar) => {
-      console.log(`${Utils.getPrefix()} Sidebar re-detected after page visibility change. Manager fully active.`);
+      console.log(
+        `${Utils.getPrefix()} Sidebar re-detected after page visibility change. Manager fully active.`
+      );
 
       // Only show "active" status if we're not tracking a chat
       if (!isTrackingChat) {
@@ -82,7 +84,9 @@
     window.addEventListener("storage", (event) => {
       if (event.key === LogConfig.CONFIG_STORAGE_KEY) {
         // Log config change using standard prefix
-console.debug(`${Utils.getPrefix()} [ContentScript] Logging configuration changed in localStorage, invalidating cache`);
+        console.debug(
+          `${Utils.getPrefix()} [ContentScript] Logging configuration changed in localStorage, invalidating cache`
+        );
         LogConfig.invalidateConfigCache();
       }
     });
@@ -125,15 +129,21 @@ console.debug(`${Utils.getPrefix()} [ContentScript] Logging configuration change
 
         if (isTransitionWithinGem) {
           // Log URL change using standard prefix
-console.log(`${Utils.getPrefix()} URL change is within the same Gem context, maintaining Gem detection`);
+          console.log(
+            `${Utils.getPrefix()} URL change is within the same Gem context, maintaining Gem detection`
+          );
         } else if (isNewChatTransition) {
           // Log URL change using standard prefix
-console.log(`${Utils.getPrefix()} URL change indicates new chat creation, preserving observers for chat detection`);
+          console.log(
+            `${Utils.getPrefix()} URL change indicates new chat creation, preserving observers for chat detection`
+          );
           // Don't cleanup observers - they're needed to capture the new conversation
         } else {
           // Clean up all observers when navigating to a different context
           // Log URL change using standard prefix
-console.log(`${Utils.getPrefix()} URL change indicates navigation away from chat context, cleaning up observers`);
+          console.log(
+            `${Utils.getPrefix()} URL change indicates navigation away from chat context, cleaning up observers`
+          );
           DomObserver.cleanupAllObservers();
 
           if (GemDetector) {
@@ -201,14 +211,16 @@ console.log(`${Utils.getPrefix()} URL change indicates navigation away from chat
       // Handle invalidate cache message from dashboard or popup
       if (message.action === "invalidateLogConfigCache") {
         // Log cache invalidate using standard prefix
-console.debug(`${Utils.getPrefix()} [ContentScript] Received request to invalidate logging config cache`);
+        console.debug(
+          `${Utils.getPrefix()} [ContentScript] Received request to invalidate logging config cache`
+        );
         LogConfig.invalidateConfigCache();
         return Promise.resolve({ success: true });
       }
     });
 
     // Log initialization using standard prefix
-console.log(`${Utils.getPrefix()} [Gemini History Manager initialization complete.`);
+    console.log(`${Utils.getPrefix()} [Gemini History Manager initialization complete.`);
 
     // Add cleanup for page unload to prevent memory leaks
     /**

@@ -19,10 +19,14 @@
           .then((data) => {
             const history = data[CONFIG.STORAGE_KEY] || [];
             if (Array.isArray(history)) {
-              console.log(`${Utils.getPrefix()} History loaded successfully. Found ${history.length} entries.`);
+              console.log(
+                `${Utils.getPrefix()} History loaded successfully. Found ${history.length} entries.`
+              );
               resolve(history);
             } else {
-              console.warn(`${Utils.getPrefix()} Stored history data is not an array. Returning empty history.`);
+              console.warn(
+                `${Utils.getPrefix()} Stored history data is not an array. Returning empty history.`
+              );
               resolve([]);
             }
           })
@@ -117,7 +121,10 @@
       // Basic validation (Title, URL, Timestamp, Model are still required)
       if (!timestamp || !url || !title || !model) {
         // Log warning using standard prefix
-console.warn(`${Utils.getPrefix()} Attempted to add entry with missing essential data. Skipping.`, entryData);
+        console.warn(
+          `${Utils.getPrefix()} Attempted to add entry with missing essential data. Skipping.`,
+          entryData
+        );
         StatusIndicator.show("Chat history entry incomplete", "warning");
         return false; // Indicate failure
       }
@@ -125,7 +132,9 @@ console.warn(`${Utils.getPrefix()} Attempted to add entry with missing essential
       // Prevent adding entry if URL is invalid
       if (!Utils.isValidChatUrl(url)) {
         // Log warning using standard prefix
-console.warn(`${Utils.getPrefix()} Attempted to add entry with invalid chat URL pattern "${url}". Skipping.`);
+        console.warn(
+          `${Utils.getPrefix()} Attempted to add entry with invalid chat URL pattern "${url}". Skipping.`
+        );
         StatusIndicator.show("Invalid chat URL", "warning");
         return false; // Indicate failure
       }

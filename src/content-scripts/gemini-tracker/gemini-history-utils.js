@@ -6,7 +6,7 @@
   const Utils = {
     /**
      * Gets a formatted prefix for console logging.
-     * 
+     *
      * @returns {string} - Formatted prefix with time and tracker name: [HH:MM:SS] [gemini-tracker]
      */
     getPrefix: function () {

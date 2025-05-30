@@ -101,7 +101,9 @@
           );
 
           // Log the HTML content to help with debugging
-          console.debug(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Primary gem container HTML: ${gemNameElement.innerHTML}`);
+          console.debug(
+            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Primary gem container HTML: ${gemNameElement.innerHTML}`
+          );
         }
       }
 
@@ -144,7 +146,9 @@
           );
 
           // Log the HTML content to help with debugging
-          console.debug(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Response gem container HTML: ${responseGemElement.innerHTML}`);
+          console.debug(
+            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Response gem container HTML: ${responseGemElement.innerHTML}`
+          );
         }
       }
 
@@ -156,7 +160,9 @@
      * This method is kept for compatibility but doesn't start any observer.
      */
     startObserver: function () {
-      console.log(`${Utils.getPrefix()} Gem detection observer not needed with on-demand extraction approach.`);
+      console.log(
+        `${Utils.getPrefix()} Gem detection observer not needed with on-demand extraction approach.`
+      );
       // No longer using an observer - we'll extract the gem name when needed
     },
 

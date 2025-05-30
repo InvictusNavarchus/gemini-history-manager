@@ -140,7 +140,9 @@
 
       // Special logic for collapsed sidebar - execute first
       if (this.isSidebarCollapsed()) {
-        console.log(`${Utils.getPrefix()} Sidebar is collapsed. Setting up observer to wait for real title...`);
+        console.log(
+          `${Utils.getPrefix()} Sidebar is collapsed. Setting up observer to wait for real title...`
+        );
         const placeholderPrompt = prompt; // Use the passed prompt parameter instead of STATE.pendingPrompt
         // Try direct text node
         let currentTitle = "";
@@ -152,7 +154,10 @@
             currentTitle = titleElement.textContent.trim();
           }
         } catch (e) {
-          console.error(`[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error during title extraction (collapsed mode):`, e);
+          console.error(
+            `[${new Date().toTimeString().slice(0, 8)}] [gemini-tracker] Error during title extraction (collapsed mode):`,
+            e
+          );
           return null;
         }
 
@@ -178,11 +183,15 @@
 
       // Regular extraction logic - visibility check and normal processing
       if (conversationItem.offsetParent === null) {
-        console.log(`[${new Date().toTimeString().slice(0, 8)}] [GHM] [Conversation item not visible (hidden). Skipping title extraction.`);
+        console.log(
+          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [Conversation item not visible (hidden). Skipping title extraction.`
+        );
         return null;
       }
 
-      console.log(`${Utils.getPrefix()} Sidebar is not collapsed. Proceeding with normal extraction logic...`);
+      console.log(
+        `${Utils.getPrefix()} Sidebar is not collapsed. Proceeding with normal extraction logic...`
+      );
 
       // Normal extraction logic (sidebar not collapsed)
       try {
@@ -290,7 +299,9 @@
 
       const conversationItem = this.findConversationItemInMutations(mutationsList);
       if (conversationItem) {
-        console.log(`${Utils.getPrefix()} Found NEW conversation item container. Preparing to wait for title...`);
+        console.log(
+          `${Utils.getPrefix()} Found NEW conversation item container. Preparing to wait for title...`
+        );
         StatusIndicator.show("New chat detected, capturing details...", "loading", 0);
 
         // Capture context before disconnecting observer
@@ -355,7 +366,9 @@
         return;
       }
 
-      console.log(`${Utils.getPrefix()} Found conversation list element. Setting up MAIN sidebar observer...`);
+      console.log(
+        `${Utils.getPrefix()} Found conversation list element. Setting up MAIN sidebar observer...`
+      );
       StatusIndicator.show("Tracking new chat...", "info");
 
       // Disconnect previous observers if they exist
@@ -639,7 +652,9 @@
                   const isDifferentFromWaiting = newTitle !== titleToWaitFor;
 
                   if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
-                    console.log(`${Utils.getPrefix()} Secondary observer: Real title detected: "${newTitle}"`);
+                    console.log(
+                      `${Utils.getPrefix()} Secondary observer: Real title detected: "${newTitle}"`
+                    );
                     // Clean up observers
                     self.cleanupTitleObservers();
                     // Continue with chat data extraction as usual
