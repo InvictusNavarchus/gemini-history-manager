@@ -3,114 +3,6 @@
   const Utils = window.GeminiHistory_Utils;
   const InputExtractor = {
     /**
-     * Parses text and replaces codeblocks with placeholders while preserving non-codeblock text.
-     * Handles multiple codeblocks and nested backticks within codeblocks.
-     *
-     * @param {string} text - The text to process
-     * @returns {Object} - Object with processedText and hasCodeblocks properties
-     */
-    _processCodeblocks: function (text) {
-      const result = [];
-      let position = 0;
-      let codeblockCount = 0;
-      let hasCodeblocks = false;
-
-      while (position < text.length) {
-        const nextCodeblockStart = text.indexOf("```", position);
-
-        if (nextCodeblockStart === -1) {
-          // No more codeblocks, add remaining text
-          result.push(text.substring(position));
-          break;
-        }
-
-        // Add text before the codeblock
-        result.push(text.substring(position, nextCodeblockStart));
-
-        // Find the end of this codeblock
-        let codeblockEnd = nextCodeblockStart + 3;
-        let foundClosing = false;
-
-        // Skip to end of the opening line (language identifier)
-        while (codeblockEnd < text.length && text[codeblockEnd] !== "\n" && text[codeblockEnd] !== "\r") {
-          codeblockEnd++;
-        }
-        if (codeblockEnd < text.length && (text[codeblockEnd] === "\n" || text[codeblockEnd] === "\r")) {
-          codeblockEnd++;
-        }
-
-        // Look for closing triple backticks
-        while (codeblockEnd < text.length) {
-          const nextTripleBacktick = text.indexOf("```", codeblockEnd);
-
-          if (nextTripleBacktick === -1) {
-            // No closing backticks found, treat rest as unclosed codeblock
-            break;
-          }
-
-          // Check if this is at the start of a line (proper closing)
-          const lineStart =
-            nextTripleBacktick === 0 ||
-            text[nextTripleBacktick - 1] === "\n" ||
-            text[nextTripleBacktick - 1] === "\r";
-
-          if (lineStart) {
-            // Check if there's only whitespace or newline after the closing backticks
-            let afterBackticks = nextTripleBacktick + 3;
-            while (
-              afterBackticks < text.length &&
-              text[afterBackticks] !== "\n" &&
-              text[afterBackticks] !== "\r" &&
-              /\s/.test(text[afterBackticks])
-            ) {
-              afterBackticks++;
-            }
-
-            if (
-              afterBackticks >= text.length ||
-              text[afterBackticks] === "\n" ||
-              text[afterBackticks] === "\r"
-            ) {
-              // Valid closing backticks
-              codeblockEnd = afterBackticks;
-              foundClosing = true;
-              break;
-            }
-          }
-
-          // Not a valid closing, continue searching
-          codeblockEnd = nextTripleBacktick + 3;
-        }
-
-        if (!foundClosing) {
-          // Unclosed codeblock, take everything to the end
-          codeblockEnd = text.length;
-        }
-
-        // Replace the codeblock with a placeholder
-        codeblockCount++;
-        result.push(`[codeblock-${codeblockCount}]`);
-        hasCodeblocks = true;
-        position = codeblockEnd;
-
-        console.log(
-          `${Utils.getPrefix()} Found codeblock ${codeblockCount} from position ${nextCodeblockStart} to ${codeblockEnd}`
-        );
-      }
-
-      const processedText = result.join("").trim();
-      console.log(
-        `${Utils.getPrefix()} Processed ${codeblockCount} codeblock(s). Final text: "${processedText}"`
-      );
-
-      return {
-        processedText,
-        hasCodeblocks,
-        codeblockCount,
-      };
-    },
-
-    /**
      * Extracts the prompt text from the input area.
      * If the prompt contains code blocks delimited by triple backticks,
      * they will be replaced with placeholders while preserving other text.
@@ -122,8 +14,8 @@
       if (promptElement) {
         const text = promptElement.innerText.trim();
 
-        // Process codeblocks
-        const result = this._processCodeblocks(text);
+        // Process codeblocks using Utils
+        const result = Utils.processCodeblocks(text);
 
         if (result.hasCodeblocks) {
           console.log(
