@@ -97,15 +97,19 @@ function updateFile(file, newVersion) {
 
 /**
  * Main entry point: parses arguments, bumps version, and updates all relevant files.
- */
-/**
- * Throws an error if more than one CLI argument is provided (excluding node and script path).
+ * Throws an error if more than one version bump argument is provided.
  * Ensures only one version bump argument is allowed.
  */
 function main() {
-  const userArgs = process.argv.slice(2).filter((a) => a.startsWith("-"));
-  if (userArgs.length > 1) {
-    console.error("Error: Only one argument is allowed.");
+  const allArgs = process.argv.slice(2);
+  const versionArgs = allArgs.filter((a) => 
+    a === "--major" || a === "-M" ||
+    a === "--minor" || a === "-m" ||
+    a === "--patch" || a === "-p"
+  );
+  
+  if (versionArgs.length > 1) {
+    console.error("Error: Only one version bump argument is allowed.");
     process.exit(1);
   }
   const type = parseArgs();
