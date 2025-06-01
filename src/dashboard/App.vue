@@ -747,7 +747,7 @@ function checkUrlParameters() {
     // Remove any existing guidance first (in case of multiple redirects)
     removeImportGuidance();
 
-    // Give time for the UI to render completely, then guide the user to import
+    // Give timeout to prevent guidance visual from appearing too early
     setTimeout(() => {
       createImportGuidedExperience("importHistory");
     }, 200); // small timeout for better UX
