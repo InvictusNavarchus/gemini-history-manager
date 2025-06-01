@@ -108,7 +108,7 @@
 
     /**
      * Extracts the title from a sidebar conversation item.
-     * 
+     *
      * Uses enhanced logic with placeholder detection and truncation handling:
      *   - Waits for the initial title update.
      *   - If the title matches the user's prompt (placeholder), sets up a MutationObserver to watch for the next title change.
@@ -138,9 +138,7 @@
         return null;
       }
 
-      console.log(
-        `${Utils.getPrefix()} Using enhanced title extraction logic with placeholder detection...`
-      );
+      console.log(`${Utils.getPrefix()} Using enhanced title extraction logic with placeholder detection...`);
 
       const placeholderPrompt = prompt;
       // Try direct text node extraction
@@ -596,8 +594,6 @@
               return;
             }
           }
-
-
         });
 
         STATE.titleObserver.observe(conversationItem, {
