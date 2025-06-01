@@ -192,6 +192,7 @@ import {
   exportHistoryData,
   processGuidedImportFromUrl,
   createImportGuidedExperience,
+  removeImportGuidance,
 } from "./helpers/uiHelpers.js";
 import {
   createModalManager,
@@ -297,8 +298,16 @@ onMounted(async () => {
   // Clean up the temporary theme storage after it's been used
   localStorage.removeItem("dashboard_initialized_theme");
 
+  // Add event listener to clean up guidance elements when the page is unloaded
+  window.addEventListener("beforeunload", removeImportGuidance);
+
   checkUrlParameters(); // For guided import
 });
+
+// Clean up event listeners when component is unmounted
+const onUnmounted = () => {
+  window.removeEventListener("beforeunload", removeImportGuidance);
+};
 
 // --- Initialization ---
 async function initializeDashboard() {
@@ -350,6 +359,10 @@ function handleThemeToggle(themeIconSvgElement) {
 // --- Tabs ---
 function setActiveMainTab(tabName) {
   activeMainTab.value = tabName;
+
+  // Clean up any import guidance elements when switching tabs
+  removeImportGuidance();
+
   if (tabName === "visualizations" && allHistory.value.length > 0) {
     // Wait for the DOM to update and then render the chart
     nextTick(() => {
@@ -515,8 +528,8 @@ async function handleFileSelectedForImport(event) {
   } catch (error) {
     showToast(`Import error: ${error.message}`, "error");
   } finally {
-    // Clean up any guide elements that might have been created
-    document.querySelectorAll(".guide-arrow-container").forEach((el) => el.remove());
+    // Clean up all guidance elements using the helper function
+    removeImportGuidance();
   }
 }
 
@@ -726,12 +739,18 @@ function removeToast(id) {
 }
 
 // --- Guided Import ---
+/**
+ * Checks URL parameters for import action and initializes guided import experience
+ */
 function checkUrlParameters() {
   if (processGuidedImportFromUrl()) {
-    // Give time for the UI to render, then guide the user to import
+    // Remove any existing guidance first (in case of multiple redirects)
+    removeImportGuidance();
+
+    // Give time for the UI to render completely, then guide the user to import
     setTimeout(() => {
       createImportGuidedExperience("importHistory");
-    }, 500);
+    }, 800); // Increased timing to ensure UI is fully rendered
   }
 }
 </script>

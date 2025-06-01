@@ -256,20 +256,69 @@ export function processGuidedImportFromUrl() {
 }
 
 /**
- * Create visual guidance for import
+ * Create visual guidance for import with tooltips and visual indicators
  * @param {string} importButtonId - ID of the import button element
  */
 export function createImportGuidedExperience(importButtonId = "importHistory") {
-  /**
-   * Create visual guidance for import
-   * @description Creates visual guidance for import
-   */
   // Give time for the UI to render, then guide the user to import
   setTimeout(() => {
     const importBtn = document.getElementById(importButtonId);
     if (!importBtn) return;
 
+    // Add highlight to the import button
     importBtn.classList.add("highlight-pulse");
     importBtn.focus();
+
+    // Create a guidance tooltip
+    const tooltipContainer = document.createElement("div");
+    tooltipContainer.className = "guidance-tooltip";
+    tooltipContainer.id = "import-guidance-tooltip";
+    tooltipContainer.innerHTML = `
+      <div class="guidance-tooltip-content">
+        <p>Click here to import your Gemini chat history</p>
+        <div class="guidance-arrow"></div>
+      </div>
+    `;
+
+    // Position the tooltip relative to the import button
+    const btnRect = importBtn.getBoundingClientRect();
+    document.body.appendChild(tooltipContainer);
+
+    // Position tooltip below the button
+    tooltipContainer.style.position = "absolute";
+    tooltipContainer.style.top = `${btnRect.bottom + 10}px`;
+    tooltipContainer.style.left = `${btnRect.left + btnRect.width / 2 - tooltipContainer.offsetWidth / 2}px`;
+    tooltipContainer.style.zIndex = "1000";
+
+    // Add click event to remove guidance when the import button is clicked
+    importBtn.addEventListener("click", removeImportGuidance, { once: true });
+
+    // Also add click event to the document to remove guidance when clicking anywhere
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (e.target !== importBtn) {
+          removeImportGuidance();
+        }
+      },
+      { once: true }
+    );
   }, 500);
+}
+
+/**
+ * Remove import guidance elements from the DOM
+ */
+export function removeImportGuidance() {
+  // Remove highlight from import button
+  const importBtn = document.getElementById("importHistory");
+  if (importBtn) {
+    importBtn.classList.remove("highlight-pulse");
+  }
+
+  // Remove tooltip
+  const tooltip = document.getElementById("import-guidance-tooltip");
+  if (tooltip) {
+    tooltip.remove();
+  }
 }
