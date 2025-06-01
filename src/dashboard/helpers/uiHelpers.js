@@ -283,10 +283,10 @@ export function createImportGuidedExperience(importButtonId = "importHistory") {
   const btnRect = importBtn.getBoundingClientRect();
   document.body.appendChild(tooltipContainer);
 
-  // Position tooltip below the button
+  // Position tooltip below the button, adjusting for scroll position
   tooltipContainer.style.position = "absolute";
-  tooltipContainer.style.top = `${btnRect.bottom + 10}px`;
-  tooltipContainer.style.left = `${btnRect.left + btnRect.width / 2 - tooltipContainer.offsetWidth / 2}px`;
+  tooltipContainer.style.top = `${btnRect.bottom + window.pageYOffset + 10}px`;
+  tooltipContainer.style.left = `${btnRect.left + window.pageXOffset + btnRect.width / 2 - tooltipContainer.offsetWidth / 2}px`;
   tooltipContainer.style.zIndex = "1000";
 
   // Add click event to remove guidance when the import button is clicked
