@@ -19,7 +19,12 @@ const files = [
  * @returns {('major'|'minor'|'patch')|null} The type of version bump, or null if not specified.
  */
 function parseArgs() {
-  const arg = process.argv.slice(2).find((a) => a.startsWith("-") || a.startsWith("--"));
+  const args = process.argv.slice(2);
+  const arg = args.find((a) => 
+    a === "--major" || a === "-M" ||
+    a === "--minor" || a === "-m" ||
+    a === "--patch" || a === "-p"
+  );
   if (!arg) return null;
   if (arg === "--major" || arg === "-M") return "major";
   if (arg === "--minor" || arg === "-m") return "minor";
