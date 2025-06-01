@@ -314,6 +314,7 @@ export function removeImportGuidance() {
   const importBtn = document.getElementById("importHistory");
   if (importBtn) {
     importBtn.classList.remove("highlight-pulse");
+    importBtn.blur(); // Clear focus
   }
 
   // Remove tooltip
