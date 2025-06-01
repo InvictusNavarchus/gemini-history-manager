@@ -750,7 +750,7 @@ function checkUrlParameters() {
     // Give time for the UI to render completely, then guide the user to import
     setTimeout(() => {
       createImportGuidedExperience("importHistory");
-    }, 800); // Increased timing to ensure UI is fully rendered
+    }, 200); // small timeout for better UX
   }
 }
 </script>
