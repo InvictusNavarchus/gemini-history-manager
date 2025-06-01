@@ -107,20 +107,12 @@
     },
 
     /**
-     * Checks if the Gemini sidebar is currently collapsed.
-     * @returns {boolean} True if sidebar is collapsed, false otherwise.
-     */
-    isSidebarCollapsed: function () {
-      const sidebarContainer = document.querySelector(".sidenav-with-history-container");
-      return !!(sidebarContainer && sidebarContainer.classList.contains("collapsed"));
-    },
-
-    /**
      * Extracts the title from a sidebar conversation item.
      *
-     * If the sidebar is collapsed, applies special logic:
+     * Uses enhanced logic with placeholder detection and truncation handling:
      *   - Waits for the initial title update.
      *   - If the title matches the user's prompt (placeholder), sets up a MutationObserver to watch for the next title change.
+     *   - Uses enhanced comparison to detect truncated versions of placeholders.
      *   - Uses the new title once it changes.
      *
      * @param {Element} conversationItem - The DOM element representing a conversation item
@@ -138,47 +130,7 @@
       }
       console.log(`${Utils.getPrefix()} Found title container element:`, titleElement);
 
-      // Special logic for collapsed sidebar - execute first
-      if (this.isSidebarCollapsed()) {
-        console.log(
-          `${Utils.getPrefix()} Sidebar is collapsed. Setting up observer to wait for real title...`
-        );
-        const placeholderPrompt = prompt; // Use the passed prompt parameter instead of STATE.pendingPrompt
-        // Try direct text node
-        let currentTitle = "";
-        try {
-          const first = titleElement.firstChild;
-          if (first && first.nodeType === Node.TEXT_NODE) {
-            currentTitle = first.textContent.trim();
-          } else {
-            currentTitle = titleElement.textContent.trim();
-          }
-        } catch (e) {
-          console.error(`[${Utils.getPrefix()}] Error during title extraction (collapsed mode):`, e);
-          return null;
-        }
-
-        // If we have a placeholder prompt and the current title is different AND non-empty, return it
-        // But only if it's not a truncated version of the placeholder
-        if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
-          // Use the passed original prompt text for better comparison when there are code blocks
-          const originalPromptText = originalPrompt;
-
-          // Check if the title is NOT a truncated version of the prompt using enhanced comparison
-          if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
-            console.log(`${Utils.getPrefix()} Collapsed sidebar: Extracted real title: "${currentTitle}"`);
-            return currentTitle;
-          }
-        }
-
-        // Otherwise, always return null to trigger the secondary observer setup
-        console.log(
-          `[${Utils.getPrefix()}] Collapsed sidebar: Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
-        );
-        return null; // Signal to set up secondary observer
-      }
-
-      // Regular extraction logic - visibility check and normal processing
+      // Check if conversation item is visible
       if (conversationItem.offsetParent === null) {
         console.log(
           `[${new Date().toTimeString().slice(0, 8)}] [GHM] [Conversation item not visible (hidden). Skipping title extraction.`
@@ -186,33 +138,41 @@
         return null;
       }
 
-      console.log(
-        `${Utils.getPrefix()} Sidebar is not collapsed. Proceeding with normal extraction logic...`
-      );
+      console.log(`${Utils.getPrefix()} Using enhanced title extraction logic with placeholder detection...`);
 
-      // Normal extraction logic (sidebar not collapsed)
+      const placeholderPrompt = prompt;
+      // Try direct text node extraction
+      let currentTitle = "";
       try {
-        // Try direct text node
         const first = titleElement.firstChild;
         if (first && first.nodeType === Node.TEXT_NODE) {
-          const t = first.textContent.trim();
-          if (t) {
-            console.log(`${Utils.getPrefix()} Extracted via text node: "${t}"`);
-            return t;
-          }
-          console.warn(`${Utils.getPrefix()} Text node was empty, falling back.`);
+          currentTitle = first.textContent.trim();
+        } else {
+          currentTitle = titleElement.textContent.trim();
         }
-        // FALLBACK: full textContent
-        const full = titleElement.textContent.trim();
-        if (full) {
-          console.log(`${Utils.getPrefix()} Fallback textContent: "${full}"`);
-          return full;
-        }
-        console.warn(`${Utils.getPrefix()} titleElement.textContent was empty or whitespace.`);
       } catch (e) {
-        console.error(`${Utils.getPrefix()} Error during title extraction:`, e);
+        console.error(`[${Utils.getPrefix()}] Error during title extraction:`, e);
+        return null;
       }
-      return null;
+
+      // If we have a placeholder prompt and the current title is different AND non-empty, return it
+      // But only if it's not a truncated version of the placeholder
+      if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
+        // Use the passed original prompt text for better comparison when there are code blocks
+        const originalPromptText = originalPrompt;
+
+        // Check if the title is NOT a truncated version of the prompt using enhanced comparison
+        if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
+          console.log(`${Utils.getPrefix()} Extracted real title: "${currentTitle}"`);
+          return currentTitle;
+        }
+      }
+
+      // If title is empty, matches placeholder, or is truncated, return null to trigger observer setup
+      console.log(
+        `[${Utils.getPrefix()}] Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
+      );
+      return null; // Signal to set up secondary observer
     },
 
     /**
@@ -475,61 +435,6 @@
     },
 
     /**
-     * Process mutations for title changes.
-     *
-     * @param {Element} conversationItem - The conversation item DOM element
-     * @param {string} expectedUrl - The URL associated with this conversation
-     * @param {string} timestamp - ISO-formatted timestamp for the chat
-     * @param {string} model - Model name used for the chat
-     * @param {string} prompt - User prompt text (may be truncated with [attached blockcode])
-     * @param {string} originalPrompt - Original prompt text without modifications
-     * @param {Array} attachedFiles - Array of attached filenames
-     * @param {string} accountName - Name of the user account
-     * @param {string} accountEmail - Email of the user account
-     * @returns {Promise<boolean>} - Promise resolving to true if processing completed (URL changed or title found), false otherwise
-     */
-    processTitleMutations: async function (
-      conversationItem,
-      expectedUrl,
-      timestamp,
-      model,
-      prompt,
-      originalPrompt,
-      attachedFiles,
-      accountName,
-      accountEmail
-    ) {
-      // Abort if URL changed
-      if (window.location.href !== expectedUrl) {
-        console.warn(`${Utils.getPrefix()} URL changed; disconnecting all title observers.`);
-        this.cleanupTitleObservers();
-        return true;
-      }
-
-      // Extract title and process if found
-      const title = this.extractTitleFromSidebarItem(conversationItem, prompt, originalPrompt);
-      const geminiPlan = STATE.pendingGeminiPlan;
-      if (
-        await this.processTitleAndAddHistory(
-          title,
-          expectedUrl,
-          timestamp,
-          model,
-          prompt,
-          attachedFiles,
-          accountName,
-          accountEmail,
-          geminiPlan
-        )
-      ) {
-        return true;
-      }
-
-      console.log(`${Utils.getPrefix()} No title yet; continuing to observe...`);
-      return false;
-    },
-
-    /**
      * Sets up observation of a specific conversation item to capture its title once available.
      *
      * @param {Element} conversationItem - The conversation item DOM element
@@ -568,7 +473,7 @@
           return;
         }
 
-        // Enhanced observer for collapsed sidebar placeholder logic
+        // Enhanced observer with universal placeholder detection logic
         const self = this; // Store reference to DomObserver for use in callbacks
         STATE.titleObserver = new MutationObserver(() => {
           // Check if URL changed during observation
@@ -590,9 +495,9 @@
           }
 
           const titleElement = conversationItem.querySelector(".conversation-title");
-          if (self.isSidebarCollapsed() && titleElement) {
+          if (titleElement) {
             const currentTitle = titleElement.textContent.trim();
-            const placeholderPrompt = prompt; // Use the passed prompt parameter instead of STATE.pendingPrompt
+            const placeholderPrompt = prompt;
 
             // Set up secondary observer if we detect placeholder or empty title
             // OR if the current title appears to be a truncated version of the placeholder
@@ -626,15 +531,6 @@
                       `[${Utils.getPrefix()}] Conversation item or title element removed from DOM. Cleaning up all title observers.`
                     );
                     self.cleanupTitleObservers();
-                    return;
-                  }
-
-                  // Check if sidebar expanded (secondary observer no longer needed)
-                  if (!self.isSidebarCollapsed()) {
-                    console.log(
-                      `[${Utils.getPrefix()}] Sidebar expanded while secondary observer active. Cleaning up secondary observer.`
-                    );
-                    STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
                     return;
                   }
 
@@ -683,7 +579,7 @@
               return; // Keep waiting
             } else {
               // We have a title that's different from placeholder AND not a truncated version, use it
-              console.log(`${Utils.getPrefix()} Collapsed sidebar: Found real title: "${currentTitle}"`);
+              console.log(`${Utils.getPrefix()} Found real title: "${currentTitle}"`);
               self.cleanupTitleObservers();
               self.processTitleAndAddHistory(
                 currentTitle,
@@ -697,26 +593,7 @@
               );
               return;
             }
-          } else if (STATE.secondaryTitleObserver) {
-            // Sidebar is not collapsed but secondary observer exists - clean it up
-            console.log(
-              `[${Utils.getPrefix()}] Sidebar not collapsed but secondary observer exists. Cleaning up secondary observer.`
-            );
-            STATE.secondaryTitleObserver = self.cleanupObserver(STATE.secondaryTitleObserver);
           }
-
-          // Normal processing for non-collapsed sidebar
-          self.processTitleMutations(
-            conversationItem,
-            expectedUrl,
-            timestamp,
-            model,
-            prompt,
-            originalPrompt,
-            attachedFiles,
-            accountName,
-            accountEmail
-          );
         });
 
         STATE.titleObserver.observe(conversationItem, {
