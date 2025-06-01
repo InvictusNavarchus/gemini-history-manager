@@ -437,61 +437,6 @@
     },
 
     /**
-     * Process mutations for title changes.
-     *
-     * @param {Element} conversationItem - The conversation item DOM element
-     * @param {string} expectedUrl - The URL associated with this conversation
-     * @param {string} timestamp - ISO-formatted timestamp for the chat
-     * @param {string} model - Model name used for the chat
-     * @param {string} prompt - User prompt text (may be truncated with [attached blockcode])
-     * @param {string} originalPrompt - Original prompt text without modifications
-     * @param {Array} attachedFiles - Array of attached filenames
-     * @param {string} accountName - Name of the user account
-     * @param {string} accountEmail - Email of the user account
-     * @returns {Promise<boolean>} - Promise resolving to true if processing completed (URL changed or title found), false otherwise
-     */
-    processTitleMutations: async function (
-      conversationItem,
-      expectedUrl,
-      timestamp,
-      model,
-      prompt,
-      originalPrompt,
-      attachedFiles,
-      accountName,
-      accountEmail
-    ) {
-      // Abort if URL changed
-      if (window.location.href !== expectedUrl) {
-        console.warn(`${Utils.getPrefix()} URL changed; disconnecting all title observers.`);
-        this.cleanupTitleObservers();
-        return true;
-      }
-
-      // Extract title and process if found
-      const title = this.extractTitleFromSidebarItem(conversationItem, prompt, originalPrompt);
-      const geminiPlan = STATE.pendingGeminiPlan;
-      if (
-        await this.processTitleAndAddHistory(
-          title,
-          expectedUrl,
-          timestamp,
-          model,
-          prompt,
-          attachedFiles,
-          accountName,
-          accountEmail,
-          geminiPlan
-        )
-      ) {
-        return true;
-      }
-
-      console.log(`${Utils.getPrefix()} No title yet; continuing to observe...`);
-      return false;
-    },
-
-    /**
      * Sets up observation of a specific conversation item to capture its title once available.
      *
      * @param {Element} conversationItem - The conversation item DOM element
@@ -652,18 +597,7 @@
             }
           }
 
-          // Fallback to traditional processing if no title element found
-          self.processTitleMutations(
-            conversationItem,
-            expectedUrl,
-            timestamp,
-            model,
-            prompt,
-            originalPrompt,
-            attachedFiles,
-            accountName,
-            accountEmail
-          );
+
         });
 
         STATE.titleObserver.observe(conversationItem, {
