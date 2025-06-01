@@ -165,14 +165,14 @@
 
         // Check if the title is NOT a truncated version of the prompt using enhanced comparison
         if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
-          console.log(`${Utils.getPrefix()} Enhanced extraction: Extracted real title: "${currentTitle}"`);
+          console.log(`${Utils.getPrefix()} Extracted real title: "${currentTitle}"`);
           return currentTitle;
         }
       }
 
       // If title is empty, matches placeholder, or is truncated, return null to trigger observer setup
       console.log(
-        `[${Utils.getPrefix()}] Enhanced extraction: Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
+        `[${Utils.getPrefix()}] Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
       );
       return null; // Signal to set up secondary observer
     },
@@ -581,7 +581,7 @@
               return; // Keep waiting
             } else {
               // We have a title that's different from placeholder AND not a truncated version, use it
-              console.log(`${Utils.getPrefix()} Enhanced extraction: Found real title: "${currentTitle}"`);
+              console.log(`${Utils.getPrefix()} Found real title: "${currentTitle}"`);
               self.cleanupTitleObservers();
               self.processTitleAndAddHistory(
                 currentTitle,
