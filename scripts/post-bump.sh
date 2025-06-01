@@ -50,7 +50,7 @@ else
 fi
 
 # 3. Commit the changes
-COMMIT_MESSAGE="Bump version to $VERSION_TAG" # e.g., Bump version to v1.2.3
+COMMIT_MESSAGE="chore: bump version to $VERSION_TAG" # e.g., Bump version to v1.2.3
 echo "Committing with message: '$COMMIT_MESSAGE'"
 if [ "$DRY_RUN_MODE" = true ]; then
   echo "DRY RUN: Would execute: git commit -m \"$COMMIT_MESSAGE\""
