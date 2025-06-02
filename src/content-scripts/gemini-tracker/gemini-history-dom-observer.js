@@ -305,13 +305,13 @@
 
       if (!Utils.isValidChatUrl(currentUrl)) {
         console.log(
-          `[${Utils.getPrefix()}] URL "${currentUrl}" does not match the expected chat pattern. Waiting...`
+          `${Utils.getPrefix()} URL "${currentUrl}" does not match the expected chat pattern. Waiting...`
         );
         return false; // URL still not a valid chat URL
       }
 
       console.log(
-        `[${Utils.getPrefix()}] URL check passed (matches chat pattern). Processing mutations to find NEW conversation item...`
+        `${Utils.getPrefix()} URL check passed (matches chat pattern). Processing mutations to find NEW conversation item...`
       );
 
       if (!STATE.isNewChatPending) {
@@ -335,7 +335,7 @@
         // Clear prompt context, but keep isNewChatPending and Gem-related state until title is captured
         this.resetPendingPromptContext();
         console.log(
-          `[${Utils.getPrefix()}] Cleared pending prompt context. Waiting for title associated with URL: ${context.url}`
+          `${Utils.getPrefix()} Cleared pending prompt context. Waiting for title associated with URL: ${context.url}`
         );
 
         // Stage 2: Wait for the Title
@@ -367,7 +367,7 @@
 
       if (!conversationListElement) {
         console.warn(
-          `[${Utils.getPrefix()}] Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`
+          `${Utils.getPrefix()} Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`
         );
         StatusIndicator.show("Could not track chat (UI element not found)", "warning");
         // Full abort - reset all pending state
@@ -392,7 +392,7 @@
         childList: true,
         subtree: true,
       });
-      console.log(`[${Utils.getPrefix()}] MAIN sidebar observer is now active.`);
+      console.log(`${Utils.getPrefix()} MAIN sidebar observer is now active.`);
     },
 
     /**
@@ -438,7 +438,7 @@
           const GemDetector = window.GeminiHistory_GemDetector;
           if (GemDetector && typeof GemDetector.extractGemNameFromResponses === "function") {
             console.log(
-              `[${Utils.getPrefix()}] No gem name was detected earlier. Attempting to extract from response containers...`
+              `${Utils.getPrefix()} No gem name was detected earlier. Attempting to extract from response containers...`
             );
             // Try to extract the gem name from response containers which appear after responses are completed
             const extractedName = GemDetector.extractGemNameFromResponses();
@@ -446,7 +446,7 @@
               gemName = extractedName;
               STATE.pendingGemName = extractedName;
               console.log(
-                `[${Utils.getPrefix()}] Successfully extracted gem name "${gemName}" from response container`
+                `${Utils.getPrefix()} Successfully extracted gem name "${gemName}" from response container`
               );
             }
           }
@@ -454,7 +454,7 @@
 
         if (gemId) {
           console.log(
-            `[${Utils.getPrefix()}] Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`
+            `${Utils.getPrefix()} Including Gem info - ID: ${gemId}, Name: ${gemName || "Not detected"}`
           );
         }
 
@@ -589,7 +589,7 @@
           ) {
             if (!STATE.secondaryTitleObserver) {
               console.log(
-                `[${Utils.getPrefix()}] Setting up secondary observer to wait for real title change (avoiding truncated titles)...`
+                `${Utils.getPrefix()} Setting up secondary observer to wait for real title change (avoiding truncated titles)...`
               );
 
               // Capture the current title state to compare against
@@ -652,7 +652,7 @@
                   Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt)
                 ) {
                   console.log(
-                    `[${Utils.getPrefix()}] Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
+                    `${Utils.getPrefix()} Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
                   );
                 }
               });

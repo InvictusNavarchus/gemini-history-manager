@@ -101,7 +101,7 @@
           );
 
           // Log the HTML content to help with debugging
-          console.debug(`[${Utils.getPrefix()}] Primary gem container HTML: ${gemNameElement.innerHTML}`);
+          console.debug(`${Utils.getPrefix()} Primary gem container HTML: ${gemNameElement.innerHTML}`);
         }
       }
 
@@ -144,9 +144,7 @@
           );
 
           // Log the HTML content to help with debugging
-          console.debug(
-            `[${Utils.getPrefix()}] Response gem container HTML: ${responseGemElement.innerHTML}`
-          );
+          console.debug(`${Utils.getPrefix()} Response gem container HTML: ${responseGemElement.innerHTML}`);
         }
       }
 
@@ -244,7 +242,7 @@
       // Look for potential bot name containers with different selectors
       const potentialContainers = document.querySelectorAll("[class*='bot-name'], [class*='name-container']");
       console.log(
-        `[${Utils.getPrefix()}] Found ${potentialContainers.length} potential name containers with alternative selectors`
+        `${Utils.getPrefix()} Found ${potentialContainers.length} potential name containers with alternative selectors`
       );
 
       for (let i = 0; i < Math.min(potentialContainers.length, 5); i++) {
