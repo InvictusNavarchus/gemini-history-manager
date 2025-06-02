@@ -36,7 +36,7 @@
 
     /**
      * Prepares for tracking a new chat.
-     * Captures necessary information before the chat is created.
+     * Captures all necessary information once before the chat is created to avoid redundant data extraction.
      */
     prepareNewChatTracking: function () {
       const url = window.location.href;
