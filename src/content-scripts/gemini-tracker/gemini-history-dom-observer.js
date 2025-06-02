@@ -90,7 +90,8 @@
 
     /**
      * Common guard clause helper for title observer callbacks.
-     * Checks for URL changes and DOM element removal conditions.
+     * Checks for URL changes and DOM element removal conditions that should stop title observation.
+     * This function combines URL validation and DOM element checks to determine if observation should continue.
      *
      * @param {string} expectedUrl - The URL this observer was created for
      * @param {Element} conversationItem - The conversation item element
@@ -289,26 +290,6 @@
         gemName: STATE.pendingGemName,
         gemUrl: STATE.pendingGemUrl,
       };
-    },
-
-    /**
-     * Performs initial URL validation for title observation.
-     * Cleans up title observers if URL has changed during the process.
-     *
-     * @param {string} expectedUrl - The URL this observation was started for
-     * @returns {boolean} - True if URL is still valid, false if observation should stop
-     * @private
-     */
-    performInitialUrlCheck: function (expectedUrl) {
-      // Check if we are still on the page this observer was created for
-      if (window.location.href !== expectedUrl) {
-        console.warn(
-          `${Utils.getPrefix()} URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Cleaning up title observers.`
-        );
-        this.cleanupTitleObservers();
-        return false; // URL changed, stop observation
-      }
-      return true; // URL is still valid
     },
 
     /**
@@ -534,7 +515,8 @@
       accountEmail
     ) {
       // Initial URL validation - bail if URL has changed
-      if (!this.performInitialUrlCheck(expectedUrl)) {
+      if (this.shouldBailTitleObservation(expectedUrl, conversationItem)) {
+        this.cleanupTitleObservers();
         return;
       }
 
