@@ -25,9 +25,7 @@
       }
 
       if (sendButton.getAttribute("aria-disabled") === "true") {
-        console.log(
-          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [EventHandlers] Send button is disabled. Ignoring click.`
-        );
+        console.log(`[${Utils.getPrefix()}] [EventHandlers] Send button is disabled. Ignoring click.`);
         return false;
       }
 
@@ -44,9 +42,7 @@
         `[${Utils.getPrefix()}] URL ${url} matches valid Gemini pattern. This is potentially a new chat.`
       );
       STATE.isNewChatPending = true;
-      console.log(
-        `[${new Date().toTimeString().slice(0, 8)}] [GHM] [EventHandlers] Set isNewChatPending = true`
-      );
+      console.log(`[${Utils.getPrefix()}] [EventHandlers] Set isNewChatPending = true`);
 
       StatusIndicator.show("Preparing to track new chat...", "loading", 0);
 
@@ -90,9 +86,7 @@
 
       // Use setTimeout to ensure observation starts after the click event potentially triggers initial DOM changes
       setTimeout(() => {
-        console.log(
-          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [EventHandlers] Initiating sidebar observation via setTimeout.`
-        );
+        console.log(`[${Utils.getPrefix()}] [EventHandlers] Initiating sidebar observation via setTimeout.`);
         DomObserver.observeSidebarForNewChat();
       }, 50); // Small delay
     },
