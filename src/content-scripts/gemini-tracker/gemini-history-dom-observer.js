@@ -108,75 +108,6 @@
     },
 
     /**
-     * Extracts the title from a sidebar conversation item.
-     *
-     * Uses enhanced logic with placeholder detection and truncation handling:
-     *   - Waits for the initial title update.
-     *   - If the title matches the user's prompt (placeholder), sets up a MutationObserver to watch for the next title change.
-     *   - Uses enhanced comparison to detect truncated versions of placeholders.
-     *   - Uses the new title once it changes.
-     *
-     * @param {Element} conversationItem - The DOM element representing a conversation item
-     * @param {string} [prompt] - The user prompt to compare against for placeholder detection (may be truncated with [attached blockcode])
-     * @param {string} [originalPrompt] - The original user prompt without modifications (for better comparison)
-     * @returns {string|null} - The extracted title or null if not found
-     */
-    extractTitleFromSidebarItem: function (conversationItem, prompt = null, originalPrompt = null) {
-      console.log(`${Utils.getPrefix()} Attempting to extract title from sidebar item:`, conversationItem);
-
-      const titleElement = conversationItem.querySelector(".conversation-title");
-      if (!titleElement) {
-        console.warn(`${Utils.getPrefix()} Could not find title element (.conversation-title).`);
-        return null;
-      }
-      console.log(`${Utils.getPrefix()} Found title container element:`, titleElement);
-
-      // Check if conversation item is visible
-      if (conversationItem.offsetParent === null) {
-        console.log(
-          `[${new Date().toTimeString().slice(0, 8)}] [GHM] [Conversation item not visible (hidden). Skipping title extraction.`
-        );
-        return null;
-      }
-
-      console.log(`${Utils.getPrefix()} Using enhanced title extraction logic with placeholder detection...`);
-
-      const placeholderPrompt = prompt;
-      // Try direct text node extraction
-      let currentTitle = "";
-      try {
-        const first = titleElement.firstChild;
-        if (first && first.nodeType === Node.TEXT_NODE) {
-          currentTitle = first.textContent.trim();
-        } else {
-          currentTitle = titleElement.textContent.trim();
-        }
-      } catch (e) {
-        console.error(`[${Utils.getPrefix()}] Error during title extraction:`, e);
-        return null;
-      }
-
-      // If we have a placeholder prompt and the current title is different AND non-empty, return it
-      // But only if it's not a truncated version of the placeholder
-      if (currentTitle && placeholderPrompt && currentTitle !== placeholderPrompt) {
-        // Use the passed original prompt text for better comparison when there are code blocks
-        const originalPromptText = originalPrompt;
-
-        // Check if the title is NOT a truncated version of the prompt using enhanced comparison
-        if (!Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPromptText)) {
-          console.log(`${Utils.getPrefix()} Extracted real title: "${currentTitle}"`);
-          return currentTitle;
-        }
-      }
-
-      // If title is empty, matches placeholder, or is truncated, return null to trigger observer setup
-      console.log(
-        `[${Utils.getPrefix()}] Current title "${currentTitle}" is placeholder, empty, or truncated. Will wait for real title...`
-      );
-      return null; // Signal to set up secondary observer
-    },
-
-    /**
      * Finds a conversation item in a mutation list.
      *
      * @param {MutationRecord[]} mutationsList - List of mutation records from MutationObserver
@@ -785,8 +716,11 @@
         return true; // Return true to indicate we should stop trying (observer is disconnected)
       }
 
-      const title = this.extractTitleFromSidebarItem(item, prompt, originalPrompt);
-      console.log(`${Utils.getPrefix()} TITLE Check (URL: ${expectedUrl}): Extracted title: "${title}"`);
+      // Since titles never appear immediately, we always pass null to trigger observer setup
+      const title = null;
+      console.log(
+        `${Utils.getPrefix()} TITLE Check (URL: ${expectedUrl}): Title not available immediately, will wait for title to appear`
+      );
 
       // Get the Gemini Plan from the state
       const geminiPlan = STATE.pendingGeminiPlan;
