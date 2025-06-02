@@ -311,7 +311,7 @@
       }
 
       console.log(
-        `[${Utils.getPrefix()}] [URL check passed (matches chat pattern). Processing mutations to find NEW conversation item...`
+        `[${Utils.getPrefix()}] URL check passed (matches chat pattern). Processing mutations to find NEW conversation item...`
       );
 
       if (!STATE.isNewChatPending) {
@@ -392,7 +392,7 @@
         childList: true,
         subtree: true,
       });
-      console.log(`[${Utils.getPrefix()}] [MAIN sidebar observer is now active.`);
+      console.log(`[${Utils.getPrefix()}] MAIN sidebar observer is now active.`);
     },
 
     /**
