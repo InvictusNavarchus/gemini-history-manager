@@ -25,12 +25,7 @@ The Gemini History Manager extension implements a flexible, centralized logging 
    - Formats log messages with contextual information
    - Provides backward compatibility with legacy code
 
-3. **Content Script Logger**: A separate logger implementation for content scripts that:
-
-   - Uses the same configuration structure as the main Logger
-   - Avoids circular dependencies
-
-4. **UI Configuration**: A settings UI that allows users to:
+3. **UI Configuration**: A settings UI that allows users to:
    - Toggle logging on/off globally
    - Control specific log levels
    - Enable/disable logging for individual components
