@@ -117,6 +117,66 @@ The extension operates through several key components:
 
 ---
 
+## 📥 Installation
+
+> [!IMPORTANT]
+> **Web Store Availability**: This extension is not yet available on the Chrome Web Store or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
+
+### Download from GitHub Releases
+
+#### For Google Chrome/Chromium-based browsers:
+
+1.  Download the latest Chrome extension package from [GitHub Releases](https://github.com/InvictusNavarchus/gemini-history-manager/releases/latest):
+2.  Extract the downloaded ZIP file to a folder on your computer.
+3.  Open Chrome and navigate to `chrome://extensions/`.
+4.  Enable **Developer mode** (toggle in the top right).
+5.  Click on **Load unpacked**.
+6.  Select the extracted folder containing the extension files.
+
+#### For Mozilla Firefox:
+
+1.  Download the latest Firefox extension package from [GitHub Releases](https://github.com/InvictusNavarchus/gemini-history-manager/releases/latest):
+2.  Extract the downloaded ZIP file to a folder on your computer.
+3.  Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
+4.  Click on **Load Temporary Add-on...**.
+5.  Select the `manifest.json` file located inside the extracted folder.
+
+### Manual Installation (Build from Source)
+
+<details>
+<summary>Click to expand build-from-source instructions</summary>
+
+#### For Google Chrome/Chromium-based browsers:
+
+1.  Clone this repository or download and extract the ZIP file.
+2.  Build the Chrome version of the project:
+    ```bash
+    pnpm install
+    pnpm run build:chrome
+    ```
+3.  Open Chrome and navigate to `chrome://extensions/`.
+4.  Enable **Developer mode** (toggle in the top right).
+5.  Click on **Load unpacked**.
+6.  Select the `dist-chrome` directory.
+
+#### For Mozilla Firefox:
+
+1.  Clone this repository or download and extract the ZIP file.
+2.  Build the Firefox version of the project:
+    ```bash
+    pnpm install
+    pnpm run build:firefox
+    ```
+3.  Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
+4.  Click on **Load Temporary Add-on...**.
+5.  Select the `manifest.json` file located inside the `dist-firefox` directory.
+
+</details>
+
+The extension icon should now appear in your browser's toolbar.
+
+---
+
 ## 🧑‍💻 Development
 
 Note: The extension now supports both Mozilla Firefox and Google Chrome/Chromium-based browsers with separate build targets.
@@ -227,66 +287,6 @@ The extension uses a browser compatibility shim that automatically handles API d
 - **Chrome**: Automatically polyfills `browser` API using Chrome's `chrome` API
 
 </details>
-
----
-
-## 📥 Installation
-
-> [!IMPORTANT]
-> **Web Store Availability**: This extension is not yet available on the Chrome Web Store or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
-
-### Download from GitHub Releases
-
-#### For Google Chrome/Chromium-based browsers:
-
-1.  Download the latest Chrome extension package from [GitHub Releases](https://github.com/InvictusNavarchus/gemini-history-manager/releases/latest):
-2.  Extract the downloaded ZIP file to a folder on your computer.
-3.  Open Chrome and navigate to `chrome://extensions/`.
-4.  Enable **Developer mode** (toggle in the top right).
-5.  Click on **Load unpacked**.
-6.  Select the extracted folder containing the extension files.
-
-#### For Mozilla Firefox:
-
-1.  Download the latest Firefox extension package from [GitHub Releases](https://github.com/InvictusNavarchus/gemini-history-manager/releases/latest):
-2.  Extract the downloaded ZIP file to a folder on your computer.
-3.  Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
-4.  Click on **Load Temporary Add-on...**.
-5.  Select the `manifest.json` file located inside the extracted folder.
-
-### Manual Installation (Build from Source)
-
-<details>
-<summary>Click to expand build-from-source instructions</summary>
-
-#### For Google Chrome/Chromium-based browsers:
-
-1.  Clone this repository or download and extract the ZIP file.
-2.  Build the Chrome version of the project:
-    ```bash
-    pnpm install
-    pnpm run build:chrome
-    ```
-3.  Open Chrome and navigate to `chrome://extensions/`.
-4.  Enable **Developer mode** (toggle in the top right).
-5.  Click on **Load unpacked**.
-6.  Select the `dist-chrome` directory.
-
-#### For Mozilla Firefox:
-
-1.  Clone this repository or download and extract the ZIP file.
-2.  Build the Firefox version of the project:
-    ```bash
-    pnpm install
-    pnpm run build:firefox
-    ```
-3.  Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
-4.  Click on **Load Temporary Add-on...**.
-5.  Select the `manifest.json` file located inside the `dist-firefox` directory.
-
-</details>
-
-The extension icon should now appear in your browser's toolbar.
 
 ---
 
