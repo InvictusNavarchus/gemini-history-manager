@@ -141,38 +141,6 @@ The extension operates through several key components:
 4.  Click on **Load Temporary Add-on...**.
 5.  Select the `manifest.json` file located inside the extracted folder.
 
-### Manual Installation (Build from Source)
-
-<details>
-<summary>Click to expand build-from-source instructions</summary>
-
-#### For Google Chrome/Chromium-based browsers:
-
-1.  Clone this repository or download and extract the ZIP file.
-2.  Build the Chrome version of the project:
-    ```bash
-    pnpm install
-    pnpm run build:chrome
-    ```
-3.  Open Chrome and navigate to `chrome://extensions/`.
-4.  Enable **Developer mode** (toggle in the top right).
-5.  Click on **Load unpacked**.
-6.  Select the `dist-chrome` directory.
-
-#### For Mozilla Firefox:
-
-1.  Clone this repository or download and extract the ZIP file.
-2.  Build the Firefox version of the project:
-    ```bash
-    pnpm install
-    pnpm run build:firefox
-    ```
-3.  Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
-4.  Click on **Load Temporary Add-on...**.
-5.  Select the `manifest.json` file located inside the `dist-firefox` directory.
-
-</details>
-
 The extension icon should now appear in your browser's toolbar.
 
 ---
