@@ -137,13 +137,13 @@ The log configuration is stored in localStorage as a JSON object with this struc
 Log messages follow this format:
 
 ```
-[Gemini History] [ComponentName] Message additional_data
+[HH:mm:ss] [Gemini History] [ComponentName] Message additional_data
 ```
 
 Example:
 
 ```
-[Gemini History] [ThemeManager] Applying theme { theme: "dark" }
+[15:32:10] [Gemini History] [ThemeManager] Applying theme { theme: "dark" }
 ```
 
 ## Future Enhancements
