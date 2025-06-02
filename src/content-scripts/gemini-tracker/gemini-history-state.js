@@ -16,6 +16,7 @@
     sidebarObserver: null,
     titleObserver: null,
     secondaryTitleObserver: null,
+    stopButtonObserver: null,
   };
 
   window.GeminiHistory_STATE = STATE;

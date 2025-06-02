@@ -33,6 +33,7 @@
 
       STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
       STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
+      STATE.stopButtonObserver = this.cleanupObserver(STATE.stopButtonObserver);
 
       // Clear the new chat pending flag only if we had title observers
       if (hadTitleObservers && STATE.isNewChatPending) {
@@ -198,6 +199,72 @@
         }
       }
       return null;
+    },
+
+    /**
+     * Checks if the stop button is currently visible in the UI.
+     * The stop button appears when Gemini is generating a response.
+     *
+     * @returns {boolean} - True if the stop button is visible, false otherwise
+     */
+    isStopButtonVisible: function () {
+      // Look for the stop button with the specific class combination
+      const stopButton = document.querySelector("button.send-button.stop");
+      if (stopButton) {
+        const stopIcon = stopButton.querySelector(".stop-icon");
+        return stopIcon && stopButton.getAttribute("aria-label") === "Stop response";
+      }
+      return false;
+    },
+
+    /**
+     * Sets up observation of the stop button to detect when chat generation finishes.
+     * This helps determine when to accept a placeholder title as the final title.
+     *
+     * @param {string} expectedUrl - The URL associated with this conversation
+     * @param {Function} onChatFinished - Callback to execute when chat generation finishes
+     * @returns {void}
+     */
+    observeStopButton: function (expectedUrl, onChatFinished) {
+      console.log(`${Utils.getPrefix()} Setting up stop button observer for URL: ${expectedUrl}`);
+
+      const self = this;
+      const buttonContainer = document.querySelector(".trailing-actions-wrapper");
+
+      if (!buttonContainer) {
+        console.warn(`${Utils.getPrefix()} Could not find button container for stop button observation`);
+        return;
+      }
+
+      STATE.stopButtonObserver = new MutationObserver(() => {
+        // Check if URL changed during observation
+        if (window.location.href !== expectedUrl) {
+          console.log(`${Utils.getPrefix()} URL changed during stop button observation, cleaning up`);
+          STATE.stopButtonObserver = self.cleanupObserver(STATE.stopButtonObserver);
+          return;
+        }
+
+        // Check if stop button is no longer visible (chat finished)
+        if (!self.isStopButtonVisible()) {
+          console.log(`${Utils.getPrefix()} Stop button disappeared - chat generation likely finished`);
+          // Wait 1 second to allow for any final title updates
+          setTimeout(() => {
+            if (STATE.stopButtonObserver) {
+              // Check if observer still exists
+              console.log(`${Utils.getPrefix()} Chat generation finished, triggering callback`);
+              onChatFinished();
+            }
+          }, 1000);
+        }
+      });
+
+      STATE.stopButtonObserver.observe(buttonContainer, {
+        childList: true,
+        attributes: true,
+        subtree: true,
+      });
+
+      console.log(`${Utils.getPrefix()} Stop button observer active for URL: ${expectedUrl}`);
     },
 
     /**
@@ -475,6 +542,46 @@
 
         // Enhanced observer with universal placeholder detection logic
         const self = this; // Store reference to DomObserver for use in callbacks
+        let chatFinishedFlag = false; // Flag to track if chat generation has finished
+
+        // Set up stop button observer to detect when chat generation finishes
+        this.observeStopButton(expectedUrl, () => {
+          chatFinishedFlag = true;
+          console.log(
+            `${Utils.getPrefix()} Chat finished flag set - will accept placeholder if no real title found`
+          );
+
+          // Try one more time to get a title, and if it's still a placeholder, accept it
+          const titleElement = conversationItem.querySelector(".conversation-title");
+          if (titleElement) {
+            const currentTitle = titleElement.textContent.trim();
+            const placeholderPrompt = prompt;
+
+            // If we have a title and chat has finished, accept it even if it's a placeholder
+            if (
+              currentTitle &&
+              (!placeholderPrompt ||
+                currentTitle === placeholderPrompt ||
+                Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
+            ) {
+              console.log(
+                `${Utils.getPrefix()} Chat finished - accepting placeholder/truncated title: "${currentTitle}"`
+              );
+              self.cleanupTitleObservers();
+              self.processTitleAndAddHistory(
+                currentTitle,
+                expectedUrl,
+                timestamp,
+                model,
+                prompt,
+                attachedFiles,
+                accountName,
+                accountEmail
+              );
+            }
+          }
+        });
+
         STATE.titleObserver = new MutationObserver(() => {
           // Check if URL changed during observation
           if (window.location.href !== expectedUrl) {
@@ -501,11 +608,13 @@
 
             // Set up secondary observer if we detect placeholder or empty title
             // OR if the current title appears to be a truncated version of the placeholder
+            // BUT only if chat generation hasn't finished yet
             if (
-              !currentTitle ||
-              (placeholderPrompt && currentTitle === placeholderPrompt) ||
-              (placeholderPrompt &&
-                Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
+              !chatFinishedFlag &&
+              (!currentTitle ||
+                (placeholderPrompt && currentTitle === placeholderPrompt) ||
+                (placeholderPrompt &&
+                  Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt)))
             ) {
               if (!STATE.secondaryTitleObserver) {
                 console.log(
@@ -535,6 +644,25 @@
                   }
 
                   const newTitle = titleElement.textContent.trim();
+
+                  // If chat has finished, accept any title we have
+                  if (chatFinishedFlag && newTitle) {
+                    console.log(
+                      `${Utils.getPrefix()} Secondary observer: Chat finished - accepting title: "${newTitle}"`
+                    );
+                    self.cleanupTitleObservers();
+                    self.processTitleAndAddHistory(
+                      newTitle,
+                      expectedUrl,
+                      timestamp,
+                      model,
+                      prompt,
+                      attachedFiles,
+                      accountName,
+                      accountEmail
+                    );
+                    return;
+                  }
 
                   // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
                   // AND not a truncated version of the placeholder (using enhanced comparison to detect truncation)
@@ -577,7 +705,22 @@
                 });
               }
               return; // Keep waiting
-            } else {
+            } else if (chatFinishedFlag && currentTitle) {
+              // Chat has finished and we have some title - accept it
+              console.log(`${Utils.getPrefix()} Chat finished - accepting current title: "${currentTitle}"`);
+              self.cleanupTitleObservers();
+              self.processTitleAndAddHistory(
+                currentTitle,
+                expectedUrl,
+                timestamp,
+                model,
+                prompt,
+                attachedFiles,
+                accountName,
+                accountEmail
+              );
+              return;
+            } else if (!chatFinishedFlag) {
               // We have a title that's different from placeholder AND not a truncated version, use it
               console.log(`${Utils.getPrefix()} Found real title: "${currentTitle}"`);
               self.cleanupTitleObservers();
