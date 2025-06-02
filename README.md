@@ -14,19 +14,23 @@ Gemini History Manager is a browser extension designed to automatically track, m
 ### Browser Popup Interface
 
 ![Popup Interface](screenshots/popup-dark.png)
+
 _Quick overview with recent conversations and key statistics_
 
 ### Full Dashboard - History View
 
 ![Dashboard History](screenshots/dashboard-conversation-list-dark-2.png)
+
 _Comprehensive list view with search, filtering, and sorting capabilities_
 
 ### Dashboard - Visualizations
 
 ![Dashboard Visualizations](screenshots/dashboard-visualization-all-time-dark.png)
+
 _Interactive charts showing all time model usage_
 
 ![Dashboard Visualizations](screenshots/dashboard-visualization-over-time-dark.png)
+
 _Interactive charts showing model usage over time_
 
 ---
