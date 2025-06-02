@@ -147,14 +147,14 @@ The extension icon should now appear in your browser's toolbar.
 
 ## 🧑‍💻 Development
 
-Note: The extension now supports both Mozilla Firefox and Google Chrome/Chromium-based browsers with separate build targets.
+Note: The extension now suppworts both Mozilla Firefox and Google Chrome/Chromium-based browsers with separate build targets.
 
 <details>
 <summary>See how to build the Extension</summary>
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v22 or higher)
 - pnpm (recommended) or npm
 
 ### Setup
