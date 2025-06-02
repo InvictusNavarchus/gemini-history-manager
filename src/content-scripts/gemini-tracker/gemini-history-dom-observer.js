@@ -10,8 +10,9 @@
   const DomObserver = {
     /**
      * Helper function to disconnect an observer and set its reference to null.
+     * Prevents memory leaks and ensures clean state management.
      *
-     * @param {MutationObserver} observer - The observer to disconnect
+     * @param {MutationObserver|null} observer - The observer to disconnect
      * @returns {null} - Always returns null to clear the reference
      */
     cleanupObserver: function (observer) {
@@ -20,6 +21,36 @@
         return null;
       }
       return observer;
+    },
+
+    /**
+     * Centralized helper function to clear pending prompt context variables.
+     * Handles the common subset of pending state variables that need clearing.
+     *
+     * @private
+     */
+    resetPendingPromptContext: function () {
+      STATE.pendingModelName = null;
+      STATE.pendingPrompt = null;
+      STATE.pendingOriginalPrompt = null;
+      STATE.pendingAttachedFiles = [];
+      STATE.pendingAccountName = null;
+      STATE.pendingAccountEmail = null;
+    },
+
+    /**
+     * Centralized helper function to clear all pending state variables.
+     * Used when completely aborting the new chat tracking process.
+     *
+     * @private
+     */
+    resetAllPendingState: function () {
+      this.resetPendingPromptContext();
+      STATE.isNewChatPending = false;
+      STATE.pendingGemId = null;
+      STATE.pendingGemName = null;
+      STATE.pendingGemUrl = null;
+      STATE.pendingGeminiPlan = null;
     },
 
     /**
@@ -45,6 +76,8 @@
     /**
      * Cleans up all active observers to prevent memory leaks.
      * Disconnects sidebar, title, and secondary title observers.
+     *
+     * @returns {void}
      */
     cleanupAllObservers: function () {
       console.log(`${Utils.getPrefix()} Cleaning up all DOM observers...`);
@@ -56,10 +89,46 @@
     },
 
     /**
+     * Common guard clause helper for title observer callbacks.
+     * Checks for URL changes and DOM element removal conditions that should stop title observation.
+     * This function combines URL validation and DOM element checks to determine if observation should continue.
+     *
+     * @param {string} expectedUrl - The URL this observer was created for
+     * @param {Element} conversationItem - The conversation item element
+     * @param {Element} [titleElement] - Optional title element for secondary observer
+     * @returns {boolean} - True if observation should be bailed, false to continue
+     * @private
+     */
+    shouldBailTitleObservation: function (expectedUrl, conversationItem, titleElement = null) {
+      // Check if URL changed during observation
+      if (window.location.href !== expectedUrl) {
+        console.warn(
+          `${Utils.getPrefix()} URL changed from "${expectedUrl}" to "${window.location.href}" during title observation`
+        );
+        return true;
+      }
+
+      // Check if the conversation item was removed from DOM (conversation deleted)
+      if (!document.contains(conversationItem)) {
+        console.warn(`${Utils.getPrefix()} Conversation item removed from DOM`);
+        return true;
+      }
+
+      // Check if title element was removed (for secondary observer)
+      if (titleElement !== null && !document.contains(titleElement)) {
+        console.warn(`${Utils.getPrefix()} Title element removed from DOM`);
+        return true;
+      }
+
+      return false;
+    },
+
+    /**
      * Watches for the sidebar element to appear in the DOM.
      * Calls the provided callback once the sidebar is found.
      *
      * @param {function} callback - Function to call once the sidebar is found
+     * @returns {void}
      */
     watchForSidebar: function (callback) {
       console.log(`${Utils.getPrefix()} Starting to watch for sidebar element...`);
@@ -265,17 +334,10 @@
         // Stage 1 Complete: Found the Item - Disconnect the MAIN observer
         STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
 
-        // Clear most pending flags, but keep isNewChatPending until title is captured
-        // This ensures page visibility changes don't cleanup observers while title capture is in progress
-        STATE.pendingModelName = null;
-        STATE.pendingPrompt = null;
-        STATE.pendingOriginalPrompt = null;
-        STATE.pendingAttachedFiles = [];
-        STATE.pendingAccountName = null;
-        STATE.pendingAccountEmail = null;
-        // We don't clear Gem-related state here since we still need it for the history entry
+        // Clear prompt context, but keep isNewChatPending and Gem-related state until title is captured
+        this.resetPendingPromptContext();
         console.log(
-          `[${Utils.getPrefix()}] Cleared pending flags. Waiting for title associated with URL: ${context.url}`
+          `[${Utils.getPrefix()}] Cleared pending prompt context. Waiting for title associated with URL: ${context.url}`
         );
 
         // Stage 2: Wait for the Title
@@ -298,6 +360,8 @@
 
     /**
      * Sets up observation of the sidebar to detect new chats.
+     *
+     * @returns {void}
      */
     observeSidebarForNewChat: function () {
       const targetSelector = 'conversations-list[data-test-id="all-conversations"]';
@@ -308,16 +372,8 @@
           `[${Utils.getPrefix()}] Could not find conversation list element ("${targetSelector}") to observe. Aborting observation setup.`
         );
         StatusIndicator.show("Could not track chat (UI element not found)", "warning");
-        STATE.isNewChatPending = false; // Reset flag
-        STATE.pendingModelName = null;
-        STATE.pendingPrompt = null;
-        STATE.pendingOriginalPrompt = null;
-        STATE.pendingAttachedFiles = [];
-        STATE.pendingAccountName = null;
-        STATE.pendingAccountEmail = null;
-        STATE.pendingGemId = null;
-        STATE.pendingGemName = null;
-        STATE.pendingGemUrl = null;
+        // Full abort - reset all pending state
+        this.resetAllPendingState();
         return;
       }
 
@@ -352,7 +408,7 @@
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
      * @param {string} accountEmail - Email of the user account
-     * @returns {boolean} - True if title was found and entry was added, false otherwise
+     * @returns {Promise<boolean>} - Promise resolving to true if title was found and entry was added, false otherwise
      */
     processTitleAndAddHistory: async function (
       title,
@@ -434,15 +490,18 @@
 
     /**
      * Sets up observation of a specific conversation item to capture its title once available.
+     * Handles complex title detection including placeholders, truncated titles, and dynamic updates.
      *
      * @param {Element} conversationItem - The conversation item DOM element
      * @param {string} expectedUrl - The URL associated with this conversation
      * @param {string} timestamp - ISO-formatted timestamp for the chat
      * @param {string} model - Model name used for the chat
      * @param {string} prompt - User prompt text
+     * @param {string} originalPrompt - Original prompt text without modifications
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
      * @param {string} accountEmail - Email of the user account
+     * @returns {void}
      */
     observeTitleForItem: function (
       conversationItem,
@@ -455,287 +514,200 @@
       accountName,
       accountEmail
     ) {
-      // Initial check
-      this.attemptTitleCaptureAndSave(
-        conversationItem,
-        expectedUrl,
-        timestamp,
-        model,
-        prompt,
-        originalPrompt,
-        attachedFiles,
-        accountName,
-        accountEmail
-      ).then((result) => {
-        if (result) {
+      // Initial URL validation - bail if URL has changed
+      if (this.shouldBailTitleObservation(expectedUrl, conversationItem)) {
+        this.cleanupTitleObservers();
+        return;
+      }
+
+      console.log(
+        `${Utils.getPrefix()} TITLE Check (URL: ${expectedUrl}): Setting up observers to wait for title to appear`
+      );
+
+      // Enhanced observer with universal placeholder detection logic
+      const self = this; // Store reference to DomObserver for use in callbacks
+      let chatFinishedFlag = false; // Flag to track if chat generation has finished
+
+      // Set up stop button observer to detect when chat generation finishes
+      this.observeStopButton(expectedUrl, () => {
+        chatFinishedFlag = true;
+        console.log(
+          `${Utils.getPrefix()} Chat finished flag set - will accept placeholder if no real title found`
+        );
+
+        // Try one more time to get a title, and if it's still a placeholder, accept it
+        const titleElement = conversationItem.querySelector(".conversation-title");
+        if (titleElement) {
+          const currentTitle = titleElement.textContent.trim();
+          const placeholderPrompt = prompt;
+
+          // If we have a title and chat has finished, accept it even if it's a placeholder
+          if (
+            currentTitle &&
+            (!placeholderPrompt ||
+              currentTitle === placeholderPrompt ||
+              Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
+          ) {
+            console.log(
+              `${Utils.getPrefix()} Chat finished - accepting placeholder/truncated title: "${currentTitle}"`
+            );
+            self.cleanupTitleObservers();
+            self.processTitleAndAddHistory(
+              currentTitle,
+              expectedUrl,
+              timestamp,
+              model,
+              prompt,
+              attachedFiles,
+              accountName,
+              accountEmail
+            );
+          }
+        }
+      });
+
+      // Primary title observer - watches for changes to the conversation item
+      STATE.titleObserver = new MutationObserver(() => {
+        // Common guard clauses
+        if (self.shouldBailTitleObservation(expectedUrl, conversationItem)) {
+          self.cleanupTitleObservers();
           return;
         }
 
-        // Enhanced observer with universal placeholder detection logic
-        const self = this; // Store reference to DomObserver for use in callbacks
-        let chatFinishedFlag = false; // Flag to track if chat generation has finished
+        const titleElement = conversationItem.querySelector(".conversation-title");
+        if (titleElement) {
+          const currentTitle = titleElement.textContent.trim();
+          const placeholderPrompt = prompt;
 
-        // Set up stop button observer to detect when chat generation finishes
-        this.observeStopButton(expectedUrl, () => {
-          chatFinishedFlag = true;
-          console.log(
-            `${Utils.getPrefix()} Chat finished flag set - will accept placeholder if no real title found`
-          );
-
-          // Try one more time to get a title, and if it's still a placeholder, accept it
-          const titleElement = conversationItem.querySelector(".conversation-title");
-          if (titleElement) {
-            const currentTitle = titleElement.textContent.trim();
-            const placeholderPrompt = prompt;
-
-            // If we have a title and chat has finished, accept it even if it's a placeholder
-            if (
-              currentTitle &&
-              (!placeholderPrompt ||
-                currentTitle === placeholderPrompt ||
-                Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
-            ) {
+          // Set up secondary observer if we detect placeholder or empty title
+          // OR if the current title appears to be a truncated version of the placeholder
+          // BUT only if chat generation hasn't finished yet
+          if (
+            !chatFinishedFlag &&
+            (!currentTitle ||
+              (placeholderPrompt && currentTitle === placeholderPrompt) ||
+              (placeholderPrompt &&
+                Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt)))
+          ) {
+            if (!STATE.secondaryTitleObserver) {
               console.log(
-                `${Utils.getPrefix()} Chat finished - accepting placeholder/truncated title: "${currentTitle}"`
+                `[${Utils.getPrefix()}] Setting up secondary observer to wait for real title change (avoiding truncated titles)...`
               );
-              self.cleanupTitleObservers();
-              self.processTitleAndAddHistory(
-                currentTitle,
-                expectedUrl,
-                timestamp,
-                model,
-                prompt,
-                attachedFiles,
-                accountName,
-                accountEmail
-              );
-            }
-          }
-        });
 
-        STATE.titleObserver = new MutationObserver(() => {
-          // Check if URL changed during observation
-          if (window.location.href !== expectedUrl) {
-            console.warn(
-              `[${Utils.getPrefix()}] URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Cleaning up all title observers.`
-            );
+              // Capture the current title state to compare against
+              const titleToWaitFor = currentTitle || "";
+
+              // Secondary title observer - watches for fine-grained text changes in title element
+              STATE.secondaryTitleObserver = new MutationObserver(() => {
+                // Common guard clauses
+                if (self.shouldBailTitleObservation(expectedUrl, conversationItem, titleElement)) {
+                  self.cleanupTitleObservers();
+                  return;
+                }
+
+                const newTitle = titleElement.textContent.trim();
+
+                // If chat has finished, accept any title we have
+                if (chatFinishedFlag && newTitle) {
+                  console.log(
+                    `${Utils.getPrefix()} Secondary observer: Chat finished - accepting title: "${newTitle}"`
+                  );
+                  self.cleanupTitleObservers();
+                  self.processTitleAndAddHistory(
+                    newTitle,
+                    expectedUrl,
+                    timestamp,
+                    model,
+                    prompt,
+                    attachedFiles,
+                    accountName,
+                    accountEmail
+                  );
+                  return;
+                }
+
+                // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
+                // AND not a truncated version of the placeholder (using enhanced comparison to detect truncation)
+                const isNotPlaceholder = !placeholderPrompt || newTitle !== placeholderPrompt;
+                const isNotTruncated =
+                  !placeholderPrompt ||
+                  !Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt);
+                const isDifferentFromWaiting = newTitle !== titleToWaitFor;
+
+                if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
+                  console.log(`${Utils.getPrefix()} Secondary observer: Real title detected: "${newTitle}"`);
+                  // Clean up observers
+                  self.cleanupTitleObservers();
+                  // Continue with chat data extraction as usual
+                  self.processTitleAndAddHistory(
+                    newTitle,
+                    expectedUrl,
+                    timestamp,
+                    model,
+                    prompt,
+                    attachedFiles,
+                    accountName,
+                    accountEmail
+                  );
+                } else if (
+                  placeholderPrompt &&
+                  Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt)
+                ) {
+                  console.log(
+                    `[${Utils.getPrefix()}] Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
+                  );
+                }
+              });
+
+              STATE.secondaryTitleObserver.observe(titleElement, {
+                childList: true,
+                characterData: true,
+                subtree: true,
+              });
+            }
+            return; // Keep waiting
+          } else if (chatFinishedFlag && currentTitle) {
+            // Chat has finished and we have some title - accept it
+            console.log(`${Utils.getPrefix()} Chat finished - accepting current title: "${currentTitle}"`);
             self.cleanupTitleObservers();
+            self.processTitleAndAddHistory(
+              currentTitle,
+              expectedUrl,
+              timestamp,
+              model,
+              prompt,
+              attachedFiles,
+              accountName,
+              accountEmail
+            );
+            return;
+          } else if (!chatFinishedFlag) {
+            // We have a title that's different from placeholder AND not a truncated version, use it
+            console.log(`${Utils.getPrefix()} Found real title: "${currentTitle}"`);
+            self.cleanupTitleObservers();
+            self.processTitleAndAddHistory(
+              currentTitle,
+              expectedUrl,
+              timestamp,
+              model,
+              prompt,
+              attachedFiles,
+              accountName,
+              accountEmail
+            );
             return;
           }
-
-          // Check if the conversation item was removed from DOM (conversation deleted)
-          if (!document.contains(conversationItem)) {
-            console.warn(
-              `[${Utils.getPrefix()}] Conversation item removed from DOM. Cleaning up all title observers.`
-            );
-            self.cleanupTitleObservers();
-            return;
-          }
-
-          const titleElement = conversationItem.querySelector(".conversation-title");
-          if (titleElement) {
-            const currentTitle = titleElement.textContent.trim();
-            const placeholderPrompt = prompt;
-
-            // Set up secondary observer if we detect placeholder or empty title
-            // OR if the current title appears to be a truncated version of the placeholder
-            // BUT only if chat generation hasn't finished yet
-            if (
-              !chatFinishedFlag &&
-              (!currentTitle ||
-                (placeholderPrompt && currentTitle === placeholderPrompt) ||
-                (placeholderPrompt &&
-                  Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt)))
-            ) {
-              if (!STATE.secondaryTitleObserver) {
-                console.log(
-                  `[${Utils.getPrefix()}] Setting up secondary observer to wait for real title change (avoiding truncated titles)...`
-                );
-
-                // Capture the current title state to compare against
-                const titleToWaitFor = currentTitle || "";
-
-                STATE.secondaryTitleObserver = new MutationObserver(() => {
-                  // Check if URL changed during secondary observation
-                  if (window.location.href !== expectedUrl) {
-                    console.warn(
-                      `[${Utils.getPrefix()}] URL changed during secondary observer. Cleaning up all title observers.`
-                    );
-                    self.cleanupTitleObservers();
-                    return;
-                  }
-
-                  // Check if the conversation item was removed from DOM (conversation deleted)
-                  if (!document.contains(conversationItem) || !document.contains(titleElement)) {
-                    console.warn(
-                      `[${Utils.getPrefix()}] Conversation item or title element removed from DOM. Cleaning up all title observers.`
-                    );
-                    self.cleanupTitleObservers();
-                    return;
-                  }
-
-                  const newTitle = titleElement.textContent.trim();
-
-                  // If chat has finished, accept any title we have
-                  if (chatFinishedFlag && newTitle) {
-                    console.log(
-                      `${Utils.getPrefix()} Secondary observer: Chat finished - accepting title: "${newTitle}"`
-                    );
-                    self.cleanupTitleObservers();
-                    self.processTitleAndAddHistory(
-                      newTitle,
-                      expectedUrl,
-                      timestamp,
-                      model,
-                      prompt,
-                      attachedFiles,
-                      accountName,
-                      accountEmail
-                    );
-                    return;
-                  }
-
-                  // Real title found: non-empty AND different from placeholder AND different from what we were waiting for
-                  // AND not a truncated version of the placeholder (using enhanced comparison to detect truncation)
-                  const isNotPlaceholder = !placeholderPrompt || newTitle !== placeholderPrompt;
-                  const isNotTruncated =
-                    !placeholderPrompt ||
-                    !Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt);
-                  const isDifferentFromWaiting = newTitle !== titleToWaitFor;
-
-                  if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
-                    console.log(
-                      `${Utils.getPrefix()} Secondary observer: Real title detected: "${newTitle}"`
-                    );
-                    // Clean up observers
-                    self.cleanupTitleObservers();
-                    // Continue with chat data extraction as usual
-                    self.processTitleAndAddHistory(
-                      newTitle,
-                      expectedUrl,
-                      timestamp,
-                      model,
-                      prompt,
-                      attachedFiles,
-                      accountName,
-                      accountEmail
-                    );
-                  } else if (
-                    placeholderPrompt &&
-                    Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt)
-                  ) {
-                    console.log(
-                      `[${Utils.getPrefix()}] Secondary observer: Detected truncated title "${newTitle}", continuing to wait for full title...`
-                    );
-                  }
-                });
-                STATE.secondaryTitleObserver.observe(titleElement, {
-                  childList: true,
-                  characterData: true,
-                  subtree: true,
-                });
-              }
-              return; // Keep waiting
-            } else if (chatFinishedFlag && currentTitle) {
-              // Chat has finished and we have some title - accept it
-              console.log(`${Utils.getPrefix()} Chat finished - accepting current title: "${currentTitle}"`);
-              self.cleanupTitleObservers();
-              self.processTitleAndAddHistory(
-                currentTitle,
-                expectedUrl,
-                timestamp,
-                model,
-                prompt,
-                attachedFiles,
-                accountName,
-                accountEmail
-              );
-              return;
-            } else if (!chatFinishedFlag) {
-              // We have a title that's different from placeholder AND not a truncated version, use it
-              console.log(`${Utils.getPrefix()} Found real title: "${currentTitle}"`);
-              self.cleanupTitleObservers();
-              self.processTitleAndAddHistory(
-                currentTitle,
-                expectedUrl,
-                timestamp,
-                model,
-                prompt,
-                attachedFiles,
-                accountName,
-                accountEmail
-              );
-              return;
-            }
-          }
-        });
-
-        STATE.titleObserver.observe(conversationItem, {
-          childList: true,
-          attributes: true,
-          characterData: true,
-          subtree: true,
-          attributeOldValue: true,
-        });
-        console.log(`${Utils.getPrefix()} TITLE observer active for URL: ${expectedUrl}`);
+        }
       });
-    },
 
-    /**
-     * Attempts to capture the title and save the history entry if successful.
-     *
-     * @param {Element} item - The conversation item DOM element
-     * @param {string} expectedUrl - The URL associated with this conversation
-     * @param {string} timestamp - ISO-formatted timestamp for the chat
-     * @param {string} model - Model name used for the chat
-     * @param {string} prompt - User prompt text (may be truncated with [attached blockcode])
-     * @param {string} originalPrompt - Original prompt text without modifications
-     * @param {Array} attachedFiles - Array of attached filenames
-     * @param {string} accountName - Name of the user account
-     * @param {string} accountEmail - Email of the user account
-     * @returns {Promise<boolean>} - Promise resolving to true if title was found and entry was added, false otherwise
-     */
-    attemptTitleCaptureAndSave: async function (
-      item,
-      expectedUrl,
-      timestamp,
-      model,
-      prompt,
-      originalPrompt,
-      attachedFiles,
-      accountName,
-      accountEmail
-    ) {
-      // Check if we are still on the page this observer was created for
-      if (window.location.href !== expectedUrl) {
-        console.warn(
-          `[${Utils.getPrefix()}] URL changed from "${expectedUrl}" to "${window.location.href}" while waiting for title. Disconnecting all title observers.`
-        );
-        STATE.titleObserver = this.cleanupObserver(STATE.titleObserver);
-        STATE.secondaryTitleObserver = this.cleanupObserver(STATE.secondaryTitleObserver);
-        return true; // Return true to indicate we should stop trying (observer is disconnected)
-      }
-
-      // Since titles never appear immediately, we always pass null to trigger observer setup
-      const title = null;
-      console.log(
-        `${Utils.getPrefix()} TITLE Check (URL: ${expectedUrl}): Title not available immediately, will wait for title to appear`
-      );
-
-      // Get the Gemini Plan from the state
-      const geminiPlan = STATE.pendingGeminiPlan;
-      console.log(`${Utils.getPrefix()} Using Gemini plan: ${geminiPlan || "Unknown"}`);
-
-      return await this.processTitleAndAddHistory(
-        title,
-        expectedUrl,
-        timestamp,
-        model,
-        prompt,
-        attachedFiles,
-        accountName,
-        accountEmail
-      );
+      STATE.titleObserver.observe(conversationItem, {
+        childList: true,
+        attributes: true,
+        characterData: true,
+        subtree: true,
+        attributeOldValue: true,
+      });
+      console.log(`${Utils.getPrefix()} TITLE observer active for URL: ${expectedUrl}`);
     },
   };
 
