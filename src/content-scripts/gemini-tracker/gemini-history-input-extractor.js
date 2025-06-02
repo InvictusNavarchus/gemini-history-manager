@@ -50,7 +50,7 @@
         const limitedText = text.length > 200 ? text.substring(0, 200) : text;
 
         console.log(
-          `[${Utils.getPrefix()}] Extracted original prompt text (limited to 200 chars): "${limitedText}"`
+          `${Utils.getPrefix()} Extracted original prompt text (limited to 200 chars): "${limitedText}"`
         );
         return limitedText;
       } else {
@@ -120,7 +120,7 @@
               accountElement = parent;
               ariaLabel = label;
               console.log(
-                `[${Utils.getPrefix()}] Found account element via profile image with parent having email in aria-label`
+                `${Utils.getPrefix()} Found account element via profile image with parent having email in aria-label`
               );
               break;
             }

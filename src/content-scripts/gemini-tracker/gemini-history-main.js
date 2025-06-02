@@ -246,7 +246,7 @@
       const STATE = window.GeminiHistory_STATE;
       if (STATE && STATE.isNewChatPending) {
         console.log(
-          `[${Utils.getPrefix()}] Page visibility changed, but new chat is pending. Doing absolutely nothing to preserve chat tracking.`
+          `${Utils.getPrefix()} Page visibility changed, but new chat is pending. Doing absolutely nothing to preserve chat tracking.`
         );
         return;
       }
