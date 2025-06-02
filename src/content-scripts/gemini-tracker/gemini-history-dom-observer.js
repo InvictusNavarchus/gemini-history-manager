@@ -269,13 +269,11 @@
 
     /**
      * Captures context information for a new conversation.
-     * Retrieves current state information to associate with a new chat.
+     * Uses pre-captured data from STATE to avoid redundant data extraction.
      *
      * @returns {Object} - Object containing context details for the conversation
      */
     captureConversationContext: function () {
-      const accountInfo = InputExtractor.getAccountInfo();
-
       return {
         timestamp: Utils.getCurrentTimestamp(),
         url: window.location.href,
@@ -283,8 +281,8 @@
         prompt: STATE.pendingPrompt,
         originalPrompt: STATE.pendingOriginalPrompt,
         attachedFiles: STATE.pendingAttachedFiles,
-        accountName: accountInfo.name,
-        accountEmail: accountInfo.email,
+        accountName: STATE.pendingAccountName,
+        accountEmail: STATE.pendingAccountEmail,
         geminiPlan: STATE.pendingGeminiPlan,
         gemId: STATE.pendingGemId,
         gemName: STATE.pendingGemName,
