@@ -76,7 +76,6 @@
     /**
      * Cleans up all active observers to prevent memory leaks.
      * Disconnects sidebar, title, and secondary title observers.
-     * Also resets all pending state to ensure clean state for future operations.
      *
      * @returns {void}
      */
@@ -85,11 +84,6 @@
 
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
       this.cleanupTitleObservers();
-
-      // Reset all pending state when cleaning up all observers
-      // This ensures no leftover state from incomplete chat tracking
-      console.log(`${Utils.getPrefix()} Resetting all pending state during cleanup`);
-      this.resetAllPendingState();
 
       console.log(`${Utils.getPrefix()} All DOM observers cleaned up`);
     },
@@ -386,16 +380,9 @@
       );
       StatusIndicator.show("Tracking new chat...", "info");
 
-      // Disconnect previous observers if they exist and ensure clean state
+      // Disconnect previous observers if they exist
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
       this.cleanupTitleObservers();
-
-      // Ensure we start with clean state for new chat tracking
-      // Only reset pending state if we're not already in a new chat tracking process
-      if (!STATE.isNewChatPending) {
-        console.log(`${Utils.getPrefix()} Cleaning up any leftover state before setting up observers`);
-        this.resetAllPendingState();
-      }
 
       STATE.sidebarObserver = new MutationObserver((mutationsList) => {
         this.processSidebarMutations(mutationsList);
