@@ -41,6 +41,14 @@
       console.log(
         `${Utils.getPrefix()} URL ${url} matches valid Gemini pattern. This is potentially a new chat.`
       );
+
+      // Clear all previous state before starting new chat tracking
+      const DomObserver = window.GeminiHistory_DomObserver;
+      if (DomObserver) {
+        console.log(`${Utils.getPrefix()} [EventHandlers] Clearing all previous state before new chat`);
+        DomObserver.resetAllPendingState();
+      }
+
       STATE.isNewChatPending = true;
       console.log(`${Utils.getPrefix()} [EventHandlers] Set isNewChatPending = true`);
 
