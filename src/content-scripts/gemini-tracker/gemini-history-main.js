@@ -139,12 +139,12 @@
           );
           // Don't cleanup observers - they're needed to capture the new conversation
         } else {
-          // Clean up all observers when navigating to a different context
+          // Clean up all observers and state when navigating to a different context
           // Log URL change using standard prefix
           console.log(
-            `${Utils.getPrefix()} URL change indicates navigation away from chat context, cleaning up observers`
+            `${Utils.getPrefix()} URL change indicates navigation away from chat context, performing complete cleanup`
           );
-          DomObserver.cleanupAllObservers();
+          DomObserver.completeCleanup();
 
           if (GemDetector) {
             GemDetector.reset();

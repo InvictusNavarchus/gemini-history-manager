@@ -54,6 +54,19 @@
     },
 
     /**
+     * Unified cleanup function that handles both observer cleanup and state reset.
+     * This is the primary cleanup method that should be used in most scenarios.
+     *
+     * @returns {void}
+     */
+    completeCleanup: function () {
+      console.log(`${Utils.getPrefix()} Performing complete cleanup of observers and state...`);
+      this.cleanupAllObservers();
+      this.resetAllPendingState();
+      console.log(`${Utils.getPrefix()} Complete cleanup finished`);
+    },
+
+    /**
      * Helper function to cleanup title observers and clear the new chat pending flag.
      * Only clears the flag when both title observers are cleaned up.
      *
@@ -477,9 +490,9 @@
           StatusIndicator.update("Chat not saved (already exists or invalid)", "info");
         }
 
-        // Complete cleanup: ensure all pending state is cleared after processing
-        console.log(`${Utils.getPrefix()} Chat processing complete, clearing all remaining pending state`);
-        this.resetAllPendingState();
+        // Clear all state after successful completion
+        console.log(`${Utils.getPrefix()} Chat Completed - clearing all state...`);
+        this.completeCleanup();
 
         return true;
       }
