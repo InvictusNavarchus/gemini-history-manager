@@ -110,6 +110,7 @@
      * Observes URL changes to detect navigation to/from Gem pages.
      * Resets the Gem detector when navigating away from a Gem page.
      * Preserves observers during new chat creation workflows.
+     * Shows error message if user navigates away during active chat tracking.
      *
      * @returns {void}
      */
@@ -117,6 +118,10 @@
       const currentUrl = window.location.href;
       if (currentUrl !== lastUrl) {
         console.log(`${Utils.getPrefix()} URL changed: ${lastUrl} -> ${currentUrl}`);
+
+        // Check if a chat is currently being tracked
+        const STATE = window.GeminiHistory_STATE;
+        const isChatInProgress = STATE && STATE.isNewChatPending;
 
         // Check if this is a new chat creation transition that should preserve observers
         const isNewChatTransition = Utils.isNewChatTransition(lastUrl, currentUrl);
@@ -139,6 +144,17 @@
           );
           // Don't cleanup observers - they're needed to capture the new conversation
         } else {
+          // Check if user is navigating away during active chat tracking
+          if (isChatInProgress) {
+            console.warn(
+              `${Utils.getPrefix()} User navigated away from chat while tracking is in progress. Chat data may be lost.`
+            );
+            StatusIndicator.show(
+              "You left the chat. Tracking cancelled.",
+              "warning",
+            );
+          }
+
           // Clean up all observers and state when navigating to a different context
           // Log URL change using standard prefix
           console.log(
@@ -166,6 +182,30 @@
     DomObserver.watchForSidebar((sidebar) => {
       console.log(`${Utils.getPrefix()} Sidebar confirmed available. Manager fully active.`);
       StatusIndicator.show("Gemini History Manager active", "success");
+    });
+
+    // Warn user before leaving page if chat is in progress
+    /**
+     * Warns the user before leaving the page if a chat is currently being tracked.
+     * Prevents accidental loss of chat data due to page refresh or navigation.
+     *
+     * @param {BeforeUnloadEvent} event - The beforeunload event object.
+     * @returns {string|undefined} - Warning message if chat is in progress, undefined otherwise.
+     */
+    window.addEventListener("beforeunload", (event) => {
+      const STATE = window.GeminiHistory_STATE;
+      const isChatInProgress = STATE && STATE.isNewChatPending;
+
+      if (isChatInProgress) {
+        const warningMessage =
+          "A chat is currently being tracked. Leaving this page may cause your conversation to not be saved properly.";
+        console.warn(`${Utils.getPrefix()} ${warningMessage}`);
+
+        // Standard way to show confirmation dialog
+        event.preventDefault();
+        event.returnValue = warningMessage;
+        return warningMessage;
+      }
     });
 
     // Attach main click listener
