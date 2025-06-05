@@ -151,7 +151,6 @@
             );
             StatusIndicator.show(
               "⚠️ You left the chat. Tracking cancelled.",
-              5000 // Show warning for 8 seconds
             );
           }
 
