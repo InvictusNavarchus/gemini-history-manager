@@ -233,12 +233,14 @@
     /**
      * Sets up observation of the stop button to detect when chat generation finishes.
      * This helps determine when to accept a placeholder title as the final title.
+     * Uses a priority system where title observers get 1 second to respond before stop button observer triggers.
      *
      * @param {string} expectedUrl - The URL associated with this conversation
      * @param {Function} onChatFinished - Callback to execute when chat generation finishes
+     * @param {Object} priorityContext - Context object to coordinate with title observers
      * @returns {void}
      */
-    observeStopButton: function (expectedUrl, onChatFinished) {
+    observeStopButton: function (expectedUrl, onChatFinished, priorityContext) {
       console.log(`${Utils.getPrefix()} Setting up stop button observer for URL: ${expectedUrl}`);
 
       const self = this;
@@ -260,12 +262,22 @@
         // Check if stop button is no longer visible (chat finished)
         if (!self.isStopButtonVisible()) {
           console.log(`${Utils.getPrefix()} Stop button disappeared - chat generation likely finished`);
-          // Wait 1 second to allow for any final title updates
+
+          // Set chat finished flag immediately for title observers
+          priorityContext.chatFinished = true;
+
+          // Give title observers priority - wait 1 second for them to respond
           setTimeout(() => {
-            if (STATE.stopButtonObserver) {
-              // Check if observer still exists
-              console.log(`${Utils.getPrefix()} Chat generation finished, triggering callback`);
+            // Only trigger if title observers haven't already processed the title
+            if (STATE.stopButtonObserver && !priorityContext.titleProcessed) {
+              console.log(
+                `${Utils.getPrefix()} Title observers didn't respond within 1 second, stop button observer taking over`
+              );
               onChatFinished();
+            } else if (priorityContext.titleProcessed) {
+              console.log(
+                `${Utils.getPrefix()} Title observers already processed the title, stop button observer backing off`
+              );
             }
           }, 1000);
         }
@@ -502,6 +514,7 @@
     /**
      * Sets up observation of a specific conversation item to capture its title once available.
      * Handles complex title detection including placeholders, truncated titles, and dynamic updates.
+     * Uses a priority system to coordinate between title observers and stop button observer.
      *
      * @param {Element} conversationItem - The conversation item DOM element
      * @param {string} expectedUrl - The URL associated with this conversation
@@ -537,45 +550,58 @@
 
       // Enhanced observer with universal placeholder detection logic
       const self = this; // Store reference to DomObserver for use in callbacks
-      let chatFinishedFlag = false; // Flag to track if chat generation has finished
+
+      // Priority context shared between title observers and stop button observer
+      const priorityContext = {
+        chatFinished: false,
+        titleProcessed: false,
+      };
+
+      /**
+       * Helper function to process title with priority coordination
+       * @param {string} title - The title to process
+       * @param {string} source - Source of the title (for logging)
+       */
+      const processTitle = (title, source) => {
+        if (priorityContext.titleProcessed) {
+          console.log(`${Utils.getPrefix()} Title already processed, ignoring ${source} trigger`);
+          return;
+        }
+
+        priorityContext.titleProcessed = true;
+        console.log(`${Utils.getPrefix()} Processing title from ${source}: "${title}"`);
+
+        self.cleanupTitleObservers();
+        self.processTitleAndAddHistory(
+          title,
+          expectedUrl,
+          timestamp,
+          model,
+          prompt,
+          attachedFiles,
+          accountName,
+          accountEmail
+        );
+      };
 
       // Set up stop button observer to detect when chat generation finishes
-      this.observeStopButton(expectedUrl, () => {
-        chatFinishedFlag = true;
-        console.log(
-          `${Utils.getPrefix()} Chat finished flag set - will accept placeholder if no real title found`
-        );
-
-        // Try one more time to get a title, and if it's still a placeholder, accept it
-        const titleElement = conversationItem.querySelector(".conversation-title");
-        if (titleElement) {
-          const currentTitle = titleElement.textContent.trim();
-          const placeholderPrompt = prompt;
-
-          // If we have a title and chat has finished, accept it even if it's a placeholder
-          if (
-            currentTitle &&
-            (!placeholderPrompt ||
-              currentTitle === placeholderPrompt ||
-              Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
-          ) {
-            console.log(
-              `${Utils.getPrefix()} Chat finished - accepting placeholder/truncated title: "${currentTitle}"`
-            );
-            self.cleanupTitleObservers();
-            self.processTitleAndAddHistory(
-              currentTitle,
-              expectedUrl,
-              timestamp,
-              model,
-              prompt,
-              attachedFiles,
-              accountName,
-              accountEmail
-            );
+      this.observeStopButton(
+        expectedUrl,
+        () => {
+          console.log(
+            `${Utils.getPrefix()} Stop button observer triggered - accepting current title even if placeholder`
+          );
+          // Just accept whatever title is available at this point
+          const titleElement = conversationItem.querySelector(".conversation-title");
+          if (titleElement) {
+            const currentTitle = titleElement.textContent.trim();
+            if (currentTitle) {
+              processTitle(currentTitle, "stop button observer (final acceptance)");
+            }
           }
-        }
-      });
+        },
+        priorityContext
+      );
 
       // Primary title observer - watches for changes to the conversation item
       STATE.titleObserver = new MutationObserver(() => {
@@ -594,7 +620,7 @@
           // OR if the current title appears to be a truncated version of the placeholder
           // BUT only if chat generation hasn't finished yet
           if (
-            !chatFinishedFlag &&
+            !priorityContext.chatFinished &&
             (!currentTitle ||
               (placeholderPrompt && currentTitle === placeholderPrompt) ||
               (placeholderPrompt &&
@@ -619,21 +645,8 @@
                 const newTitle = titleElement.textContent.trim();
 
                 // If chat has finished, accept any title we have
-                if (chatFinishedFlag && newTitle) {
-                  console.log(
-                    `${Utils.getPrefix()} Secondary observer: Chat finished - accepting title: "${newTitle}"`
-                  );
-                  self.cleanupTitleObservers();
-                  self.processTitleAndAddHistory(
-                    newTitle,
-                    expectedUrl,
-                    timestamp,
-                    model,
-                    prompt,
-                    attachedFiles,
-                    accountName,
-                    accountEmail
-                  );
+                if (priorityContext.chatFinished && newTitle) {
+                  processTitle(newTitle, "secondary observer (chat finished)");
                   return;
                 }
 
@@ -646,20 +659,7 @@
                 const isDifferentFromWaiting = newTitle !== titleToWaitFor;
 
                 if (newTitle && isNotPlaceholder && isNotTruncated && isDifferentFromWaiting) {
-                  console.log(`${Utils.getPrefix()} Secondary observer: Real title detected: "${newTitle}"`);
-                  // Clean up observers
-                  self.cleanupTitleObservers();
-                  // Continue with chat data extraction as usual
-                  self.processTitleAndAddHistory(
-                    newTitle,
-                    expectedUrl,
-                    timestamp,
-                    model,
-                    prompt,
-                    attachedFiles,
-                    accountName,
-                    accountEmail
-                  );
+                  processTitle(newTitle, "secondary observer (real title)");
                 } else if (
                   placeholderPrompt &&
                   Utils.isTruncatedVersionEnhanced(placeholderPrompt, newTitle, originalPrompt)
@@ -677,35 +677,13 @@
               });
             }
             return; // Keep waiting
-          } else if (chatFinishedFlag && currentTitle) {
+          } else if (priorityContext.chatFinished && currentTitle) {
             // Chat has finished and we have some title - accept it
-            console.log(`${Utils.getPrefix()} Chat finished - accepting current title: "${currentTitle}"`);
-            self.cleanupTitleObservers();
-            self.processTitleAndAddHistory(
-              currentTitle,
-              expectedUrl,
-              timestamp,
-              model,
-              prompt,
-              attachedFiles,
-              accountName,
-              accountEmail
-            );
+            processTitle(currentTitle, "primary observer (chat finished)");
             return;
-          } else if (!chatFinishedFlag) {
+          } else if (!priorityContext.chatFinished) {
             // We have a title that's different from placeholder AND not a truncated version, use it
-            console.log(`${Utils.getPrefix()} Found real title: "${currentTitle}"`);
-            self.cleanupTitleObservers();
-            self.processTitleAndAddHistory(
-              currentTitle,
-              expectedUrl,
-              timestamp,
-              model,
-              prompt,
-              attachedFiles,
-              accountName,
-              accountEmail
-            );
+            processTitle(currentTitle, "primary observer (real title)");
             return;
           }
         }
