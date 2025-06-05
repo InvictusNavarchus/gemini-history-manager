@@ -149,10 +149,7 @@
             console.warn(
               `${Utils.getPrefix()} User navigated away from chat while tracking is in progress. Chat data may be lost.`
             );
-            StatusIndicator.show(
-              "You left the chat. Tracking cancelled.",
-              "warning",
-            );
+            StatusIndicator.show("You left the chat. Tracking cancelled.", "warning");
           }
 
           // Clean up all observers and state when navigating to a different context
@@ -261,18 +258,6 @@
 
     // Log initialization using standard prefix
     console.log(`${Utils.getPrefix()} [Gemini History Manager initialization complete.`);
-
-    // Add cleanup for page unload to prevent memory leaks
-    /**
-     * Cleans up all observers when the page is being unloaded.
-     * Prevents memory leaks from dangling DOM observers.
-     *
-     * @returns {void}
-     */
-    window.addEventListener("beforeunload", () => {
-      console.log(`${Utils.getPrefix()} Page unloading, cleaning up all observers`);
-      DomObserver.cleanupAllObservers();
-    });
 
     /**
      * Handles page visibility changes (e.g., tab switch).
