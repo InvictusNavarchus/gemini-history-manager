@@ -150,7 +150,8 @@
               `${Utils.getPrefix()} User navigated away from chat while tracking is in progress. Chat data may be lost.`
             );
             StatusIndicator.show(
-              "⚠️ You left the chat. Tracking cancelled.",
+              "You left the chat. Tracking cancelled.",
+              "warning",
             );
           }
 
