@@ -150,8 +150,7 @@
               `${Utils.getPrefix()} User navigated away from chat while tracking is in progress. Chat data may be lost.`
             );
             StatusIndicator.show(
-              "⚠️ Navigation during chat tracking detected! Conversation may not be saved.",
-              "warning",
+              "⚠️ You left the chat. Tracking cancelled.",
               5000 // Show warning for 8 seconds
             );
           }
