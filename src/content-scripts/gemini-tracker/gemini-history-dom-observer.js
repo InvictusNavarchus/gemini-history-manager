@@ -588,22 +588,15 @@
       this.observeStopButton(
         expectedUrl,
         () => {
-          console.log(`${Utils.getPrefix()} Stop button observer triggered - attempting to process title`);
-
-          // Try one more time to get a title, and if it's still a placeholder, accept it
+          console.log(
+            `${Utils.getPrefix()} Stop button observer triggered - accepting current title even if placeholder`
+          );
+          // Just accept whatever title is available at this point
           const titleElement = conversationItem.querySelector(".conversation-title");
           if (titleElement) {
             const currentTitle = titleElement.textContent.trim();
-            const placeholderPrompt = prompt;
-
-            // If we have a title and chat has finished, accept it even if it's a placeholder
-            if (
-              currentTitle &&
-              (!placeholderPrompt ||
-                currentTitle === placeholderPrompt ||
-                Utils.isTruncatedVersionEnhanced(placeholderPrompt, currentTitle, originalPrompt))
-            ) {
-              processTitle(currentTitle, "stop button observer (placeholder/truncated)");
+            if (currentTitle) {
+              processTitle(currentTitle, "stop button observer (final acceptance)");
             }
           }
         },
