@@ -139,7 +139,7 @@ Note: The extension now supports both Mozilla Firefox and Google Chrome/Chromium
 
 1.  Clone the repository:
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/InvictusNavarchus/gemini-history-manager
     cd gemini-history-manager
     ```
 2.  Install dependencies:
