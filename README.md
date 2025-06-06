@@ -41,6 +41,12 @@ _Interactive charts showing model usage over time_
 
 - **Quick-Access Popup**: Click the extension icon for a quick overview of your stats, a list of recent chats, and one-click access to the full dashboard.
 
+- **Interactive Dashboard**: Dive deep into your chat history through a dedicated dashboard page.
+  - **View & Organize**: See a comprehensive list of all conversations. Instantly search your history by title or prompt content.
+  - **Filter & Sort**: Narrow down your history by model, date range, or plan. Sort by date, title, or model to find exactly what you need.
+  - **Visualize Your Data**: See your habits with interactive charts for model usage, plan distribution, and activity over time.
+  - **Key Statistics**: Get at-a-glance insights like total conversations, your most-used model, and more.1
+
 - **Data Management**: You are in full control of your data.
   - **Export**: Save your entire history, or just a filtered view, to a JSON file.
   - **Import**: Merge history from a JSON file, with duplicate prevention.
@@ -50,12 +56,6 @@ _Interactive charts showing model usage over time_
   - **Light & Dark Themes**: Automatically syncs with your system preference or can be toggled manually.
   - **Status Indicator**: A non-intrusive indicator on the Gemini page lets you know when a chat is being saved.
 
-- **Interactive Dashboard**: Dive deep into your chat history through a dedicated dashboard page.
-  - **View & Organize**: See a comprehensive list of all conversations. Instantly search your history by title or prompt content.
-  - **Filter & Sort**: Narrow down your history by model, date range, or plan. Sort by date, title, or model to find exactly what you need.
-  - **Visualize Your Data**: See your habits with interactive charts for model usage, plan distribution, and activity over time.
-  - **Key Statistics**: Get at-a-glance insights like total conversations, your most-used model, and more.
-  
 ---
 
 ## 📥 Installation
