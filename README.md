@@ -2,7 +2,7 @@
 
 <p>
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"/>
-  <img src="https://img.shields.io/badge/version-v0.18.3-blue.svg" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-v0.18.4-blue.svg" alt="Version"/>
 </p>
 
 Gemini History Manager is a browser extension designed to automatically track, manage, and help you visualize your Google Gemini chat history. It offers tools for organizing, searching, and deriving insights from your interactions with Gemini.
