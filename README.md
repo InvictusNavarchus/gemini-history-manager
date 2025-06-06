@@ -45,7 +45,7 @@ _Interactive charts showing model usage over time_
   - **View & Organize**: See a comprehensive list of all conversations. Instantly search your history by title or prompt content.
   - **Filter & Sort**: Narrow down your history by model, date range, or plan. Sort by date, title, or model to find exactly what you need.
   - **Visualize Your Data**: See your habits with interactive charts for model usage, plan distribution, and activity over time.
-  - **Key Statistics**: Get at-a-glance insights like total conversations, your most-used model, and more.1
+  - **Key Statistics**: Get at-a-glance insights like total conversations, your most-used model, and more.
 
 - **Data Management**: You are in full control of your data.
   - **Export**: Save your entire history, or just a filtered view, to a JSON file.
