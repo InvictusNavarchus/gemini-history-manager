@@ -64,7 +64,7 @@ _Interactive charts showing model usage over time_
 > **Web Store Availability**: This extension is not yet available on the Chrome Web Store or the Mozilla Firefox Add-ons portal. Links will be provided here if and when it is published to any store.
 
 <details>
-<summary>Click for installation instructions</summary>
+<summary>Click for manual installation instructions</summary>
 
 ### Download from GitHub Releases
 
