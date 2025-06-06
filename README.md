@@ -149,16 +149,33 @@ Note: The extension now supports both Mozilla Firefox and Google Chrome/Chromium
 
 #### Building
 
-- **Build for both browsers**: `pnpm run build:all`
-- **Build for Firefox only**: `pnpm run build:firefox`
-- **Build for Chrome only**: `pnpm run build:chrome`
+- **Build for both browsers**: 
+  ```bash
+  pnpm run build:all
+  ```
+- **Build for Firefox only**: 
+  ```bash
+  pnpm run build:firefox
+  ```
+- **Build for Chrome only**: 
+  ```bash
+  pnpm run build:chrome
+  ```
 
 Builds are created in the `dist-firefox/` and `dist-chrome/` directories.
 
 #### Development
 
-- **For Firefox**: `pnpm run dev` (starts a watch mode and opens Firefox)
-- **For Chrome**: `pnpm run dev:chrome` (starts a watch mode; manually load the `dist-chrome/` folder)
+- **For Firefox**: 
+  ```bash
+  pnpm run dev
+  ```
+  (starts a watch mode and opens Firefox)
+- **For Chrome**: 
+  ```bash
+  pnpm run dev:chrome
+  ```
+  (starts a watch mode; manually load the `dist-chrome/` folder)
 
 ### Technology Stack
 
