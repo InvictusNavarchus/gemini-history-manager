@@ -40,7 +40,7 @@
       StatusIndicator.show("Tracking new chat...", "info");
     } else {
       // Re-establish conversation list watcher with loading status
-      StatusIndicator.show("Reconnecting to Gemini conversation list...", "loading", 0);
+      StatusIndicator.show("Reconnecting to Gemini recent chats...", "loading", 0);
     }
 
     DomObserver.watchForConversationList((conversationList) => {
@@ -92,7 +92,7 @@
     });
 
     // Show immediate status message that persists until conversation list is found (or timeout)
-    StatusIndicator.show("Waiting for Gemini conversation list to appear...", "loading", 0);
+    StatusIndicator.show("Waiting for Gemini recent chats to appear...", "loading", 0);
 
     // Initialize GemDetector and check for Gem information
     const GemDetector = window.GeminiHistory_GemDetector;

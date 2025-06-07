@@ -146,7 +146,7 @@
     watchForConversationList: function (callback) {
       console.log(`${Utils.getPrefix()} Starting to watch for conversation list element...`);
       // Show immediate loading status at the beginning
-      StatusIndicator.show("Looking for Gemini conversation list. Please wait...", "loading", 0);
+      StatusIndicator.show("Looking for Gemini recent chats. Please wait...", "loading", 0);
 
       // First check if the conversation list already exists
       const conversationListSelector = 'conversations-list[data-test-id="all-conversations"]';
@@ -182,7 +182,7 @@
           const conversationList = document.querySelector(conversationListSelector);
           if (!conversationList) {
             console.warn(`${Utils.getPrefix()} Conversation list element not found after timeout`);
-            StatusIndicator.show("Warning: Gemini conversation list not detected", "warning", 0);
+            StatusIndicator.show("Warning: Gemini recent chats not detected", "warning", 0);
           }
           observer.disconnect();
         }
