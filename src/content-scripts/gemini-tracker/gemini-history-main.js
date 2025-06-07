@@ -39,13 +39,13 @@
       console.log(`${Utils.getPrefix()} Returning during active chat tracking, restoring status indicator`);
       StatusIndicator.show("Tracking new chat...", "info");
     } else {
-      // Re-establish sidebar watcher with loading status
-      StatusIndicator.show("Reconnecting to Gemini sidebar...", "loading", 0);
+      // Re-establish conversation list watcher with loading status
+      StatusIndicator.show("Reconnecting to Gemini recent chats...", "loading", 0);
     }
 
-    DomObserver.watchForSidebar((sidebar) => {
+    DomObserver.watchForConversationList((conversationList) => {
       console.log(
-        `${Utils.getPrefix()} Sidebar re-detected after page visibility change. Manager fully active.`
+        `${Utils.getPrefix()} Conversation list re-detected after page visibility change. Manager fully active.`
       );
 
       // Only show "active" status if we're not tracking a chat
@@ -91,8 +91,8 @@
       }
     });
 
-    // Show immediate status message that persists until sidebar is found (or timeout)
-    StatusIndicator.show("Waiting for Gemini sidebar to appear...", "loading", 0);
+    // Show immediate status message that persists until conversation list is found (or timeout)
+    StatusIndicator.show("Waiting for Gemini recent chats to appear...", "loading", 0);
 
     // Initialize GemDetector and check for Gem information
     const GemDetector = window.GeminiHistory_GemDetector;
@@ -168,16 +168,16 @@
       }
     }).observe(document, { subtree: true, childList: true });
 
-    // Watch for sidebar to appear before showing ready status
+    // Watch for conversation list to appear before showing ready status
     /**
-     * Waits for the Gemini sidebar to appear before showing the ready status.
-     * Displays a success message when the sidebar is detected.
+     * Waits for the Gemini conversation list to appear before showing the ready status.
+     * Displays a success message when the conversation list is detected.
      *
-     * @param {HTMLElement} sidebar - The Gemini sidebar element.
+     * @param {HTMLElement} conversationList - The Gemini conversation list element.
      * @returns {void}
      */
-    DomObserver.watchForSidebar((sidebar) => {
-      console.log(`${Utils.getPrefix()} Sidebar confirmed available. Manager fully active.`);
+    DomObserver.watchForConversationList((conversationList) => {
+      console.log(`${Utils.getPrefix()} Conversation list confirmed available. Manager fully active.`);
       StatusIndicator.show("Gemini History Manager active", "success");
     });
 
