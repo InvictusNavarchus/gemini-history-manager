@@ -146,7 +146,7 @@
     watchForSidebar: function (callback) {
       console.log(`${Utils.getPrefix()} Starting to watch for sidebar element...`);
       // Show immediate loading status at the beginning
-      StatusIndicator.show("Looking for Gemini sidebar...", "loading", 0);
+      StatusIndicator.show("Looking for Gemini sidebar. Please wait...", "loading", 0);
 
       // First check if the sidebar already exists
       const sidebarSelector = 'conversations-list[data-test-id="all-conversations"]';
@@ -349,7 +349,7 @@
         console.log(
           `${Utils.getPrefix()} Found NEW conversation item container. Preparing to wait for title...`
         );
-        StatusIndicator.show("New chat detected, capturing details...", "loading", 0);
+        StatusIndicator.show("Waiting for the title to appear. Stand by...", "loading", 0);
 
         // Capture context before disconnecting observer
         const context = this.captureConversationContext();
@@ -403,7 +403,6 @@
       console.log(
         `${Utils.getPrefix()} Found conversation list element. Setting up MAIN sidebar observer...`
       );
-      StatusIndicator.show("Tracking new chat...", "info");
 
       // Disconnect previous observers if they exist
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
@@ -445,7 +444,6 @@
     ) {
       if (title) {
         console.log(`${Utils.getPrefix()} Title found for ${expectedUrl}! Attempting to add history entry.`);
-        StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
         this.cleanupTitleObservers();
 
         // Get the Gemini Plan from the state
@@ -499,7 +497,7 @@
         );
 
         if (!success) {
-          StatusIndicator.update("Chat not saved (already exists or invalid)", "info");
+          StatusIndicator.show("Chat not saved (already exists or invalid)", "error");
         }
 
         // Clear all state after successful completion

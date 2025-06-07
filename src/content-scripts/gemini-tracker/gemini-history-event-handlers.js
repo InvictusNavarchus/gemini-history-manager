@@ -90,8 +90,6 @@
       console.log(`${Utils.getPrefix()} Captured account email: "${STATE.pendingAccountEmail}"`);
       console.log(`${Utils.getPrefix()} Captured Gemini plan: "${STATE.pendingGeminiPlan}"`);
 
-      StatusIndicator.update(`Capturing chat with ${STATE.pendingModelName}...`, "info");
-
       // Use setTimeout to ensure observation starts after the click event potentially triggers initial DOM changes
       setTimeout(() => {
         console.log(`${Utils.getPrefix()} [EventHandlers] Initiating sidebar observation via setTimeout.`);
