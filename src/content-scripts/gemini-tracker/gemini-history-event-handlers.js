@@ -92,7 +92,9 @@
 
       // Use setTimeout to ensure observation starts after the click event potentially triggers initial DOM changes
       setTimeout(() => {
-        console.log(`${Utils.getPrefix()} [EventHandlers] Initiating conversation list observation via setTimeout.`);
+        console.log(
+          `${Utils.getPrefix()} [EventHandlers] Initiating conversation list observation via setTimeout.`
+        );
         DomObserver.observeConversationListForNewChat();
       }, 50); // Small delay
     },
