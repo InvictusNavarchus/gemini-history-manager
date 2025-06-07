@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Gemini History Manager",
-  "version": "0.18.4",
+  "version": "0.18.5",
   "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
   "permissions": [
     "storage",
