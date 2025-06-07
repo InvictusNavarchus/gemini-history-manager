@@ -42,8 +42,8 @@ The information collected is used solely to provide and improve the features of 
 * **User Responsibility:** You are responsible for the security of your local machine and browser environment where this data is stored.
 
 The Extension requests the `storage` and `unlimitedStorage` permissions.
-    * `storage`: This permission is required to save and retrieve your Gemini chat history using `browser.storage.local`.
-    * `unlimitedStorage`: This permission allows the Extension to store a potentially large amount of chat history without being overly restricted by browser quotas.
+* `storage`: This permission is required to save and retrieve your Gemini chat history using `browser.storage.local`.
+* `unlimitedStorage`: This permission allows the Extension to store a potentially large amount of chat history without being overly restricted by browser quotas.
 
 ### 4. Logging Configuration
 
