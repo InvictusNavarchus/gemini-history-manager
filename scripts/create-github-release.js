@@ -76,7 +76,7 @@ function main() {
 
   // 5. Construct and execute the 'gh release create' command
   const command = `gh release create ${tagName} \\
-    --title "Release ${tagName}" \\
+    --title "${tagName}" \\
     --notes-file "${releaseNotesPath}" \\
     "${chromeAssetPath}" \\
     "${firefoxAssetPath}"`;
