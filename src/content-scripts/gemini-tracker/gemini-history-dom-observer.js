@@ -444,7 +444,6 @@
     ) {
       if (title) {
         console.log(`${Utils.getPrefix()} Title found for ${expectedUrl}! Attempting to add history entry.`);
-        StatusIndicator.update(`Found chat title: "${title}"`, "success", 0);
         this.cleanupTitleObservers();
 
         // Get the Gemini Plan from the state
