@@ -164,23 +164,25 @@ Note: The extension now supports both Mozilla Firefox and Google Chrome/Chromium
 
 Builds are created in the `dist-firefox/` and `dist-chrome/` directories.
 
-#### Development
+### Packaging
 
-- **For Firefox**: 
-  ```bash
-  pnpm run dev
-  ```
-  (starts a watch mode and opens Firefox)
-- **For Chrome**: 
-  ```bash
-  pnpm run dev:chrome
-  ```
-  (starts a watch mode; manually load the `dist-chrome/` folder)
+#### Create distribution packages for both browsers:
 
-### Packaging the Extension
+```bash
+pnpm run package
+```
 
-- **Script**: `pnpm package`
-- **Action**: This script prepares the extension for distribution. It first builds the extension for both Firefox and Chrome, then creates packaged files (e.g., ZIP archives) suitable for uploading to web stores or for manual installation. The packaged files will be located in the `web-ext-artifacts/` directory.
+#### Create packages individually:
+
+```bash
+pnpm run package:firefox
+pnpm run package:chrome
+```
+
+This creates ZIP files created by `web-ext` in `dist-zip/`:
+
+- `gemini_history_manager_firefox-<version>.zip` for Firefox
+- `gemini_history_manager_chrome-<version>.zip` for Chrome
 
 ### Technology Stack
 
