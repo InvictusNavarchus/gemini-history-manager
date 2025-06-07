@@ -177,6 +177,11 @@ Builds are created in the `dist-firefox/` and `dist-chrome/` directories.
   ```
   (starts a watch mode; manually load the `dist-chrome/` folder)
 
+### Packaging the Extension
+
+- **Script**: `pnpm package`
+- **Action**: This script prepares the extension for distribution. It first builds the extension for both Firefox and Chrome, then creates packaged files (e.g., ZIP archives) suitable for uploading to web stores or for manual installation. The packaged files will be located in the `web-ext-artifacts/` directory.
+
 ### Technology Stack
 
 - **Core**: JavaScript (ES6+)
