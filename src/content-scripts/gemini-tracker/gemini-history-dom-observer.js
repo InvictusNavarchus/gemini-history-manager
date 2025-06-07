@@ -403,7 +403,6 @@
       console.log(
         `${Utils.getPrefix()} Found conversation list element. Setting up MAIN sidebar observer...`
       );
-      StatusIndicator.show("Tracking new chat...", "info");
 
       // Disconnect previous observers if they exist
       STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
