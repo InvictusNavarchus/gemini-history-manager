@@ -146,7 +146,7 @@
     watchForSidebar: function (callback) {
       console.log(`${Utils.getPrefix()} Starting to watch for sidebar element...`);
       // Show immediate loading status at the beginning
-      StatusIndicator.show("Looking for Gemini sidebar...", "loading", 0);
+      StatusIndicator.show("Looking for Gemini sidebar. Please wait...", "loading", 0);
 
       // First check if the sidebar already exists
       const sidebarSelector = 'conversations-list[data-test-id="all-conversations"]';
