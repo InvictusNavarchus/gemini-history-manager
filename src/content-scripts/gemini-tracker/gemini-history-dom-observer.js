@@ -349,7 +349,7 @@
         console.log(
           `${Utils.getPrefix()} Found NEW conversation item container. Preparing to wait for title...`
         );
-        StatusIndicator.show("New chat detected, capturing details...", "loading", 0);
+        StatusIndicator.show("Waiting for the title to appear. Stand by...", "loading", 0);
 
         // Capture context before disconnecting observer
         const context = this.captureConversationContext();
