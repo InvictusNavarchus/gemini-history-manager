@@ -26,7 +26,8 @@
     "bump": "node scripts/bump-version.js",
     "release:patch": "pnpm run bump -- --patch && scripts/post-bump.sh",
     "release:minor": "pnpm run bump -- --minor && scripts/post-bump.sh",
-    "release:major": "pnpm run bump -- --major && scripts/post-bump.sh"
+    "release:major": "pnpm run bump -- --major && scripts/post-bump.sh",
+    "release:create": "node scripts/create-github-release.js"
   },
   "keywords": [
     "gemini",
