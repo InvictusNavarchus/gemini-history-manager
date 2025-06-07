@@ -497,7 +497,7 @@
         );
 
         if (!success) {
-          StatusIndicator.show("Chat not saved (already exists or invalid)", "info");
+          StatusIndicator.show("Chat not saved (already exists or invalid)", "error");
         }
 
         // Clear all state after successful completion
