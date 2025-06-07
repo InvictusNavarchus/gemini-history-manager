@@ -88,14 +88,14 @@
 
     /**
      * Cleans up all active observers to prevent memory leaks.
-     * Disconnects sidebar, title, and secondary title observers.
+     * Disconnects conversation list, title, and secondary title observers.
      *
      * @returns {void}
      */
     cleanupAllObservers: function () {
       console.log(`${Utils.getPrefix()} Cleaning up all DOM observers...`);
 
-      STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
+      STATE.conversationListObserver = this.cleanupObserver(STATE.conversationListObserver);
       this.cleanupTitleObservers();
 
       console.log(`${Utils.getPrefix()} All DOM observers cleaned up`);
@@ -137,52 +137,52 @@
     },
 
     /**
-     * Watches for the sidebar element to appear in the DOM.
-     * Calls the provided callback once the sidebar is found.
+     * Watches for the conversation list element to appear in the DOM.
+     * Calls the provided callback once the conversation list is found.
      *
-     * @param {function} callback - Function to call once the sidebar is found
+     * @param {function} callback - Function to call once the conversation list is found
      * @returns {void}
      */
-    watchForSidebar: function (callback) {
-      console.log(`${Utils.getPrefix()} Starting to watch for sidebar element...`);
+    watchForConversationList: function (callback) {
+      console.log(`${Utils.getPrefix()} Starting to watch for conversation list element...`);
       // Show immediate loading status at the beginning
-      StatusIndicator.show("Looking for Gemini sidebar. Please wait...", "loading", 0);
+      StatusIndicator.show("Looking for Gemini conversation list. Please wait...", "loading", 0);
 
-      // First check if the sidebar already exists
-      const sidebarSelector = 'conversations-list[data-test-id="all-conversations"]';
-      const existingSidebar = document.querySelector(sidebarSelector);
+      // First check if the conversation list already exists
+      const conversationListSelector = 'conversations-list[data-test-id="all-conversations"]';
+      const existingConversationList = document.querySelector(conversationListSelector);
 
-      if (existingSidebar) {
-        console.log(`${Utils.getPrefix()} Sidebar already exists in DOM`);
-        callback(existingSidebar);
+      if (existingConversationList) {
+        console.log(`${Utils.getPrefix()} Conversation list already exists in DOM`);
+        callback(existingConversationList);
         return;
       }
 
       // If not, set up an observer to watch for it
-      console.log(`${Utils.getPrefix()} Sidebar not found. Setting up observer to watch for it...`);
+      console.log(`${Utils.getPrefix()} Conversation list not found. Setting up observer to watch for it...`);
 
       const observer = new MutationObserver((mutations, obs) => {
-        const sidebar = document.querySelector(sidebarSelector);
-        if (sidebar) {
-          console.log(`${Utils.getPrefix()} Sidebar element found in DOM`);
+        const conversationList = document.querySelector(conversationListSelector);
+        if (conversationList) {
+          console.log(`${Utils.getPrefix()} Conversation list element found in DOM`);
           obs.disconnect(); // Stop observing once found
-          callback(sidebar);
+          callback(conversationList);
         }
       });
 
-      // Start observing document body for the sidebar element
+      // Start observing document body for the conversation list element
       observer.observe(document.body, {
         childList: true,
         subtree: true,
       });
 
-      // Set a timeout for the case when the sidebar doesn't appear
+      // Set a timeout for the case when the conversation list doesn't appear
       setTimeout(() => {
         if (observer) {
-          const sidebar = document.querySelector(sidebarSelector);
-          if (!sidebar) {
-            console.warn(`${Utils.getPrefix()} Sidebar element not found after timeout`);
-            StatusIndicator.show("Warning: Gemini sidebar not detected", "warning", 0);
+          const conversationList = document.querySelector(conversationListSelector);
+          if (!conversationList) {
+            console.warn(`${Utils.getPrefix()} Conversation list element not found after timeout`);
+            StatusIndicator.show("Warning: Gemini conversation list not detected", "warning", 0);
           }
           observer.disconnect();
         }
@@ -316,14 +316,14 @@
     },
 
     /**
-     * Handles the processing of mutations for the sidebar observer.
+     * Handles the processing of mutations for the conversation list observer.
      *
      * @param {MutationRecord[]} mutationsList - List of mutation records from MutationObserver
      * @returns {boolean} - True if processing was completed, false otherwise
      */
-    processSidebarMutations: function (mutationsList) {
+    processConversationListMutations: function (mutationsList) {
       console.log(
-        `${Utils.getPrefix()} MAIN Sidebar Observer Callback Triggered. ${mutationsList.length} mutations.`
+        `${Utils.getPrefix()} MAIN Conversation List Observer Callback Triggered. ${mutationsList.length} mutations.`
       );
       const currentUrl = window.location.href;
       console.log(`${Utils.getPrefix()} Current URL inside MAIN observer: ${currentUrl}`);
@@ -355,7 +355,7 @@
         const context = this.captureConversationContext();
 
         // Stage 1 Complete: Found the Item - Disconnect the MAIN observer
-        STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
+        STATE.conversationListObserver = this.cleanupObserver(STATE.conversationListObserver);
 
         // Clear prompt context, but keep isNewChatPending and Gem-related state until title is captured
         this.resetPendingPromptContext();
@@ -382,11 +382,11 @@
     },
 
     /**
-     * Sets up observation of the sidebar to detect new chats.
+     * Sets up observation of the conversation list to detect new chats.
      *
      * @returns {void}
      */
-    observeSidebarForNewChat: function () {
+    observeConversationListForNewChat: function () {
       const targetSelector = 'conversations-list[data-test-id="all-conversations"]';
       const conversationListElement = document.querySelector(targetSelector);
 
@@ -401,22 +401,22 @@
       }
 
       console.log(
-        `${Utils.getPrefix()} Found conversation list element. Setting up MAIN sidebar observer...`
+        `${Utils.getPrefix()} Found conversation list element. Setting up MAIN conversation list observer...`
       );
 
       // Disconnect previous observers if they exist
-      STATE.sidebarObserver = this.cleanupObserver(STATE.sidebarObserver);
+      STATE.conversationListObserver = this.cleanupObserver(STATE.conversationListObserver);
       this.cleanupTitleObservers();
 
-      STATE.sidebarObserver = new MutationObserver((mutationsList) => {
-        this.processSidebarMutations(mutationsList);
+      STATE.conversationListObserver = new MutationObserver((mutationsList) => {
+        this.processConversationListMutations(mutationsList);
       });
 
-      STATE.sidebarObserver.observe(conversationListElement, {
+      STATE.conversationListObserver.observe(conversationListElement, {
         childList: true,
         subtree: true,
       });
-      console.log(`${Utils.getPrefix()} MAIN sidebar observer is now active.`);
+      console.log(`${Utils.getPrefix()} MAIN conversation list observer is now active.`);
     },
 
     /**
