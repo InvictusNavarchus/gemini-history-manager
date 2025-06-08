@@ -217,8 +217,6 @@
      */
     document.body.addEventListener("click", EventHandlers.handleSendClick.bind(EventHandlers), true); // Use capture phase
 
-    // Set up crash detector
-    CrashDetector.init();
 
     // Listen for messages from the popup or background
     /**
