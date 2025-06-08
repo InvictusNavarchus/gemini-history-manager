@@ -11,6 +11,7 @@
   const DomObserver = window.GeminiHistory_DomObserver;
   const EventHandlers = window.GeminiHistory_EventHandlers;
   const Utils = window.GeminiHistory_Utils;
+  const CrashDetector = window.GeminiHistory_CrashDetector;
 
   /**
    * Re-initializes observers after they have been cleaned up.
@@ -217,7 +218,7 @@
     document.body.addEventListener("click", EventHandlers.handleSendClick.bind(EventHandlers), true); // Use capture phase
 
     // Set up crash detector
-    setupCrashDetector();
+    CrashDetector.init();
 
     // Listen for messages from the popup or background
     /**
@@ -289,97 +290,8 @@
       }
     });
 
-    /**
-     * Sets up a crash detector that watches for Gemini error messages.
-     * Observes the cdk-overlay-container for simple-snack-bar elements containing error messages.
-     * When a crash is detected, performs cleanup and shows error status.
-     *
-     * @returns {void}
-     */
-    function setupCrashDetector() {
-      console.log(`${Utils.getPrefix()} Setting up Gemini crash detector...`);
-
-      // Find or wait for the overlay container
-      const overlayContainer = document.querySelector(".cdk-overlay-container");
-
-      if (!overlayContainer) {
-        console.log(
-          `${Utils.getPrefix()} Overlay container not found yet, will set up observer when it appears`
-        );
-
-        // Watch for the overlay container to appear
-        const containerObserver = new MutationObserver((mutations) => {
-          for (const mutation of mutations) {
-            for (const node of mutation.addedNodes) {
-              if (node.nodeType === Node.ELEMENT_NODE && node.classList?.contains("cdk-overlay-container")) {
-                console.log(`${Utils.getPrefix()} Overlay container appeared, setting up crash detector`);
-                containerObserver.disconnect();
-                setupCrashObserver(node);
-                return;
-              }
-            }
-          }
-        });
-
-        containerObserver.observe(document.body, {
-          childList: true,
-          subtree: true,
-        });
-
-        return;
-      }
-
-      setupCrashObserver(overlayContainer);
-    }
-
-    /**
-     * Sets up the actual crash observer on the overlay container.
-     * Watches for simple-snack-bar elements and checks for error messages.
-     *
-     * @param {Element} overlayContainer - The overlay container element to observe
-     * @returns {void}
-     */
-    function setupCrashObserver(overlayContainer) {
-      console.log(`${Utils.getPrefix()} Setting up crash observer on overlay container`);
-
-      const crashObserver = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          for (const node of mutation.addedNodes) {
-            if (node.nodeType === Node.ELEMENT_NODE && node.tagName?.toLowerCase() === "simple-snack-bar") {
-              console.log(`${Utils.getPrefix()} Detected simple-snack-bar, checking for error messages`);
-
-              // Check if the snack bar contains error text
-              const snackBarText = node.textContent?.toLowerCase() || "";
-
-              if (snackBarText.includes("went wrong") || snackBarText.includes("try again")) {
-                console.warn(
-                  `${Utils.getPrefix()} Gemini crash detected! Snack bar text: "${node.textContent}"`
-                );
-
-                // Perform cleanup and show error status
-                DomObserver.completeCleanup();
-                StatusIndicator.show("Gemini crashed. Tracking canceled.", "error", 0);
-
-                // Log the crash for debugging
-                console.error(
-                  `${Utils.getPrefix()} Gemini crash detected and handled. Error message: "${node.textContent}"`
-                );
-              }
-            }
-          }
-        }
-      });
-
-      crashObserver.observe(overlayContainer, {
-        childList: true,
-        subtree: true,
-      });
-
-      console.log(`${Utils.getPrefix()} Crash detector is now active`);
-    }
-
-    // Initialize crash detector
-    setupCrashDetector();
+    // Set up crash detector
+    CrashDetector.init();
   }
 
   // Start the script
