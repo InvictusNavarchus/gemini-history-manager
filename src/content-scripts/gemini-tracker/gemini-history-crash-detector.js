@@ -4,6 +4,7 @@
   const StatusIndicator = window.GeminiHistory_StatusIndicator;
   const DomObserver = window.GeminiHistory_DomObserver;
   const Utils = window.GeminiHistory_Utils;
+  const STATE = window.GeminiHistory_STATE;
 
   const CrashDetector = {
     /**
@@ -116,11 +117,18 @@
     /**
      * Handles the detected Gemini crash.
      * Performs cleanup and shows error status to the user.
+     * Only handles crashes when a new chat is pending.
      *
      * @param {string} errorMessage - The original error message from the snack bar
      * @returns {void}
      */
     handleCrashDetected: function (errorMessage) {
+      // Only handle crashes when a new chat is pending
+      if (!STATE.isNewChatPending) {
+        console.log(`${Utils.getPrefix()} Gemini error detected but no new chat is pending, ignoring.`);
+        return;
+      }
+
       console.warn(`${Utils.getPrefix()} Gemini crash detected! Snack bar text: "${errorMessage}"`);
 
       // Perform cleanup and show error status
