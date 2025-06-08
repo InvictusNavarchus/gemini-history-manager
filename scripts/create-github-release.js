@@ -74,7 +74,37 @@ function main() {
   }
   console.log("All required release assets found.");
 
-  // 5. Construct and execute the 'gh release create' command
+  // 5. Validate GitHub CLI authentication
+  try {
+    execSync("gh auth status --hostname github.com", { stdio: "pipe" });
+  } catch (error) {
+    console.error("Error: GitHub CLI is not authenticated for github.com.");
+    console.error("Please run 'gh auth login' to authenticate.");
+    process.exit(1);
+  }
+  console.log("GitHub CLI authentication verified.");
+
+  // 6. Check if release tag already exists
+  try {
+    execSync(`gh release view ${tagName}`, { stdio: "pipe" });
+    console.error(`Error: Release tag '${tagName}' already exists on GitHub.`);
+    console.error("Please delete the existing release or bump the version number.");
+    process.exit(1);
+  } catch (error) {
+    // Expected behavior - release should not exist yet
+    console.log(`Release tag '${tagName}' does not exist - good to proceed.`);
+  }
+
+  // 7. Verify release notes file is not empty
+  const releaseNotesStats = fs.statSync(releaseNotesPath);
+  if (releaseNotesStats.size === 0) {
+    console.error(`Error: Release notes file '${releaseNotesPath}' is empty.`);
+    console.error("Please add content to the release notes before creating the release.");
+    process.exit(1);
+  }
+  console.log("Release notes file contains content.");
+
+  // 8. Construct and execute the 'gh release create' command
   const command = `gh release create ${tagName} \\
     --title "${tagName}" \\
     --notes-file "${releaseNotesPath}" \\
