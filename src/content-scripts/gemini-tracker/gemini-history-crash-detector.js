@@ -128,7 +128,7 @@
 
       // Perform cleanup and show error status
       DomObserver.completeCleanup();
-      StatusIndicator.show("Gemini crashed. Tracking canceled.", "error", 0);
+      StatusIndicator.show("Gemini crashed. Tracking canceled.", "error");
 
       // Log the crash for debugging
       console.error(
