@@ -36,8 +36,6 @@
      * @returns {void}
      */
     waitForOverlayContainer: function () {
-      const self = this;
-
       // Watch for the overlay container to appear
       const containerObserver = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
@@ -45,7 +43,7 @@
             if (node.nodeType === Node.ELEMENT_NODE && node.classList?.contains("cdk-overlay-container")) {
               console.log(`${Utils.getPrefix()} Overlay container appeared, setting up crash detector`);
               containerObserver.disconnect();
-              self.setupCrashObserver(node);
+              this.setupCrashObserver(node);
               return;
             }
           }
@@ -68,12 +66,11 @@
     setupCrashObserver: function (overlayContainer) {
       console.log(`${Utils.getPrefix()} Setting up crash observer on overlay container`);
 
-      const self = this;
       const crashObserver = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
           for (const node of mutation.addedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE && node.tagName?.toLowerCase() === "simple-snack-bar") {
-              self.handleSnackBarDetected(node);
+              this.handleSnackBarDetected(node);
             }
           }
         }
