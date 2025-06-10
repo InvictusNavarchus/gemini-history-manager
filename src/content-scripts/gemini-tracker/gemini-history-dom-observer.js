@@ -271,7 +271,7 @@
             // Only trigger if title observers haven't already processed the title
             if (STATE.stopButtonObserver && !priorityContext.titleProcessed) {
               console.log(
-                `${Utils.getPrefix()} Title observers didn't respond within 1 second, stop button observer taking over`
+                `${Utils.getPrefix()} Title observers didn't respond within 3 second, stop button observer taking over`
               );
               onChatFinished();
             } else if (priorityContext.titleProcessed) {
