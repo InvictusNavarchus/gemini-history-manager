@@ -266,7 +266,7 @@
           // Set chat finished flag immediately for title observers
           priorityContext.chatFinished = true;
 
-          // Give title observers priority - wait 1 second for them to respond
+          // Give title observers priority - wait 3 second for them to respond
           setTimeout(() => {
             // Only trigger if title observers haven't already processed the title
             if (STATE.stopButtonObserver && !priorityContext.titleProcessed) {
@@ -279,7 +279,7 @@
                 `${Utils.getPrefix()} Title observers already processed the title, stop button observer backing off`
               );
             }
-          }, 1000);
+          }, 3000);
         }
       });
 
