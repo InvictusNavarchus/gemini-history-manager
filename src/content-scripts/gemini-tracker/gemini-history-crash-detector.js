@@ -127,7 +127,9 @@
      * @returns {boolean} - True if the text indicates an error, false otherwise
      */
     isErrorMessage: function (text) {
-      return text.includes("went wrong") || text.includes("try again");
+      const errorPatterns = ["went wrong", "try again"];
+
+      return errorPatterns.some((pattern) => text.includes(pattern));
     },
 
     /**
