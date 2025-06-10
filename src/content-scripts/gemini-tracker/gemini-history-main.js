@@ -11,6 +11,7 @@
   const DomObserver = window.GeminiHistory_DomObserver;
   const EventHandlers = window.GeminiHistory_EventHandlers;
   const Utils = window.GeminiHistory_Utils;
+  const CrashDetector = window.GeminiHistory_CrashDetector;
 
   /**
    * Re-initializes observers after they have been cleaned up.
@@ -53,6 +54,9 @@
         StatusIndicator.show("Gemini History Manager active", "success");
       }
     });
+
+    // Re-initialize crash detector to ensure it's active after page visibility changes
+    CrashDetector.init();
   }
 
   /**
@@ -285,6 +289,9 @@
         reinitializeObservers();
       }
     });
+
+    // Set up crash detector
+    CrashDetector.init();
   }
 
   // Start the script
