@@ -54,6 +54,9 @@
         StatusIndicator.show("Gemini History Manager active", "success");
       }
     });
+
+    // Re-initialize crash detector to ensure it's active after page visibility changes
+    CrashDetector.init();
   }
 
   /**
@@ -216,7 +219,6 @@
      * @returns {void}
      */
     document.body.addEventListener("click", EventHandlers.handleSendClick.bind(EventHandlers), true); // Use capture phase
-
 
     // Listen for messages from the popup or background
     /**

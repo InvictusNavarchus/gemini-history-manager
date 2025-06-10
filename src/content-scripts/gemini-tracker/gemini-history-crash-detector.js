@@ -7,6 +7,10 @@
   const STATE = window.GeminiHistory_STATE;
 
   const CrashDetector = {
+    // Track initialization state
+    isInitialized: false,
+    crashObserver: null,
+
     /**
      * Initializes the crash detector system.
      * Sets up observers to watch for Gemini error messages and handle crashes gracefully.
@@ -14,6 +18,12 @@
      * @returns {void}
      */
     init: function () {
+      // Prevent duplicate initialization
+      if (this.isInitialized) {
+        console.log(`${Utils.getPrefix()} Crash detector already initialized, skipping...`);
+        return;
+      }
+
       console.log(`${Utils.getPrefix()} Setting up Gemini crash detector...`);
 
       // Find or wait for the overlay container
@@ -67,7 +77,12 @@
     setupCrashObserver: function (overlayContainer) {
       console.log(`${Utils.getPrefix()} Setting up crash observer on overlay container`);
 
-      const crashObserver = new MutationObserver((mutations) => {
+      // Clean up any existing observer
+      if (this.crashObserver) {
+        this.crashObserver.disconnect();
+      }
+
+      this.crashObserver = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
           for (const node of mutation.addedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE && node.tagName?.toLowerCase() === "simple-snack-bar") {
@@ -77,11 +92,12 @@
         }
       });
 
-      crashObserver.observe(overlayContainer, {
+      this.crashObserver.observe(overlayContainer, {
         childList: true,
         subtree: true,
       });
 
+      this.isInitialized = true;
       console.log(`${Utils.getPrefix()} Crash detector is now active`);
     },
 
@@ -139,6 +155,21 @@
       console.error(
         `${Utils.getPrefix()} Gemini crash detected and handled. Error message: "${errorMessage}"`
       );
+    },
+
+    /**
+     * Cleans up the crash detector by disconnecting observers and resetting state.
+     * Used when the page context changes or during complete cleanup.
+     *
+     * @returns {void}
+     */
+    cleanup: function () {
+      if (this.crashObserver) {
+        console.log(`${Utils.getPrefix()} Cleaning up crash detector observer`);
+        this.crashObserver.disconnect();
+        this.crashObserver = null;
+      }
+      this.isInitialized = false;
     },
   };
 
