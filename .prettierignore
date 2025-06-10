@@ -6,6 +6,9 @@ dist-firefox/
 dist-record/
 dist-stable/
 
+# README (to avoid special Github syntax like !IMPORTANT] from getting formatted)
+README.md
+
 # gitingest dump
 gitingest-dump/
 

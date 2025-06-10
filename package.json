@@ -27,7 +27,8 @@
     "release:patch": "pnpm run bump -- --patch && scripts/post-bump.sh",
     "release:minor": "pnpm run bump -- --minor && scripts/post-bump.sh",
     "release:major": "pnpm run bump -- --major && scripts/post-bump.sh",
-    "release:create": "node scripts/create-github-release.js"
+    "release:create": "node scripts/create-github-release.js",
+    "prepare": "husky"
   },
   "keywords": [
     "gemini",
@@ -44,6 +45,7 @@
     "@vitejs/plugin-vue": "^5.0.5",
     "fs-extra": "^11.1.0",
     "glob": "^11.0.2",
+    "husky": "^9.1.7",
     "prettier": "^3.5.3",
     "pretty-quick": "^4.1.1",
     "vite": "^6.3.5",
