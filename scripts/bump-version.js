@@ -20,10 +20,8 @@ const files = [
  */
 function parseArgs() {
   const args = process.argv.slice(2);
-  const arg = args.find((a) => 
-    a === "--major" || a === "-M" ||
-    a === "--minor" || a === "-m" ||
-    a === "--patch" || a === "-p"
+  const arg = args.find(
+    (a) => a === "--major" || a === "-M" || a === "--minor" || a === "-m" || a === "--patch" || a === "-p"
   );
   if (!arg) return null;
   if (arg === "--major" || arg === "-M") return "major";
@@ -107,12 +105,10 @@ function updateFile(file, newVersion) {
  */
 function main() {
   const allArgs = process.argv.slice(2);
-  const versionArgs = allArgs.filter((a) => 
-    a === "--major" || a === "-M" ||
-    a === "--minor" || a === "-m" ||
-    a === "--patch" || a === "-p"
+  const versionArgs = allArgs.filter(
+    (a) => a === "--major" || a === "-M" || a === "--minor" || a === "-m" || a === "--patch" || a === "-p"
   );
-  
+
   if (versionArgs.length > 1) {
     console.error("Error: Only one version bump argument is allowed.");
     process.exit(1);
