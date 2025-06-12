@@ -66,7 +66,6 @@ function openConversation(url) {
   background-color: var(--card-bg);
   border-radius: 6px;
   box-shadow: var(--shadow);
-  max-height: 320px;
   overflow-y: auto;
 }
 
