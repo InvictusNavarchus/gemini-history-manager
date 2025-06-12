@@ -103,8 +103,9 @@ body {
 /* Main content area */
 main {
   padding: 16px;
-  overflow-y: auto;
+  overflow-y: hidden;
   flex-grow: 1;
+  min-height: 0;
 }
 
 /* Footer */
