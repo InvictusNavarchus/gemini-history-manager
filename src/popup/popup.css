@@ -64,8 +64,13 @@ body {
   overflow: hidden;
   color: var(--text-color);
   background-color: var(--bg-color);
+}
+
+/* Popup container - the actual flex container for header, main, footer */
+.popup-container {
   display: flex;
   flex-direction: column;
+  max-height: 600px;
 }
 
 /* Button styling */
@@ -98,8 +103,9 @@ body {
 /* Main content area */
 main {
   padding: 16px;
-  overflow-y: auto;
+  overflow-y: hidden;
   flex-grow: 1;
+  min-height: 0;
 }
 
 /* Footer */
@@ -109,6 +115,7 @@ footer {
   text-align: center;
   padding: 8px;
   border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 /* Scrollbar customization */
