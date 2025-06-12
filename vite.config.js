@@ -11,6 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TARGET_BROWSER = process.env.TARGET_BROWSER || "firefox";
 
 export default defineConfig({
+  base: "./", // Use relative paths for assets
   build: {
     outDir: TARGET_BROWSER === "chrome" ? "dist-chrome" : "dist-firefox",
     emptyOutDir: true,
@@ -20,10 +21,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         background: path.resolve(__dirname, "src/background.js"),
-        // These are our Vue app entry points
-        // Note: we need these entry points for bundling, but we'll manually handle HTML placement
-        popup: path.resolve(__dirname, "src/popup/main.js"),
-        dashboard: path.resolve(__dirname, "src/dashboard/main.js"),
+        // HTML files as entry points - Vite will process and inject assets automatically
+        popup: path.resolve(__dirname, "src/popup/popup.html"),
+        dashboard: path.resolve(__dirname, "src/dashboard/dashboard.html"),
       },
       output: {
         // Output JS for entry points
@@ -85,26 +85,8 @@ export default defineConfig({
           });
           console.log("Copied icons");
 
-          // Copy and update HTML files (popup.html, dashboard.html)
-          const htmlFiles = globSync("src/{popup,dashboard}/*.html");
-          htmlFiles.forEach((file) => {
-            const relativePath = file.replace(/^src\//, ""); // e.g., popup/popup.html
-            const targetPath = path.resolve(__dirname, `${outDir}/${relativePath}`);
-            const dirName = path.basename(path.dirname(file)); // 'popup' or 'dashboard'
-
-            // Make sure the directory exists
-            fs.ensureDirSync(path.dirname(targetPath));
-
-            // Read HTML content and update JS file references
-            let htmlContent = fs.readFileSync(path.resolve(__dirname, file), "utf-8");
-
-            // Replace references to main.js with the correct JS file name
-            htmlContent = htmlContent.replace(/src="\.\/main\.js"/g, `src="./${dirName}.js"`);
-
-            // Write the modified HTML
-            fs.writeFileSync(targetPath, htmlContent);
-            console.log(`Processed HTML: ${relativePath} (updated script reference to ${dirName}.js)`);
-          });
+          // HTML files are now processed automatically by Vite as entry points
+          // CSS and JS will be automatically injected by Vite
 
           // Copy content scripts directly, preserving subdirectory structure
           const contentScriptSourceBasePath = "src/content-scripts";
@@ -136,18 +118,6 @@ export default defineConfig({
             console.log("No content scripts found to copy.");
           }
 
-          // Copy CSS files directly (e.g., dashboard.css, popup.css)
-          // These will be linked from their respective HTML files.
-          // Vue component styles will be handled by Vite and the Vue plugin.
-          const cssFiles = globSync("src/{popup,dashboard}/*.css");
-          cssFiles.forEach((file) => {
-            const relativePath = file.replace(/^src\//, ""); // e.g., popup/popup.css
-            const targetPath = path.resolve(__dirname, `${outDir}/${relativePath}`);
-            fs.ensureDirSync(path.dirname(targetPath));
-            fs.copySync(path.resolve(__dirname, file), targetPath);
-            console.log(`Copied CSS: ${relativePath}`);
-          });
-
           // Copy background script with browser shim for Chrome
           const backgroundSource = path.resolve(__dirname, "src/background.js");
           const backgroundTarget = path.resolve(__dirname, `${outDir}/background.js`);
@@ -155,7 +125,29 @@ export default defineConfig({
           // Background script is already processed by Vite build, so we don't need to modify it here
           console.log("Background script processed by Vite build process");
 
-          // Clean up unwanted directories
+          // Move HTML files from src subdirectories to correct locations and fix paths
+          // HTML files are generated in dist-{browser}/src/popup/popup.html etc.
+          const generatedHtmlFiles = globSync(`${outDir}/src/{popup,dashboard}/*.html`);
+          generatedHtmlFiles.forEach((file) => {
+            const relativePath = file.replace(`${outDir}/src/`, ""); // e.g., popup/popup.html
+            const targetPath = path.resolve(__dirname, `${outDir}/${relativePath}`);
+
+            // Make sure the target directory exists
+            fs.ensureDirSync(path.dirname(targetPath));
+
+            // Read and fix the HTML content paths
+            let htmlContent = fs.readFileSync(file, "utf-8");
+
+            // Fix the relative paths - change ../../ to ../
+            htmlContent = htmlContent.replace(/src="\.\.\/\.\.\//g, 'src="../');
+            htmlContent = htmlContent.replace(/href="\.\.\/\.\.\//g, 'href="../');
+
+            // Write the corrected HTML to the target location
+            fs.writeFileSync(targetPath, htmlContent);
+            console.log(`Moved and fixed HTML file: ${relativePath}`);
+          });
+
+          // Clean up unwanted directories after moving HTML files
           if (fs.existsSync(path.resolve(__dirname, `${outDir}/src`))) {
             fs.removeSync(path.resolve(__dirname, `${outDir}/src`));
             console.log(`Cleaned up ${outDir}/src directory`);

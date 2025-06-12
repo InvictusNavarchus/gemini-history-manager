@@ -28,14 +28,10 @@ import { initializeTheme, Logger, THEME_STORAGE_KEY } from "../lib/utils.js";
 
 import "../lib/polyfill.js"; // Browser compatibility polyfill
 import { createApp } from "vue"; // Import createApp function from Vue
-import App from "./App.vue"; // Import the root Vue component (we'll create this next)
+import App from "./App.vue"; // Import the root Vue component
 
-// Optionally, if you want to manage all styles through Vue components,
-// you can import popup.css here. Otherwise, it's already linked in popup.html.
-// If imported here, ensure it's not linked in popup.html to avoid duplication,
-// or ensure the styles are designed to be applied once correctly.
-// For this migration, keeping it in popup.html is fine, but importing here is also an option.
-// import './popup.css';
+// Import CSS files for Vite to process and bundle
+import "./popup.css";
 
 // Create the Vue application instance, using App.vue as the root component
 const app = createApp(App);

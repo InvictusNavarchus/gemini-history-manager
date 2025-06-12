@@ -30,9 +30,9 @@ import "../lib/polyfill.js"; // Browser compatibility polyfill
 import { createApp } from "vue"; // Import createApp function from Vue
 import App from "./App.vue"; // Import the root Vue component for the dashboard
 
-// Optionally, import dashboard.css here if you want Vite to process it.
-// It's currently linked in dashboard.html.
-// import './dashboard.css';
+// Import CSS files for Vite to process and bundle
+import "./dashboard.css";
+import "./theme-init.css";
 
 // Create the Vue application instance, using App.vue as the root component
 const app = createApp(App);
