@@ -136,16 +136,15 @@ export default defineConfig({
             console.log("No content scripts found to copy.");
           }
 
-          // Copy CSS files directly (e.g., dashboard.css, popup.css)
-          // These will be linked from their respective HTML files.
-          // Vue component styles will be handled by Vite and the Vue plugin.
-          const cssFiles = globSync("src/{popup,dashboard}/*.css");
-          cssFiles.forEach((file) => {
-            const relativePath = file.replace(/^src\//, ""); // e.g., popup/popup.css
+          // Copy critical CSS files that are still linked in HTML
+          // theme-init.css is still linked in dashboard.html for critical styling
+          const criticalCssFiles = globSync("src/dashboard/theme-init.css");
+          criticalCssFiles.forEach((file) => {
+            const relativePath = file.replace(/^src\//, ""); // e.g., dashboard/theme-init.css
             const targetPath = path.resolve(__dirname, `${outDir}/${relativePath}`);
             fs.ensureDirSync(path.dirname(targetPath));
             fs.copySync(path.resolve(__dirname, file), targetPath);
-            console.log(`Copied CSS: ${relativePath}`);
+            console.log(`Copied critical CSS: ${relativePath}`);
           });
 
           // Copy background script with browser shim for Chrome
