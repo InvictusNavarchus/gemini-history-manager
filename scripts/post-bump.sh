@@ -74,7 +74,7 @@ if [ ! -f "$RELEASE_NOTES_FILE" ]; then
     else
       echo "Warning: No suitable editor found. Please edit $RELEASE_NOTES_FILE manually."
       echo "Press Enter to continue after editing the file..."
-      read -r
+      read -r dummy
     fi
     
     echo "Release notes created: $RELEASE_NOTES_FILE"
