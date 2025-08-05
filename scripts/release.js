@@ -163,13 +163,24 @@ async function createReleaseNotes(version, dryRun) {
     console.log("Please edit the release notes manually and press Enter to continue...");
     // Simple readline for user input
     await new Promise((resolve) => {
-      process.stdin.setRawMode(true);
-      process.stdin.resume();
-      process.stdin.once("data", () => {
-        process.stdin.setRawMode(false);
-        process.stdin.pause();
+      try {
+        process.stdin.setRawMode(true);
+        process.stdin.resume();
+        process.stdin.once("data", () => {
+          process.stdin.setRawMode(false);
+          process.stdin.pause();
+          resolve();
+        });
+      } catch (stdinError) {
+        // Ensure terminal mode is restored even on error
+        try {
+          process.stdin.setRawMode(false);
+          process.stdin.pause();
+        } catch (restoreError) {
+          // Ignore restore errors
+        }
         resolve();
-      });
+      }
     });
   }
 
