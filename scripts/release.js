@@ -4,7 +4,6 @@
  * Usage: pnpm release --[major|minor|patch] [--dry-run] [--skip-github]
  */
 import fs from "fs";
-import path from "path";
 import { execSync } from "child_process";
 
 const RELEASE_FILES = ["src/manifest-chrome.json", "src/manifest-firefox.json", "package.json", "README.md"];
@@ -36,12 +35,21 @@ function runCommand(command, options = {}) {
 function parseArgs() {
   const args = process.argv.slice(2);
 
-  const versionType = args.find((arg) => ["--major", "--minor", "--patch", "-M", "-m", "-p"].includes(arg));
+  const versionArgs = args.filter((arg) => ["--major", "--minor", "--patch", "-M", "-m", "-p"].includes(arg));
 
-  if (!versionType) {
+  if (versionArgs.length === 0) {
     console.error("Usage: pnpm release --[major|minor|patch] [--dry-run] [--skip-github]");
     process.exit(1);
   }
+
+  if (versionArgs.length > 1) {
+    console.error(
+      "Error: Only one version argument should be specified (--major, --minor, --patch, -M, -m, -p)"
+    );
+    process.exit(1);
+  }
+
+  const versionType = versionArgs[0];
 
   return {
     versionType: versionType
@@ -112,7 +120,7 @@ function updateReadmeBadge(file, newVersion, dryRun) {
 /**
  * Create release notes file if it doesn't exist
  */
-function createReleaseNotes(version, dryRun) {
+async function createReleaseNotes(version, dryRun) {
   const releaseNotesFile = `release-notes/v${version}.md`;
 
   if (fs.existsSync(releaseNotesFile)) {
@@ -154,12 +162,52 @@ function createReleaseNotes(version, dryRun) {
   } catch (error) {
     console.log("Please edit the release notes manually and press Enter to continue...");
     // Simple readline for user input
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.on("data", () => process.exit(0));
+    await new Promise((resolve) => {
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      process.stdin.once("data", () => {
+        process.stdin.setRawMode(false);
+        process.stdin.pause();
+        resolve();
+      });
+    });
   }
 
   return releaseNotesFile;
+}
+
+/**
+ * Get repository URL from git remote or package.json
+ */
+function getRepositoryUrl() {
+  try {
+    // Try to get from git remote
+    const remoteUrl = execSync("git remote get-url origin", { encoding: "utf-8" }).trim();
+
+    // Convert SSH URL to HTTPS if needed
+    if (remoteUrl.startsWith("git@github.com:")) {
+      return remoteUrl.replace("git@github.com:", "https://github.com/").replace(".git", "");
+    }
+
+    // Remove .git suffix if present
+    return remoteUrl.replace(/\.git$/, "");
+  } catch (error) {
+    // Fallback to package.json repository field
+    try {
+      const packageJson = JSON.parse(fs.readFileSync("package.json", "utf-8"));
+      if (packageJson.repository) {
+        if (typeof packageJson.repository === "string") {
+          return packageJson.repository;
+        }
+        return packageJson.repository.url?.replace(/^git\+/, "").replace(/\.git$/, "");
+      }
+    } catch (e) {
+      // Ignore package.json errors
+    }
+
+    console.warn("Warning: Could not determine repository URL. GitHub release URL will not be displayed.");
+    return null;
+  }
 }
 
 /**
@@ -192,7 +240,7 @@ async function main() {
 
   // 2. Create release notes
   console.log("\n=== Creating Release Notes ===");
-  const releaseNotesFile = createReleaseNotes(newVersion, dryRun);
+  const releaseNotesFile = await createReleaseNotes(newVersion, dryRun);
 
   // 3. Build and package
   console.log("\n=== Building and Packaging ===");
@@ -234,7 +282,10 @@ async function main() {
   console.log(`\n✅ Release ${tagName} completed successfully!`);
 
   if (!skipGithub && !dryRun) {
-    console.log(`🚀 GitHub release: https://github.com/your-repo/releases/tag/${tagName}`);
+    const repoUrl = getRepositoryUrl();
+    if (repoUrl) {
+      console.log(`🚀 GitHub release: ${repoUrl}/releases/tag/${tagName}`);
+    }
   }
 }
 
