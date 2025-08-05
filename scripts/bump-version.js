@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * @file bump-version.js
  * Bumps the version in package.json, src/manifest-chrome.json, src/manifest-firefox.json, and README.md.
