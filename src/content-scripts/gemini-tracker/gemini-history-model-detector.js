@@ -113,7 +113,7 @@
           path.getAttribute("fill") ||
           (path.getAttribute("style") && path.getAttribute("style").match(/fill:\s*([^;]+)/)?.[1]);
 
-        const normalizedColor = this.normalizeColor(fill);
+        const normalizedColor = this.normalizeColor(fill?.trim());
         if (normalizedColor && !seenColors.has(normalizedColor)) {
           seenColors.add(normalizedColor);
           googleColorCount++;
@@ -171,7 +171,6 @@
         'button[aria-label*="upgrade" i]', // Any button with "upgrade" in aria-label
         'button[aria-label*="Upgrade" i]', // Case variations
         '[data-test-id*="upsell"] button', // Any upsell component button
-        'button:has-text("Upgrade")', // Button containing "Upgrade" text (if supported)
       ];
 
       for (const selector of upgradeButtonSelectors) {
@@ -195,6 +194,20 @@
           // Some selectors might not be supported, continue to next
           continue;
         }
+      }
+
+      // Additional strategy: Find buttons by text content using broader selector
+      try {
+        const allButtons = doc.querySelectorAll("button");
+        for (const button of allButtons) {
+          const textContent = button.textContent || "";
+          if (textContent.toLowerCase().includes("upgrade")) {
+            console.log(`${Utils.getPrefix()} Detected Free plan via button text content`);
+            return "Free";
+          }
+        }
+      } catch (e) {
+        // Continue if this approach fails
       }
 
       // --- 4. Detect "Gemini Free" as fallback (If account area exists but no Pro indicators) ---
