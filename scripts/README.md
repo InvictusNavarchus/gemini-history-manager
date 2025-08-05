@@ -50,6 +50,213 @@ pnpm build:all --clean --record --compare  # Full build verification
 pnpm compare-checksums          # Compare existing builds only
 ```
 
+## Complete Workflow Guide
+
+### Approach 1: Fully Automated Release (Recommended)
+
+**Single command does everything:**
+```bash
+pnpm release --patch
+```
+
+**What happens automatically:**
+1. ✅ Version bump in all files
+2. ✅ Release notes creation/editing
+3. ✅ Clean build for both browsers
+4. ✅ Package into zip files
+5. ✅ Record build for comparison
+6. ✅ Git commit and tag
+7. ✅ Push to remote
+8. ✅ Create GitHub release with assets
+
+**When to use:** Most releases, when you trust the automation
+
+**Time required:** ~2-5 minutes (mostly waiting for builds)
+
+### Approach 2: Cautious Release with Verification
+
+**Step-by-step with verification:**
+```bash
+# 1. Preview what will happen
+pnpm release --patch --dry-run
+
+# 2. Build and verify first (optional)
+pnpm build:all --clean --record --compare
+
+# 3. Execute release (skips rebuild since files exist)
+pnpm release --patch
+```
+
+**When to use:** 
+- Important releases
+- After significant code changes
+- When you want to verify build consistency
+
+**Time required:** ~5-10 minutes (includes manual verification)
+
+### Approach 3: Manual Control Release
+
+**Maximum control over each step:**
+```bash
+# 1. Build and verify
+pnpm build:all --clean --record
+pnpm compare-checksums
+
+# 2. Version bump only
+pnpm bump --patch
+
+# 3. Manual git operations
+git add package.json src/manifest-*.json README.md
+git commit -m "chore: bump version to v1.2.4"
+git push
+git tag -a "v1.2.4" -m "Release 1.2.4"
+git push origin "v1.2.4"
+
+# 4. Create GitHub release
+pnpm release:create
+```
+
+**When to use:**
+- Complex releases requiring manual intervention
+- When automation fails partway through
+- Custom release notes or special procedures
+
+**Time required:** ~10-15 minutes (lots of manual steps)
+
+### Approach 4: Build Verification Workflow
+
+**For testing build consistency without releasing:**
+```bash
+# Build multiple times and compare
+pnpm build:all --clean --record
+pnpm build:all --clean --record  # Build again
+pnpm compare-checksums            # Should show no differences
+
+# Or use the verification shortcut
+pnpm build:all --clean --record --compare
+```
+
+**When to use:**
+- Debugging build inconsistencies
+- Verifying reproducible builds
+- Before important releases
+
+### Decision Tree: Which Approach?
+
+```
+Are you doing a routine patch/minor release?
+├─ YES → Use Approach 1 (pnpm release --patch)
+└─ NO → Continue...
+
+Is this a major release or after big changes?
+├─ YES → Use Approach 2 (verify first)
+└─ NO → Continue...
+
+Do you need custom release procedures?
+├─ YES → Use Approach 3 (manual control)
+└─ NO → Use Approach 1 (automated)
+
+Are you debugging build issues?
+├─ YES → Use Approach 4 (verification only)
+└─ NO → Use Approach 1 (automated)
+```
+
+### What Gets Built and When
+
+**During `pnpm release --patch`:**
+- Builds are created fresh every time
+- No reuse of existing `dist-*` directories
+- Build is recorded automatically for comparison
+- Checksums are NOT compared automatically (use Approach 2 for that)
+
+**Build artifacts created:**
+```
+dist-firefox/           # Firefox extension files
+├── manifest.json
+├── background.js
+├── popup/
+├── dashboard/
+└── ...
+
+dist-chrome/            # Chrome extension files  
+├── manifest.json
+├── background.js
+├── popup/
+├── dashboard/
+└── ...
+
+dist-zip/               # Packaged extensions
+├── gemini_history_manager_firefox-1.2.4.zip
+└── gemini_history_manager_chrome-1.2.4.zip
+
+dist-record/1.2.4/      # Build history
+└── build-1/
+    ├── dist-firefox/
+    ├── dist-chrome/
+    └── dist-zip/
+```
+
+### Recovery Scenarios
+
+**If automated release fails at step 3 (building):**
+```bash
+# Fix the build issue, then retry
+pnpm release --patch  # Will rebuild from scratch
+```
+
+**If automated release fails at step 7 (GitHub):**
+```bash
+# Version was bumped and pushed, just create GitHub release
+pnpm release:create
+```
+
+**If you want to verify before GitHub release:**
+```bash
+# Stop before GitHub step
+pnpm release --patch --skip-github
+
+# Verify the build/release locally
+# Then create GitHub release manually
+pnpm release:create
+```
+
+### Workflow FAQ
+
+**Q: Do I need to build before running `pnpm release --patch`?**
+A: No! The release script builds everything fresh automatically. Any existing `dist-*` directories are ignored.
+
+**Q: Does the release script compare checksums automatically?**
+A: No. It records the build for later comparison, but doesn't compare automatically. Use `pnpm build:all --record --compare` if you want verification.
+
+**Q: Can I reuse an existing build for release?**
+A: No. The release script always builds fresh to ensure consistency. This prevents issues with stale build artifacts.
+
+**Q: What if I want to test the build before releasing?**
+A: Use the cautious approach:
+```bash
+pnpm build:all --clean --record --compare  # Build and verify
+pnpm release --patch --dry-run             # Preview release
+pnpm release --patch                       # Execute if satisfied
+```
+
+**Q: How do I know if my builds are consistent?**
+A: Run multiple builds and compare:
+```bash
+pnpm build:all --clean --record  # Build 1
+pnpm build:all --clean --record  # Build 2  
+pnpm compare-checksums           # Should show identical checksums
+```
+
+**Q: Can I skip the GitHub release but keep everything else?**
+A: Yes! Use `--skip-github`:
+```bash
+pnpm release --patch --skip-github  # Version bump + git operations only
+pnpm release:create                  # Create GitHub release later
+```
+
+**Q: What's the difference between `pnpm package` and `pnpm build:all`?**
+A: They're the same! `pnpm package` now calls `build-all.js` internally for consistency.
+
 ## Script Overview
 
 ### Core Scripts
@@ -348,7 +555,11 @@ git commit
    - `gh release create v1.2.4 --title "v1.2.4" --notes-file "release-notes/v1.2.4.md"`
    - Attaches both zip files as release assets
 
-**If any step fails**: Script stops immediately, no further steps execute.
+**Important Notes:**
+- Build is recorded but checksums are NOT compared automatically
+- If you want checksum verification, use `pnpm build:all --record --compare` first
+- If any step fails, script stops immediately with no further steps executed
+- Existing `dist-*` directories are cleaned and rebuilt fresh
 
 ### What `pnpm build:all --clean --record` Actually Does
 
