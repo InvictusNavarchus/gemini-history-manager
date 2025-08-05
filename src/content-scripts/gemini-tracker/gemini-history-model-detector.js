@@ -5,15 +5,38 @@
   const ModelDetector = {
     /**
      * Detects the current Gemini plan based on UI elements.
-     * This function is based on common UI patterns and HTML structures observed on 2025-05-21.
-     * It prioritizes "Gemini Pro" detection via the pillbox button, then checks for "Gemini Free"
-     * based on the presence of an "Upgrade" button.
+     * This function is based on common UI patterns and HTML structures observed on 2025-01-08.
+     * It primarily detects "Gemini Pro" by looking for the Google logo SVG in the account area,
+     * then falls back to pillbox buttons and upgrade buttons as secondary methods.
      *
      * @param {Document} doc The document object to search within (defaults to the current document).
      * @returns {string|null} "Gemini Pro", "Gemini Free", or null if the plan cannot be determined.
      */
     detectGeminiPlan: function (doc = document) {
-      // --- 1. Detect "Gemini Pro" (Preferred method) ---
+      // --- 1. Detect "Gemini Pro" via Google logo SVG (Primary method) ---
+      // Pro accounts have a distinctive Google logo SVG in the account area
+      const googleLogoSvg = doc.querySelector('.gb_B .gb_3d svg[viewBox="0 0 40 40"]');
+      if (googleLogoSvg) {
+        // Verify it's the Google logo by checking for the characteristic paths with Google colors
+        const paths = googleLogoSvg.querySelectorAll("path");
+        const hasGoogleColors = Array.from(paths).some((path) => {
+          const fill = path.getAttribute("fill");
+          return (
+            fill &&
+            (fill.includes("#F6AD01") || // Yellow
+              fill.includes("#249A41") || // Green
+              fill.includes("#3174F1") || // Blue
+              fill.includes("#E92D18")) // Red
+          );
+        });
+
+        if (hasGoogleColors) {
+          console.log(`${Utils.getPrefix()} Detected Pro plan via Google logo SVG`);
+          return "Pro";
+        }
+      }
+
+      // --- 2. Detect "Gemini Pro" via pillbox button (Secondary method) ---
       // Selector for the pillbox button that usually displays the current plan (e.g., "PRO").
       const proPillButtonSelector = "div.icon-buttons-container.pillbox button.gds-pillbox-button";
       const pillButtons = doc.querySelectorAll(proPillButtonSelector);
@@ -27,6 +50,7 @@
             const isDisabled =
               button.hasAttribute("disabled") || button.classList.contains("mat-mdc-button-disabled");
             if (isDisabled) {
+              console.log(`${Utils.getPrefix()} Detected Pro plan via pillbox button`);
               return "Pro";
             }
           }
@@ -34,7 +58,7 @@
         }
       }
 
-      // --- 2. Detect "Gemini Free" (If "Pro" was not detected) ---
+      // --- 3. Detect "Gemini Free" via upgrade button (If "Pro" was not detected) ---
       // Selector for the "Upgrade" button, often present for free users.
       // Looking for the button within an 'upsell-button' component and checking its aria-label or text.
       const upgradeButtonSelector = 'upsell-button button[data-test-id="bard-upsell-menu-button"]';
@@ -50,14 +74,25 @@
         if (hasUpgradeText) {
           // If an "Upgrade" button is present and "Gemini Pro" was not detected,
           // it's a strong indicator of the "Gemini Free" plan.
+          console.log(`${Utils.getPrefix()} Detected Free plan via upgrade button`);
           return "Free";
         }
       }
 
-      // --- 3. Fallback ---
-      // If neither "Gemini Pro" (via pillbox) nor "Gemini Free" (via upgrade button)
-      // specific indicators are found.
-      return null; // Or "Unknown"
+      // --- 4. Detect "Gemini Free" as fallback (If account area exists but no Pro indicators) ---
+      // If we can find the account area but no Pro indicators, assume Free plan
+      const accountArea = doc.querySelector('.gb_B[aria-label*="Google Account"]');
+      if (accountArea) {
+        console.log(
+          `${Utils.getPrefix()} Detected Free plan as fallback (account area found but no Pro indicators)`
+        );
+        return "Free";
+      }
+
+      // --- 5. Final fallback ---
+      // If no account area or plan indicators are found
+      console.warn(`${Utils.getPrefix()} Could not determine Gemini plan from any known indicators`);
+      return null;
     },
 
     /**
