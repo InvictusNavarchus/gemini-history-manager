@@ -61,10 +61,10 @@ _Interactive charts showing model usage over time_
 ## 📥 Installation
 
 > [!IMPORTANT]
-> Firefox: Gemini History Manager is available on the Mozilla Add-ons (AMO):
+> - Firefox: Gemini History Manager is available on the Mozilla Add-ons (AMO):
 > https://addons.mozilla.org/en-US/firefox/addon/gemini-history-manager/
 >
-> Chrome: Not yet available on the Chrome Web Store. Use the manual installation steps below.
+> - Chrome: Not yet available on the Chrome Web Store. Use the manual installation steps below.
 
 <details>
 <summary>Click for manual installation instructions</summary>
