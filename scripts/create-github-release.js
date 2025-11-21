@@ -67,7 +67,7 @@ function main() {
   }
 
   if (!allFilesFound) {
-    console.error("\nPlease ensure the version is correct and the `pnpm run package` script has been run.");
+    console.error("\nPlease ensure the version is correct and the `bun run package` script has been run.");
     process.exit(1);
   }
   console.log("All required release assets found.");
