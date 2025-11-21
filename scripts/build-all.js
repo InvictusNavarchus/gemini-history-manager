@@ -1,7 +1,7 @@
 /**
  * @file build-all.js
  * Unified build script that handles building, packaging, and optionally recording builds.
- * Usage: pnpm build-all [--record] [--compare] [--clean]
+ * Usage: bun build-all [--record] [--compare] [--clean]
  */
 import fs from "fs-extra";
 import path from "path";
@@ -52,8 +52,8 @@ function cleanBuildDirs() {
  */
 function buildAll() {
   console.log("🔨 Building for all browsers...");
-  runCommand("pnpm run build:firefox");
-  runCommand("pnpm run build:chrome");
+  runCommand("bun run build:firefox");
+  runCommand("bun run build:chrome");
 }
 
 /**
@@ -61,8 +61,8 @@ function buildAll() {
  */
 function packageAll() {
   console.log("📦 Packaging extensions...");
-  runCommand("pnpm run package:firefox");
-  runCommand("pnpm run package:chrome");
+  runCommand("bun run package:firefox");
+  runCommand("bun run package:chrome");
 }
 
 /**
@@ -78,7 +78,7 @@ function recordBuild() {
  */
 function compareChecksums() {
   console.log("🔍 Comparing checksums...");
-  runCommand("pnpm run compare-checksums");
+  runCommand("bun run compare-checksums");
 }
 
 /**
