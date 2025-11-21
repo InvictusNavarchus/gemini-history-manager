@@ -136,7 +136,7 @@ Note: The extension now supports both Mozilla Firefox and Google Chrome/Chromium
 #### Prerequisites
 
 - Node.js (v22 or higher)
-- pnpm (recommended) or npm
+- bun (recommended) or npm
 
 #### Setup
 
@@ -147,22 +147,22 @@ Note: The extension now supports both Mozilla Firefox and Google Chrome/Chromium
     ```
 2.  Install dependencies:
     ```bash
-    pnpm install
+    bun install
     ```
 
 #### Building
 
 - **Build for both browsers**: 
   ```bash
-  pnpm run build:all
+  bun run build:all
   ```
 - **Build for Firefox only**: 
   ```bash
-  pnpm run build:firefox
+  bun run build:firefox
   ```
 - **Build for Chrome only**: 
   ```bash
-  pnpm run build:chrome
+  bun run build:chrome
   ```
 
 Builds are created in the `dist-firefox/` and `dist-chrome/` directories.
@@ -172,14 +172,14 @@ Builds are created in the `dist-firefox/` and `dist-chrome/` directories.
 #### Create distribution packages for both browsers:
 
 ```bash
-pnpm run package
+bun run package
 ```
 
 #### Create packages individually:
 
 ```bash
-pnpm run package:firefox
-pnpm run package:chrome
+bun run package:firefox
+bun run package:chrome
 ```
 
 This creates ZIP files created by `web-ext` in `dist-zip/`:
