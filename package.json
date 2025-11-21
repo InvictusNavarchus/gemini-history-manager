@@ -4,7 +4,7 @@
   "description": "Track and manage your Google Gemini chat history with advanced visualization and organization tools.",
   "type": "module",
   "scripts": {
-    "build": "pnpm run build:firefox",
+    "build": "bun run build:firefox",
     "build:firefox": "TARGET_BROWSER=firefox vite build --outDir dist-firefox",
     "build:chrome": "TARGET_BROWSER=chrome vite build --outDir dist-chrome",
     "build:all": "node scripts/build-all.js",
