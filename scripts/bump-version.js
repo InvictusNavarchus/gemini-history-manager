@@ -1,7 +1,7 @@
 /**
  * @file bump-version.js
  * Bumps the version in package.json, src/manifest-chrome.json, src/manifest-firefox.json, and README.md.
- * Usage: pnpm bump --[major|minor|patch] or -[M|m|p]
+ * Usage: bun bump --[major|minor|patch] or -[M|m|p]
  */
 import fs from "fs";
 import path from "path";
@@ -114,7 +114,7 @@ function main() {
   }
   const type = parseArgs();
   if (!type) {
-    console.error("Usage: pnpm bump --[major|minor|patch] or -[M|m|p]");
+    console.error("Usage: bun bump --[major|minor|patch] or -[M|m|p]");
     process.exit(1);
   }
   // Read version from package.json

@@ -1,7 +1,7 @@
 /**
  * @file dev-helper.js
  * Development helper script for common tasks.
- * Usage: pnpm dev-helper [command]
+ * Usage: bun dev-helper [command]
  */
 import { execSync } from "child_process";
 import fs from "fs";
@@ -30,7 +30,7 @@ Available commands:
   format-fix  - Format all code files
   version     - Show current version info
 
-Usage: pnpm dev-helper [command]
+Usage: bun dev-helper [command]
 `);
 }
 
@@ -51,18 +51,18 @@ function fullBuild() {
 
 function compareBuilds() {
   console.log("🔍 Comparing builds...");
-  runCommand("pnpm run compare-checksums");
+  runCommand("bun run compare-checksums");
 }
 
 function lintAll() {
   console.log("🔍 Linting all builds...");
-  runCommand("pnpm run lint");
-  runCommand("pnpm run lint:chrome");
+  runCommand("bun run lint");
+  runCommand("bun run lint:chrome");
 }
 
 function formatFix() {
   console.log("✨ Formatting all files...");
-  runCommand("pnpm run format:all");
+  runCommand("bun run format:all");
 }
 
 function showVersion() {

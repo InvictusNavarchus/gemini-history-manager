@@ -7,47 +7,47 @@ This directory contains streamlined build and release scripts for the Gemini His
 ### Development Workflow
 ```bash
 # Start fresh
-pnpm dev-helper clean           # Remove all build artifacts
+bun dev-helper clean           # Remove all build artifacts
 
 # Quick iteration
-pnpm build:all                  # Build + package both browsers
-pnpm dev                        # Watch mode for Firefox
-pnpm dev:chrome                 # Watch mode for Chrome
+bun build:all                  # Build + package both browsers
+bun dev                        # Watch mode for Firefox
+bun dev:chrome                 # Watch mode for Chrome
 
 # Quality checks
-pnpm dev-helper lint-all        # Lint Firefox + Chrome builds
-pnpm dev-helper format-fix      # Auto-format all code files
+bun dev-helper lint-all        # Lint Firefox + Chrome builds
+bun dev-helper format-fix      # Auto-format all code files
 
 # Build verification
-pnpm build:all --record         # Build + save for comparison
-pnpm dev-helper compare         # Compare current version builds
+bun build:all --record         # Build + save for comparison
+bun dev-helper compare         # Compare current version builds
 ```
 
 ### Release Workflow
 ```bash
 # Preview release (recommended first step)
-pnpm release --patch --dry-run  # See what would happen
+bun release --patch --dry-run  # See what would happen
 
 # Execute release
-pnpm release --patch            # Complete patch release process
-pnpm release --minor            # Complete minor release process  
-pnpm release --major            # Complete major release process
+bun release --patch            # Complete patch release process
+bun release --minor            # Complete minor release process  
+bun release --major            # Complete major release process
 
 # Partial release (if GitHub step fails)
-pnpm release --patch --skip-github  # Stop before GitHub release
-pnpm release:create             # Create GitHub release separately
+bun release --patch --skip-github  # Stop before GitHub release
+bun release:create             # Create GitHub release separately
 ```
 
 ### Build Combinations
 ```bash
 # Basic operations
-pnpm build:all                  # Build Firefox + Chrome + package
-pnpm build:all --clean          # Clean first, then build
-pnpm package-record             # Same as: pnpm build:all --record
+bun build:all                  # Build Firefox + Chrome + package
+bun build:all --clean          # Clean first, then build
+bun package-record             # Same as: bun build:all --record
 
 # Advanced verification
-pnpm build:all --clean --record --compare  # Full build verification
-pnpm compare-checksums          # Compare existing builds only
+bun build:all --clean --record --compare  # Full build verification
+bun compare-checksums          # Compare existing builds only
 ```
 
 ## Complete Workflow Guide
@@ -56,7 +56,7 @@ pnpm compare-checksums          # Compare existing builds only
 
 **Single command does everything:**
 ```bash
-pnpm release --patch
+bun release --patch
 ```
 
 **What happens automatically:**
@@ -78,13 +78,13 @@ pnpm release --patch
 **Step-by-step with verification:**
 ```bash
 # 1. Preview what will happen
-pnpm release --patch --dry-run
+bun release --patch --dry-run
 
 # 2. Build and verify first (optional)
-pnpm build:all --clean --record --compare
+bun build:all --clean --record --compare
 
 # 3. Execute release (skips rebuild since files exist)
-pnpm release --patch
+bun release --patch
 ```
 
 **When to use:** 
@@ -99,11 +99,11 @@ pnpm release --patch
 **Maximum control over each step:**
 ```bash
 # 1. Build and verify
-pnpm build:all --clean --record
-pnpm compare-checksums
+bun build:all --clean --record
+bun compare-checksums
 
 # 2. Version bump only
-pnpm bump --patch
+bun bump --patch
 
 # 3. Manual git operations
 git add package.json src/manifest-*.json README.md
@@ -113,7 +113,7 @@ git tag -a "v1.2.4" -m "Release 1.2.4"
 git push origin "v1.2.4"
 
 # 4. Create GitHub release
-pnpm release:create
+bun release:create
 ```
 
 **When to use:**
@@ -128,12 +128,12 @@ pnpm release:create
 **For testing build consistency without releasing:**
 ```bash
 # Build multiple times and compare
-pnpm build:all --clean --record
-pnpm build:all --clean --record  # Build again
-pnpm compare-checksums            # Should show no differences
+bun build:all --clean --record
+bun build:all --clean --record  # Build again
+bun compare-checksums            # Should show no differences
 
 # Or use the verification shortcut
-pnpm build:all --clean --record --compare
+bun build:all --clean --record --compare
 ```
 
 **When to use:**
@@ -145,7 +145,7 @@ pnpm build:all --clean --record --compare
 
 ```
 Are you doing a routine patch/minor release?
-├─ YES → Use Approach 1 (pnpm release --patch)
+├─ YES → Use Approach 1 (bun release --patch)
 └─ NO → Continue...
 
 Is this a major release or after big changes?
@@ -163,7 +163,7 @@ Are you debugging build issues?
 
 ### What Gets Built and When
 
-**During `pnpm release --patch`:**
+**During `bun release --patch`:**
 - Builds are created fresh every time
 - No reuse of existing `dist-*` directories
 - Build is recorded automatically for comparison
@@ -201,32 +201,32 @@ dist-record/1.2.4/      # Build history
 **If automated release fails at step 3 (building):**
 ```bash
 # Fix the build issue, then retry
-pnpm release --patch  # Will rebuild from scratch
+bun release --patch  # Will rebuild from scratch
 ```
 
 **If automated release fails at step 7 (GitHub):**
 ```bash
 # Version was bumped and pushed, just create GitHub release
-pnpm release:create
+bun release:create
 ```
 
 **If you want to verify before GitHub release:**
 ```bash
 # Stop before GitHub step
-pnpm release --patch --skip-github
+bun release --patch --skip-github
 
 # Verify the build/release locally
 # Then create GitHub release manually
-pnpm release:create
+bun release:create
 ```
 
 ### Workflow FAQ
 
-**Q: Do I need to build before running `pnpm release --patch`?**
+**Q: Do I need to build before running `bun release --patch`?**
 A: No! The release script builds everything fresh automatically. Any existing `dist-*` directories are ignored.
 
 **Q: Does the release script compare checksums automatically?**
-A: No. It records the build for later comparison, but doesn't compare automatically. Use `pnpm build:all --record --compare` if you want verification.
+A: No. It records the build for later comparison, but doesn't compare automatically. Use `bun build:all --record --compare` if you want verification.
 
 **Q: Can I reuse an existing build for release?**
 A: No. The release script always builds fresh to ensure consistency. This prevents issues with stale build artifacts.
@@ -234,28 +234,28 @@ A: No. The release script always builds fresh to ensure consistency. This preven
 **Q: What if I want to test the build before releasing?**
 A: Use the cautious approach:
 ```bash
-pnpm build:all --clean --record --compare  # Build and verify
-pnpm release --patch --dry-run             # Preview release
-pnpm release --patch                       # Execute if satisfied
+bun build:all --clean --record --compare  # Build and verify
+bun release --patch --dry-run             # Preview release
+bun release --patch                       # Execute if satisfied
 ```
 
 **Q: How do I know if my builds are consistent?**
 A: Run multiple builds and compare:
 ```bash
-pnpm build:all --clean --record  # Build 1
-pnpm build:all --clean --record  # Build 2  
-pnpm compare-checksums           # Should show identical checksums
+bun build:all --clean --record  # Build 1
+bun build:all --clean --record  # Build 2  
+bun compare-checksums           # Should show identical checksums
 ```
 
 **Q: Can I skip the GitHub release but keep everything else?**
 A: Yes! Use `--skip-github`:
 ```bash
-pnpm release --patch --skip-github  # Version bump + git operations only
-pnpm release:create                  # Create GitHub release later
+bun release --patch --skip-github  # Version bump + git operations only
+bun release:create                  # Create GitHub release later
 ```
 
-**Q: What's the difference between `pnpm package` and `pnpm build:all`?**
-A: They're the same! `pnpm package` now calls `build-all.js` internally for consistency.
+**Q: What's the difference between `bun package` and `bun build:all`?**
+A: They're the same! `bun package` now calls `build-all.js` internally for consistency.
 
 ## Script Overview
 
@@ -281,15 +281,15 @@ A: They're the same! `pnpm package` now calls `build-all.js` internally for cons
 **Argument Combinations:**
 ```bash
 # ✅ Valid combinations
-pnpm release --patch                    # Full patch release
-pnpm release --minor --dry-run          # Preview minor release
-pnpm release --major --skip-github      # Release without GitHub
-pnpm release --patch --dry-run --skip-github  # Preview without GitHub
+bun release --patch                    # Full patch release
+bun release --minor --dry-run          # Preview minor release
+bun release --major --skip-github      # Release without GitHub
+bun release --patch --dry-run --skip-github  # Preview without GitHub
 
 # ❌ Invalid combinations
-pnpm release --patch --minor            # Error: Only one version type allowed
-pnpm release                            # Error: Version type required
-pnpm release --dry-run                  # Error: Version type required
+bun release --patch --minor            # Error: Only one version type allowed
+bun release                            # Error: Version type required
+bun release --dry-run                  # Error: Version type required
 ```
 
 **What happens without arguments:**
@@ -312,13 +312,13 @@ pnpm release --dry-run                  # Error: Version type required
 **Argument Combinations:**
 ```bash
 # ✅ All valid combinations
-pnpm build:all                          # Basic build + package
-pnpm build:all --clean                  # Clean then build
-pnpm build:all --record                 # Build + save for comparison
-pnpm build:all --compare                # Build + compare checksums
-pnpm build:all --clean --record         # Clean, build, record
-pnpm build:all --record --compare       # Build, record, compare
-pnpm build:all --clean --record --compare  # All operations
+bun build:all                          # Basic build + package
+bun build:all --clean                  # Clean then build
+bun build:all --record                 # Build + save for comparison
+bun build:all --compare                # Build + compare checksums
+bun build:all --clean --record         # Clean, build, record
+bun build:all --record --compare       # Build, record, compare
+bun build:all --clean --record --compare  # All operations
 ```
 
 **What happens without arguments:**
@@ -343,11 +343,11 @@ Provides shortcuts for common development tasks through subcommands.
 **Usage Examples:**
 ```bash
 # ✅ Valid usage
-pnpm dev-helper clean                   # Clean build directories
-pnpm dev-helper quick-build             # Fast build
-pnpm dev-helper                         # Shows help
-pnpm dev-helper help                    # Shows help
-pnpm dev-helper invalid-command         # Shows help
+bun dev-helper clean                   # Clean build directories
+bun dev-helper quick-build             # Fast build
+bun dev-helper                         # Shows help
+bun dev-helper help                    # Shows help
+bun dev-helper invalid-command         # Shows help
 
 # ❌ No argument combinations
 # Each call takes exactly one subcommand
@@ -379,10 +379,10 @@ Shell script for git operations after version bump.
 
 | Old Command | New Command | Notes |
 |-------------|-------------|-------|
-| `pnpm run build:all && pnpm run package:firefox && pnpm run package:chrome` | `pnpm package` | Simplified |
-| `pnpm run package && pnpm run record-build` | `pnpm package-record` | Combined |
-| `pnpm run bump -- --patch && scripts/post-bump.sh` | `pnpm release:patch` | Unified |
-| Multiple manual steps | `pnpm release --patch` | Single command |
+| `bun run build:all && bun run package:firefox && bun run package:chrome` | `bun package` | Simplified |
+| `bun run package && bun run record-build` | `bun package-record` | Combined |
+| `bun run bump -- --patch && scripts/post-bump.sh` | `bun release:patch` | Unified |
+| Multiple manual steps | `bun release --patch` | Single command |
 
 ### Benefits of Streamlined Scripts
 
@@ -402,7 +402,7 @@ Scripts read configuration from:
 ## Environment Requirements
 
 - Node.js (ES modules support)
-- pnpm package manager
+- bun package manager
 - GitHub CLI (`gh`) for release creation
 - Python 3 for checksum comparison
 - Git for version control operations
@@ -416,10 +416,10 @@ Scripts read configuration from:
 **"Error: Only one version bump argument is allowed"**
 ```bash
 # ❌ This fails
-pnpm release --patch --minor
+bun release --patch --minor
 
 # ✅ Use only one
-pnpm release --patch
+bun release --patch
 ```
 
 **"Error: GitHub CLI is not authenticated"**
@@ -436,7 +436,7 @@ gh auth login
 
 **"Error: Required file not found: dist-zip/..."**
 - Build step failed before GitHub release
-- Run `pnpm build:all` separately to debug
+- Run `bun build:all` separately to debug
 - Check for Vite build errors
 
 #### Build Script Errors
@@ -444,16 +444,16 @@ gh auth login
 **Build fails with Vite errors**
 ```bash
 # Clean and retry
-pnpm dev-helper clean
-pnpm build:all
+bun dev-helper clean
+bun build:all
 
 # Check dependencies
-pnpm install
+bun install
 ```
 
 **"No builds found for version X.X.X" (during compare)**
 - No recorded builds exist for that version
-- Run `pnpm build:all --record` first
+- Run `bun build:all --record` first
 - Check `dist-record/` directory exists
 
 #### File Permission Issues
@@ -482,7 +482,7 @@ If release fails after version bump but before GitHub release:
 git log --oneline -5
 
 # 2. If version was bumped and pushed:
-pnpm release:create  # Just create GitHub release
+bun release:create  # Just create GitHub release
 
 # 3. If you need to rollback:
 git reset --hard HEAD~1  # Undo local commit
@@ -495,10 +495,10 @@ If build directories get corrupted:
 
 ```bash
 # Nuclear option - clean everything
-pnpm dev-helper clean
+bun dev-helper clean
 rm -rf node_modules/.vite  # Clear Vite cache
-pnpm install  # Reinstall dependencies
-pnpm build:all  # Rebuild from scratch
+bun install  # Reinstall dependencies
+bun build:all  # Rebuild from scratch
 ```
 
 #### Git State Issues
@@ -523,7 +523,7 @@ git commit
 
 ## Detailed Behavior
 
-### What `pnpm release --patch` Actually Does
+### What `bun release --patch` Actually Does
 
 **Step-by-step execution:**
 1. **Version Bump**: `1.2.3` → `1.2.4` in:
@@ -538,8 +538,8 @@ git commit
    - Waits for you to save and close editor
 
 3. **Build Process**:
-   - `pnpm run build:firefox` → `dist-firefox/`
-   - `pnpm run build:chrome` → `dist-chrome/`
+   - `bun run build:firefox` → `dist-firefox/`
+   - `bun run build:chrome` → `dist-chrome/`
    - `web-ext build` → `dist-zip/gemini_history_manager_firefox-1.2.4.zip`
    - `web-ext build` → `dist-zip/gemini_history_manager_chrome-1.2.4.zip`
    - Copies build to `dist-record/1.2.4/build-N/`
@@ -557,11 +557,11 @@ git commit
 
 **Important Notes:**
 - Build is recorded but checksums are NOT compared automatically
-- If you want checksum verification, use `pnpm build:all --record --compare` first
+- If you want checksum verification, use `bun build:all --record --compare` first
 - If any step fails, script stops immediately with no further steps executed
 - Existing `dist-*` directories are cleaned and rebuilt fresh
 
-### What `pnpm build:all --clean --record` Actually Does
+### What `bun build:all --clean --record` Actually Does
 
 **Step-by-step execution:**
 1. **Clean** (`--clean`):
@@ -623,12 +623,12 @@ const shouldClean = args.includes("--clean");
 
 **Example dry run output:**
 ```
-$ pnpm release --patch --dry-run
+$ bun release --patch --dry-run
 >>> DRY RUN MODE ENABLED <<<
 
 Releasing patch version: 0.18.7 → 0.18.8
 DRY RUN: Would update package.json to version 0.18.8
 DRY RUN: Would update src/manifest-chrome.json to version 0.18.8
 --- DRY RUN: Command not executed ---
-$ pnpm run build:all
+$ bun run build:all
 ```

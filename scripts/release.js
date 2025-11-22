@@ -1,7 +1,7 @@
 /**
  * @file release.js
  * Unified release script that handles version bumping, building, packaging, and GitHub release creation.
- * Usage: pnpm release --[major|minor|patch] [--dry-run] [--skip-github]
+ * Usage: bun release --[major|minor|patch] [--dry-run] [--skip-github]
  */
 import fs from "fs";
 import { execSync } from "child_process";
@@ -38,7 +38,7 @@ function parseArgs() {
   const versionArgs = args.filter((arg) => ["--major", "--minor", "--patch", "-M", "-m", "-p"].includes(arg));
 
   if (versionArgs.length === 0) {
-    console.error("Usage: pnpm release --[major|minor|patch] [--dry-run] [--skip-github]");
+    console.error("Usage: bun release --[major|minor|patch] [--dry-run] [--skip-github]");
     process.exit(1);
   }
 
@@ -255,9 +255,9 @@ async function main() {
 
   // 3. Build and package
   console.log("\n=== Building and Packaging ===");
-  runCommand("pnpm run build:all", { dryRun });
-  runCommand("pnpm run package", { dryRun });
-  runCommand("pnpm run record-build", { dryRun });
+  runCommand("bun run build:all", { dryRun });
+  runCommand("bun run package", { dryRun });
+  runCommand("bun run record-build", { dryRun });
 
   // 4. Git operations
   console.log("\n=== Git Operations ===");
