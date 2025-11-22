@@ -18,7 +18,7 @@ bun dev:chrome                 # Watch mode for Chrome
 bun dev-helper lint-all        # Lint Firefox + Chrome builds
 bun dev-helper format-fix      # Auto-format all code files
 
-# Build verification
+# Build verification (requires 2+ builds recorded)
 bun build:all --record         # Build + save for comparison
 bun dev-helper compare         # Compare current version builds
 ```
@@ -45,7 +45,7 @@ bun build:all                  # Build Firefox + Chrome + package
 bun build:all --clean          # Clean first, then build
 bun package-record             # Same as: bun build:all --record
 
-# Advanced verification
+# Advanced verification (requires 2+ builds recorded)
 bun build:all --clean --record --compare  # Full build verification
 bun compare-checksums          # Compare existing builds only
 ```
@@ -64,7 +64,7 @@ bun release --patch
 2. ✅ Release notes creation/editing
 3. ✅ Clean build for both browsers
 4. ✅ Package into zip files
-5. ✅ Record build for comparison
+5. ✅ Record build for comparison (creates build-1 for new version)
 6. ✅ Git commit and tag
 7. ✅ Push to remote
 8. ✅ Create GitHub release with assets
@@ -80,7 +80,7 @@ bun release --patch
 # 1. Preview what will happen
 bun release --patch --dry-run
 
-# 2. Build and verify first (optional)
+# 2. Build and verify first (optional, requires existing build-1 and build-2)
 bun build:all --clean --record --compare
 
 # 3. Execute release (skips rebuild since files exist)
@@ -228,15 +228,17 @@ bun release:create
 A: No! The release script builds everything fresh automatically. Any existing `dist-*` directories are ignored.
 
 **Q: Does the release script compare checksums automatically?**
-A: No. It records the build for later comparison, but doesn't compare automatically. Use `bun build:all --record --compare` if you want verification.
+A: No. It records the build (creates build-1 for new versions), but doesn't compare automatically. You need at least 2 builds to compare. Use `bun build:all --record --compare` after running `--record` twice if you want verification.
 
 **Q: Can I reuse an existing build for release?**
 A: No. The release script always builds fresh to ensure consistency. This prevents issues with stale build artifacts.
 
 **Q: What if I want to test the build before releasing?**
-A: Use the cautious approach:
+A: Use the cautious approach (note: comparison only works if you have 2+ builds):
 ```bash
-bun build:all --clean --record --compare  # Build and verify
+bun build:all --clean --record            # Build 1
+bun build:all --clean --record            # Build 2
+bun compare-checksums                     # Verify consistency
 bun release --patch --dry-run             # Preview release
 bun release --patch                       # Execute if satisfied
 ```
