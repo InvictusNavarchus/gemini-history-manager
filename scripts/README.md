@@ -128,13 +128,15 @@ bun release:create
 **For testing build consistency without releasing:**
 ```bash
 # Build multiple times and compare
-bun build:all --clean --record
-bun build:all --clean --record  # Build again
-bun compare-checksums            # Should show no differences
+bun build:all --clean --record    # Creates build-1
+bun build:all --clean --record    # Creates build-2
+bun compare-checksums             # Compares build-1 vs build-2
 
-# Or use the verification shortcut
+# Or use the verification shortcut (only works if 2+ builds exist)
 bun build:all --clean --record --compare
 ```
+
+**Important:** You must record **at least 2 builds** of the same version before comparison is meaningful. The first `--record` creates `build-1`, the second creates `build-2`, then `--compare` checks if they're identical.
 
 **When to use:**
 - Debugging build inconsistencies
@@ -240,12 +242,13 @@ bun release --patch                       # Execute if satisfied
 ```
 
 **Q: How do I know if my builds are consistent?**
-A: Run multiple builds and compare:
+A: You need at least 2 recorded builds to compare. Run:
 ```bash
-bun build:all --clean --record  # Build 1
-bun build:all --clean --record  # Build 2  
-bun compare-checksums           # Should show identical checksums
+bun build:all --clean --record  # Creates build-1
+bun build:all --clean --record  # Creates build-2
+bun compare-checksums           # Compares checksums between builds
 ```
+If the builds are consistent, you'll see "0 files with inconsistent checksums".
 
 **Q: Can I skip the GitHub release but keep everything else?**
 A: Yes! Use `--skip-github`:
@@ -365,7 +368,7 @@ Standalone version bumping utility.
 Records builds in `dist-record/` for checksum comparison.
 
 #### `compare-checksums-wrapper.js` & `compare_checksums.py`
-Compares checksums across different builds of the same version.
+Compares checksums across different builds of the same version. Requires at least 2 recorded builds (build-1, build-2, etc.) to perform a meaningful comparison.
 
 #### `create-github-release.js`
 Standalone GitHub release creation.
@@ -453,8 +456,9 @@ bun install
 
 **"No builds found for version X.X.X" (during compare)**
 - No recorded builds exist for that version
-- Run `bun build:all --record` first
-- Check `dist-record/` directory exists
+- Run `bun build:all --record` at least twice to create build-1 and build-2
+- Check `dist-record/X.X.X/` directory exists and contains multiple `build-N/` folders
+- Comparison requires minimum 2 builds to be meaningful
 
 #### File Permission Issues
 
@@ -581,6 +585,7 @@ git commit
    - Reads version from `package.json` (e.g., `0.18.7`)
    - Creates `dist-record/0.18.7/build-N/` (N = next build number)
    - Copies `dist-firefox/`, `dist-chrome/`, `dist-zip/` to build directory
+   - **Note:** First run creates `build-1`, second run creates `build-2`, etc.
 
 5. **Summary**:
    - Shows file sizes of generated zip files
@@ -606,10 +611,11 @@ const skipGithub = args.includes("--skip-github");
 ```javascript
 // ✅ All arguments are optional and can be combined
 const shouldRecord = args.includes("--record");
-const shouldCompare = args.includes("--compare");  
+const shouldCompare = args.includes("--compare");  // Requires 2+ builds exist
 const shouldClean = args.includes("--clean");
 
 // Each flag independently enables its behavior
+// Note: --compare will fail if fewer than 2 builds are recorded
 ```
 
 ### Debug and Preview Modes
