@@ -253,11 +253,9 @@ async function main() {
   console.log("\n=== Creating Release Notes ===");
   const releaseNotesFile = await createReleaseNotes(newVersion, dryRun);
 
-  // 3. Build and package
+  // 3. Build, package, and record
   console.log("\n=== Building and Packaging ===");
-  runCommand("bun run build:all", { dryRun });
-  runCommand("bun run package", { dryRun });
-  runCommand("bun run record-build", { dryRun });
+  runCommand("bun run build:all --record", { dryRun });
 
   // 4. Git operations
   console.log("\n=== Git Operations ===");
