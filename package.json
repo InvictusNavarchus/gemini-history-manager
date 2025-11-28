@@ -18,7 +18,7 @@
     "package:chrome": "web-ext build --config ./web-ext-config-chrome.cjs",
     "record-build": "node scripts/record-build.js",
     "package-record": "node scripts/build-all.js --record",
-    "compare-checksums": "node scripts/compare-checksums-wrapper.js",
+    "compare-checksums": "node scripts/compare-checksums.js",
     "format": "pretty-quick --staged",
     "format:check": "pretty-quick --check --staged",
     "format:all": "prettier --write \"**/*.{js,vue,json,css,md,html}\"",

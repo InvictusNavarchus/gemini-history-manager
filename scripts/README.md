@@ -362,6 +362,8 @@ Records builds in `dist-record/` for checksum comparison.
 #### `compare-checksums-wrapper.js` & `compare_checksums.py`
 Compares checksums across different builds of the same version. Requires at least 2 recorded builds (build-1, build-2, etc.) to perform a meaningful comparison.
 
+**Note:** The Python script has been replaced with a pure JavaScript implementation (`compare-checksums.js`) to reduce runtime dependencies.
+
 #### `create-github-release.js`
 Standalone GitHub release creation.
 
@@ -396,7 +398,6 @@ Scripts read configuration from:
 - Node.js (ES modules support)
 - bun package manager
 - GitHub CLI (`gh`) for release creation
-- Python 3 for checksum comparison
 - Git for version control operations
 
 ## Troubleshooting
