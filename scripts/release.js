@@ -188,6 +188,96 @@ async function createReleaseNotes(version, dryRun) {
 }
 
 /**
+ * Run pre-flight checks before release
+ */
+function runPreflightChecks(options = {}) {
+  const { dryRun = false, skipGithub = false } = options;
+
+  console.log("=== Running Pre-flight Checks ===\n");
+
+  // 1. Check if working directory is clean
+  console.log("Checking working directory status...");
+  try {
+    const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim();
+    if (status) {
+      console.error("Error: Working directory is not clean. Please commit or stash your changes first.");
+      console.error("\nUncommitted changes:");
+      console.error(status);
+      process.exit(1);
+    }
+    console.log("  ✓ Working directory is clean");
+  } catch (error) {
+    console.error("Error: Failed to check git status. Are you in a git repository?");
+    process.exit(1);
+  }
+
+  // 2. Check if on main branch (warning only, not blocking)
+  console.log("Checking current branch...");
+  try {
+    const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim();
+    if (branch !== "main" && branch !== "master") {
+      console.warn(`  ⚠ Warning: You are on branch '${branch}', not 'main' or 'master'.`);
+      console.warn("    Releases are typically done from the main branch.");
+    } else {
+      console.log(`  ✓ On branch '${branch}'`);
+    }
+  } catch (error) {
+    console.warn("  ⚠ Warning: Could not determine current branch.");
+  }
+
+  // 3. Check if local branch is up to date with remote
+  console.log("Checking if branch is up to date with remote...");
+  try {
+    execSync("git fetch", { stdio: "pipe" });
+    const localHash = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
+    const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim();
+    let remoteHash;
+    try {
+      remoteHash = execSync(`git rev-parse origin/${branch}`, { encoding: "utf-8" }).trim();
+    } catch {
+      // Remote branch might not exist
+      console.log("  ✓ No remote tracking branch (new branch)");
+      remoteHash = localHash;
+    }
+    if (localHash !== remoteHash) {
+      const behind = execSync(`git rev-list --count HEAD..origin/${branch}`, { encoding: "utf-8" }).trim();
+      const ahead = execSync(`git rev-list --count origin/${branch}..HEAD`, { encoding: "utf-8" }).trim();
+      if (parseInt(behind) > 0) {
+        console.error(`Error: Your branch is ${behind} commit(s) behind origin/${branch}.`);
+        console.error("Please pull the latest changes first: git pull");
+        process.exit(1);
+      }
+      if (parseInt(ahead) > 0) {
+        console.log(`  ✓ Branch is ${ahead} commit(s) ahead of remote (will be pushed)`);
+      }
+    } else {
+      console.log("  ✓ Branch is up to date with remote");
+    }
+  } catch (error) {
+    console.warn("  ⚠ Warning: Could not check remote status. Continuing anyway.");
+  }
+
+  // 4. Check GitHub CLI authentication (only if not skipping GitHub)
+  if (!skipGithub) {
+    console.log("Checking GitHub CLI authentication...");
+    try {
+      execSync("gh auth status", { stdio: "pipe" });
+      console.log("  ✓ GitHub CLI is authenticated");
+    } catch (error) {
+      console.error("Error: GitHub CLI is not authenticated.");
+      console.error(
+        "Please run 'gh auth login' to authenticate, or use --skip-github to skip GitHub release."
+      );
+      process.exit(1);
+    }
+  } else {
+    console.log("Skipping GitHub CLI check (--skip-github specified)");
+  }
+
+  console.log("\n✓ All pre-flight checks passed!\n");
+}
+
+/**
  * Get repository URL from git remote or package.json
  */
 function getRepositoryUrl() {
@@ -229,6 +319,13 @@ async function main() {
 
   if (dryRun) {
     console.log(">>> DRY RUN MODE ENABLED <<<\n");
+  }
+
+  // Run pre-flight checks (skip in dry-run mode since we won't actually do anything)
+  if (!dryRun) {
+    runPreflightChecks({ dryRun, skipGithub });
+  } else {
+    console.log("=== Pre-flight Checks (skipped in dry-run mode) ===\n");
   }
 
   // Get current version
