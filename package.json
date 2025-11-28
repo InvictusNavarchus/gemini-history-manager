@@ -23,7 +23,6 @@
     "format:check": "pretty-quick --check --staged",
     "format:all": "prettier --write \"**/*.{js,vue,json,css,md,html}\"",
     "format:check:all": "prettier --check \"**/*.{js,vue,json,css,md,html}\"",
-    "bump": "node scripts/bump-version.js",
     "release": "node scripts/release.js",
     "release:patch": "node scripts/release.js --patch",
     "release:minor": "node scripts/release.js --minor",

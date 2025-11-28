@@ -102,17 +102,10 @@ bun release --patch
 bun build:all --clean --record
 bun compare-checksums
 
-# 2. Version bump only
-bun bump --patch
+# 2. Use release with --skip-github for version bump + git operations
+bun release --patch --skip-github
 
-# 3. Manual git operations
-git add package.json src/manifest-*.json README.md
-git commit -m "chore: bump version to v1.2.4"
-git push
-git tag -a "v1.2.4" -m "Release 1.2.4"
-git push origin "v1.2.4"
-
-# 4. Create GitHub release
+# 3. Create GitHub release separately
 bun release:create
 ```
 
@@ -363,9 +356,6 @@ bun dev-helper invalid-command         # Shows help
 
 ### Legacy Scripts (Still Available)
 
-#### `bump-version.js`
-Standalone version bumping utility.
-
 #### `record-build.js`
 Records builds in `dist-record/` for checksum comparison.
 
@@ -375,9 +365,6 @@ Compares checksums across different builds of the same version. Requires at leas
 #### `create-github-release.js`
 Standalone GitHub release creation.
 
-#### `post-bump.sh`
-Shell script for git operations after version bump.
-
 ## Migration Guide
 
 ### Old vs New Commands
@@ -386,7 +373,7 @@ Shell script for git operations after version bump.
 |-------------|-------------|-------|
 | `bun run build:all && bun run package:firefox && bun run package:chrome` | `bun package` | Simplified |
 | `bun run package && bun run record-build` | `bun package-record` | Combined |
-| `bun run bump -- --patch && scripts/post-bump.sh` | `bun release:patch` | Unified |
+| `bun bump --patch && scripts/post-bump.sh` | `bun release --patch` | Unified (legacy scripts removed) |
 | Multiple manual steps | `bun release --patch` | Single command |
 
 ### Benefits of Streamlined Scripts
