@@ -3,19 +3,7 @@
  * Development helper script for common tasks.
  * Usage: bun dev-helper [command]
  */
-import { execSync } from "child_process";
-import fs from "fs";
-import path from "path";
-
-function runCommand(command) {
-  console.log(`\n$ ${command}`);
-  try {
-    execSync(command, { stdio: "inherit" });
-  } catch (error) {
-    console.error(`Command failed: ${command}`);
-    process.exit(1);
-  }
-}
+import { runCommand, getPackageJson } from "./lib/utils.js";
 
 function showHelp() {
   console.log(`
@@ -66,7 +54,7 @@ function formatFix() {
 }
 
 function showVersion() {
-  const packageJson = JSON.parse(fs.readFileSync("package.json", "utf-8"));
+  const packageJson = getPackageJson();
   console.log(`
 📦 Version Information
 Current version: ${packageJson.version}

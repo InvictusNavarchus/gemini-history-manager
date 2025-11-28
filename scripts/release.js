@@ -5,29 +5,7 @@
  */
 import fs from "fs";
 import { execSync } from "child_process";
-
-const RELEASE_FILES = ["src/manifest-chrome.json", "src/manifest-firefox.json", "package.json", "README.md"];
-
-/**
- * Executes a command with proper error handling
- */
-function runCommand(command, options = {}) {
-  const { dryRun = false, silent = false } = options;
-
-  if (!silent) console.log(`\n$ ${command}`);
-
-  if (dryRun) {
-    console.log("--- DRY RUN: Command not executed ---");
-    return;
-  }
-
-  try {
-    return execSync(command, { stdio: silent ? "pipe" : "inherit", encoding: "utf-8" });
-  } catch (error) {
-    console.error(`\nCommand failed: ${command}`);
-    process.exit(1);
-  }
-}
+import { runCommand, bumpVersion, updateVersionFile, getCurrentVersion, VERSION_FILES } from "./lib/utils.js";
 
 /**
  * Parse command line arguments
@@ -58,63 +36,6 @@ function parseArgs() {
     dryRun: args.includes("--dry-run"),
     skipGithub: args.includes("--skip-github"),
   };
-}
-
-/**
- * Bump version in all relevant files
- */
-function bumpVersion(currentVersion, type) {
-  let [major, minor, patch] = currentVersion.split(".").map(Number);
-
-  if (type === "major") {
-    major++;
-    minor = 0;
-    patch = 0;
-  } else if (type === "minor") {
-    minor++;
-    patch = 0;
-  } else if (type === "patch") {
-    patch++;
-  }
-
-  return [major, minor, patch].join(".");
-}
-
-/**
- * Update version in JSON files
- */
-function updateJsonFile(file, newVersion, dryRun) {
-  if (dryRun) {
-    console.log(`DRY RUN: Would update ${file} to version ${newVersion}`);
-    return;
-  }
-
-  const content = JSON.parse(fs.readFileSync(file, "utf-8"));
-  content.version = newVersion;
-  fs.writeFileSync(file, JSON.stringify(content, null, 2) + "\n");
-  console.log(`Updated ${file} to version ${newVersion}`);
-}
-
-/**
- * Update version badge in README
- */
-function updateReadmeBadge(file, newVersion, dryRun) {
-  if (dryRun) {
-    console.log(`DRY RUN: Would update README badge to version ${newVersion}`);
-    return;
-  }
-
-  const content = fs.readFileSync(file, "utf-8");
-  const versionBadgeRegex =
-    /(https:\/\/img\.shields\.io\/badge\/version-v)([0-9]+\.[0-9]+\.[0-9]+)(-blue\.svg)/;
-
-  if (!versionBadgeRegex.test(content)) {
-    throw new Error(`No version badge found in ${file}`);
-  }
-
-  const updatedContent = content.replace(versionBadgeRegex, `$1${newVersion}$3`);
-  fs.writeFileSync(file, updatedContent);
-  console.log(`Updated ${file} badge to version ${newVersion}`);
 }
 
 /**
@@ -329,8 +250,7 @@ async function main() {
   }
 
   // Get current version
-  const packageJson = JSON.parse(fs.readFileSync("package.json", "utf-8"));
-  const currentVersion = packageJson.version;
+  const currentVersion = getCurrentVersion();
   const newVersion = bumpVersion(currentVersion, versionType);
   const tagName = `v${newVersion}`;
 
@@ -338,12 +258,8 @@ async function main() {
 
   // 1. Update version in all files
   console.log("\n=== Updating Version Files ===");
-  for (const file of RELEASE_FILES) {
-    if (file === "README.md") {
-      updateReadmeBadge(file, newVersion, dryRun);
-    } else {
-      updateJsonFile(file, newVersion, dryRun);
-    }
+  for (const file of VERSION_FILES) {
+    updateVersionFile(file, newVersion, dryRun);
   }
 
   // 2. Create release notes
@@ -356,7 +272,7 @@ async function main() {
 
   // 4. Git operations
   console.log("\n=== Git Operations ===");
-  const filesToAdd = [...RELEASE_FILES, releaseNotesFile].join(" ");
+  const filesToAdd = [...VERSION_FILES, releaseNotesFile].join(" ");
   runCommand(`git add ${filesToAdd}`, { dryRun });
   runCommand(`git commit -m "chore: bump version to ${tagName}"`, { dryRun });
   runCommand("git push", { dryRun });

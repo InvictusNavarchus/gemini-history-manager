@@ -1,16 +1,16 @@
+/**
+ * @file record-build.js
+ * Records the current build to dist-record/ for checksum comparison.
+ * Usage: bun run record-build
+ */
 import fs from "fs-extra";
 import path from "path";
-import { fileURLToPath } from "url";
+import { getCurrentVersion, ROOT_DIR } from "./lib/utils.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, "..");
-
-// Read package.json to get the current version
-const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8"));
-const version = packageJson.version;
+const version = getCurrentVersion();
 
 // Create dist-record directory if it doesn't exist
-const distRecordDir = path.join(rootDir, "dist-record");
+const distRecordDir = path.join(ROOT_DIR, "dist-record");
 fs.ensureDirSync(distRecordDir);
 
 // Create version directory if it doesn't exist
@@ -31,16 +31,16 @@ const buildDir = path.join(versionDir, `build-${nextBuildNumber}`);
 fs.ensureDirSync(buildDir);
 
 // Copy dist-firefox, dist-chrome, and their zip contents to the build directory
-const distFirefoxDir = path.join(rootDir, "dist-firefox");
-const distChromeDir = path.join(rootDir, "dist-chrome");
-const distZipDir = path.join(rootDir, "dist-zip");
+const distFirefoxDir = path.join(ROOT_DIR, "dist-firefox");
+const distChromeDir = path.join(ROOT_DIR, "dist-chrome");
+const distZipDir = path.join(ROOT_DIR, "dist-zip");
 
 // Handle Firefox dist directory
 if (fs.existsSync(distFirefoxDir)) {
   const distFirefoxTargetDir = path.join(buildDir, "dist-firefox");
   fs.ensureDirSync(distFirefoxTargetDir);
   fs.copySync(distFirefoxDir, distFirefoxTargetDir);
-  console.log(`Copied dist-firefox/ to ${path.relative(rootDir, distFirefoxTargetDir)}`);
+  console.log(`Copied dist-firefox/ to ${path.relative(ROOT_DIR, distFirefoxTargetDir)}`);
 }
 
 // Handle Chrome dist directory
@@ -48,7 +48,7 @@ if (fs.existsSync(distChromeDir)) {
   const distChromeTargetDir = path.join(buildDir, "dist-chrome");
   fs.ensureDirSync(distChromeTargetDir);
   fs.copySync(distChromeDir, distChromeTargetDir);
-  console.log(`Copied dist-chrome/ to ${path.relative(rootDir, distChromeTargetDir)}`);
+  console.log(`Copied dist-chrome/ to ${path.relative(ROOT_DIR, distChromeTargetDir)}`);
 }
 
 // Handle dist-zip directory (which may contain both Firefox and Chrome zips)
@@ -56,7 +56,7 @@ if (fs.existsSync(distZipDir)) {
   const distZipTargetDir = path.join(buildDir, "dist-zip");
   fs.ensureDirSync(distZipTargetDir);
   fs.copySync(distZipDir, distZipTargetDir);
-  console.log(`Copied dist-zip/ to ${path.relative(rootDir, distZipTargetDir)}`);
+  console.log(`Copied dist-zip/ to ${path.relative(ROOT_DIR, distZipTargetDir)}`);
 }
 
 console.log(`Recorded build ${nextBuildNumber} for version ${version}`);

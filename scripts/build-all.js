@@ -5,31 +5,7 @@
  */
 import fs from "fs-extra";
 import path from "path";
-import { execSync } from "child_process";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, "..");
-
-/**
- * Execute command with error handling
- */
-function runCommand(command, options = {}) {
-  const { silent = false } = options;
-
-  if (!silent) console.log(`\n$ ${command}`);
-
-  try {
-    return execSync(command, {
-      stdio: silent ? "pipe" : "inherit",
-      encoding: "utf-8",
-      cwd: rootDir,
-    });
-  } catch (error) {
-    console.error(`\nCommand failed: ${command}`);
-    process.exit(1);
-  }
-}
+import { runCommand, getPackageJson, ROOT_DIR } from "./lib/utils.js";
 
 /**
  * Clean build directories
@@ -39,7 +15,7 @@ function cleanBuildDirs() {
 
   console.log("🧹 Cleaning build directories...");
   dirsToClean.forEach((dir) => {
-    const dirPath = path.join(rootDir, dir);
+    const dirPath = path.join(ROOT_DIR, dir);
     if (fs.existsSync(dirPath)) {
       fs.removeSync(dirPath);
       console.log(`  Removed ${dir}/`);
@@ -85,8 +61,7 @@ function compareChecksums() {
  * Display build summary
  */
 function showSummary() {
-  const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8"));
-  const version = packageJson.version;
+  const { version } = getPackageJson();
 
   console.log("\n" + "=".repeat(50));
   console.log("🎉 Build Summary");
@@ -100,7 +75,7 @@ function showSummary() {
   ];
 
   files.forEach((file) => {
-    const filePath = path.join(rootDir, file);
+    const filePath = path.join(ROOT_DIR, file);
     if (fs.existsSync(filePath)) {
       const stats = fs.statSync(filePath);
       const sizeKB = Math.round(stats.size / 1024);
