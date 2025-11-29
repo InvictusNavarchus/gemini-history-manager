@@ -161,9 +161,16 @@ export function getPackageJson() {
 
 /**
  * Clean build directories
+ * @param {Object} options - Options for cleaning
+ * @param {boolean} [options.includeRecords=false] - If true, also clean dist-record/
  */
-export function cleanBuildDirs() {
+export function cleanBuildDirs(options = {}) {
+  const { includeRecords = false } = options;
   const dirsToClean = ["dist-firefox", "dist-chrome", "dist-zip"];
+
+  if (includeRecords) {
+    dirsToClean.push("dist-record");
+  }
 
   console.log("🧹 Cleaning build directories...");
   dirsToClean.forEach((dir) => {

@@ -10,20 +10,20 @@ function showHelp() {
 🛠️  Development Helper
 
 Available commands:
-  clean       - Clean all build directories
-  quick-build - Build and package (no recording)
-  full-build  - Build, package, and record
-  compare     - Compare checksums of current version
-  lint-all    - Lint both Firefox and Chrome builds
-  format-fix  - Format all code files
-  version     - Show current version info
+  clean [--all] - Clean build directories (--all includes dist-record/)
+  quick-build   - Build and package (no recording)
+  full-build    - Build, package, and record
+  compare       - Compare checksums of current version
+  lint-all      - Lint both Firefox and Chrome builds
+  format-fix    - Format all code files
+  version       - Show current version info
 
 Usage: bun dev-helper [command]
 `);
 }
 
-function cleanAll() {
-  cleanBuildDirs();
+function cleanAll(includeRecords = false) {
+  cleanBuildDirs({ includeRecords });
   console.log("✅ Clean complete!");
 }
 
@@ -65,10 +65,11 @@ Description: ${packageJson.description}
 
 function main() {
   const command = process.argv[2];
+  const args = process.argv.slice(3);
 
   switch (command) {
     case "clean":
-      cleanAll();
+      cleanAll(args.includes("--all"));
       break;
     case "quick-build":
       quickBuild();
