@@ -5,23 +5,7 @@
  */
 import fs from "fs-extra";
 import path from "path";
-import { runCommand, getPackageJson, ROOT_DIR } from "./lib/utils.js";
-
-/**
- * Clean build directories
- */
-function cleanBuildDirs() {
-  const dirsToClean = ["dist-firefox", "dist-chrome", "dist-zip"];
-
-  console.log("🧹 Cleaning build directories...");
-  dirsToClean.forEach((dir) => {
-    const dirPath = path.join(ROOT_DIR, dir);
-    if (fs.existsSync(dirPath)) {
-      fs.removeSync(dirPath);
-      console.log(`  Removed ${dir}/`);
-    }
-  });
-}
+import { runCommand, getPackageJson, ROOT_DIR, cleanBuildDirs } from "./lib/utils.js";
 
 /**
  * Build for all browsers

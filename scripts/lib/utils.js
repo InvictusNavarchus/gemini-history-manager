@@ -158,3 +158,19 @@ export function getPackageJson() {
   const packageJsonPath = path.join(ROOT_DIR, "package.json");
   return JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 }
+
+/**
+ * Clean build directories
+ */
+export function cleanBuildDirs() {
+  const dirsToClean = ["dist-firefox", "dist-chrome", "dist-zip"];
+
+  console.log("🧹 Cleaning build directories...");
+  dirsToClean.forEach((dir) => {
+    const dirPath = path.join(ROOT_DIR, dir);
+    if (fs.existsSync(dirPath)) {
+      fs.rmSync(dirPath, { recursive: true, force: true });
+      console.log(`  Removed ${dir}/`);
+    }
+  });
+}

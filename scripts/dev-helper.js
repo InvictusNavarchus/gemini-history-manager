@@ -3,9 +3,7 @@
  * Development helper script for common tasks.
  * Usage: bun dev-helper [command]
  */
-import fs from "fs-extra";
-import path from "path";
-import { runCommand, getPackageJson, ROOT_DIR } from "./lib/utils.js";
+import { runCommand, getPackageJson, cleanBuildDirs } from "./lib/utils.js";
 
 function showHelp() {
   console.log(`
@@ -25,17 +23,7 @@ Usage: bun dev-helper [command]
 }
 
 function cleanAll() {
-  console.log("🧹 Cleaning all build directories...");
-  const dirsToClean = ["dist-firefox", "dist-chrome", "dist-zip"];
-
-  dirsToClean.forEach((dir) => {
-    const dirPath = path.join(ROOT_DIR, dir);
-    if (fs.existsSync(dirPath)) {
-      fs.removeSync(dirPath);
-      console.log(`  Removed ${dir}/`);
-    }
-  });
-
+  cleanBuildDirs();
   console.log("✅ Clean complete!");
 }
 
