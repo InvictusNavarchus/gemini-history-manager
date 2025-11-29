@@ -3,7 +3,9 @@
  * Development helper script for common tasks.
  * Usage: bun dev-helper [command]
  */
-import { runCommand, getPackageJson } from "./lib/utils.js";
+import fs from "fs-extra";
+import path from "path";
+import { runCommand, getPackageJson, ROOT_DIR } from "./lib/utils.js";
 
 function showHelp() {
   console.log(`
@@ -24,7 +26,17 @@ Usage: bun dev-helper [command]
 
 function cleanAll() {
   console.log("🧹 Cleaning all build directories...");
-  runCommand("node scripts/build-all.js --clean");
+  const dirsToClean = ["dist-firefox", "dist-chrome", "dist-zip"];
+
+  dirsToClean.forEach((dir) => {
+    const dirPath = path.join(ROOT_DIR, dir);
+    if (fs.existsSync(dirPath)) {
+      fs.removeSync(dirPath);
+      console.log(`  Removed ${dir}/`);
+    }
+  });
+
+  console.log("✅ Clean complete!");
 }
 
 function quickBuild() {
