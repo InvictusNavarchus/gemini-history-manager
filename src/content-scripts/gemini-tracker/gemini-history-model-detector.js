@@ -358,34 +358,57 @@
       let rawText = null;
       let foundVia = null;
 
-      // Try #1: New button structure
-      const modelButton = document.querySelector(
-        "button.gds-mode-switch-button.mat-mdc-button-base .logo-pill-label-container span"
+      // Try #1: New input area model switcher (Nov 2025+)
+      // Model switcher moved from top menu to inside the chat input area
+      const inputAreaSwitcher = document.querySelector(
+        "bard-mode-switcher .logo-pill-label-container.input-area-switch-label span"
       );
-      if (modelButton && modelButton.textContent) {
-        rawText = modelButton.textContent.trim();
-        foundVia = "New Button Structure";
+      if (inputAreaSwitcher && inputAreaSwitcher.textContent) {
+        rawText = inputAreaSwitcher.textContent.trim();
+        foundVia = "Input Area Model Switcher";
         console.log(`${Utils.getPrefix()} Model raw text found via ${foundVia}: "${rawText}"`);
       } else {
-        console.log(`${Utils.getPrefix()} Model not found via New Button Structure.`);
-        // Try #2: data-test-id
-        const modelElement = document.querySelector(
-          'bard-mode-switcher [data-test-id="attribution-text"] span'
+        console.log(`${Utils.getPrefix()} Model not found via Input Area Model Switcher.`);
+        // Try #2: Generic bard-mode-switcher label container
+        const modeSwitcherLabel = document.querySelector(
+          "bard-mode-switcher .logo-pill-label-container span:first-child"
         );
-        if (modelElement && modelElement.textContent) {
-          rawText = modelElement.textContent.trim();
-          foundVia = "Data-Test-ID";
+        if (modeSwitcherLabel && modeSwitcherLabel.textContent) {
+          rawText = modeSwitcherLabel.textContent.trim();
+          foundVia = "Mode Switcher Label";
           console.log(`${Utils.getPrefix()} Model raw text found via ${foundVia}: "${rawText}"`);
         } else {
-          console.log(`${Utils.getPrefix()} Model not found via Data-Test-ID.`);
-          // Try #3: Fallback selector
-          const fallbackElement = document.querySelector(".current-mode-title span");
-          if (fallbackElement && fallbackElement.textContent) {
-            rawText = fallbackElement.textContent.trim();
-            foundVia = "Fallback Selector (.current-mode-title)";
+          console.log(`${Utils.getPrefix()} Model not found via Mode Switcher Label.`);
+          // Try #3: Legacy button structure
+          const modelButton = document.querySelector(
+            "button.gds-mode-switch-button.mat-mdc-button-base .logo-pill-label-container span"
+          );
+          if (modelButton && modelButton.textContent) {
+            rawText = modelButton.textContent.trim();
+            foundVia = "Legacy Button Structure";
             console.log(`${Utils.getPrefix()} Model raw text found via ${foundVia}: "${rawText}"`);
           } else {
-            console.log(`${Utils.getPrefix()} Model not found via Fallback Selector.`);
+            console.log(`${Utils.getPrefix()} Model not found via Legacy Button Structure.`);
+            // Try #4: data-test-id
+            const modelElement = document.querySelector(
+              'bard-mode-switcher [data-test-id="attribution-text"] span'
+            );
+            if (modelElement && modelElement.textContent) {
+              rawText = modelElement.textContent.trim();
+              foundVia = "Data-Test-ID";
+              console.log(`${Utils.getPrefix()} Model raw text found via ${foundVia}: "${rawText}"`);
+            } else {
+              console.log(`${Utils.getPrefix()} Model not found via Data-Test-ID.`);
+              // Try #5: Fallback selector
+              const fallbackElement = document.querySelector(".current-mode-title span");
+              if (fallbackElement && fallbackElement.textContent) {
+                rawText = fallbackElement.textContent.trim();
+                foundVia = "Fallback Selector (.current-mode-title)";
+                console.log(`${Utils.getPrefix()} Model raw text found via ${foundVia}: "${rawText}"`);
+              } else {
+                console.log(`${Utils.getPrefix()} Model not found via Fallback Selector.`);
+              }
+            }
           }
         }
       }
