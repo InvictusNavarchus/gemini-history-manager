@@ -54,8 +54,10 @@
 
       StatusIndicator.show("Preparing to track new chat...", "loading", 0);
 
-      // Capture model, prompt, and files BEFORE navigating or starting observation
-      STATE.pendingModelName = ModelDetector.getCurrentModelName();
+      // Capture model and tool BEFORE navigating or starting observation
+      const modelInfo = ModelDetector.getCurrentModelName();
+      STATE.pendingModelName = modelInfo.model;
+      STATE.pendingTool = modelInfo.tool;
       STATE.pendingPrompt = InputExtractor.getPromptText();
       STATE.pendingOriginalPrompt = InputExtractor.getOriginalPromptText(); // Capture original for better comparison
       STATE.pendingAttachedFiles = InputExtractor.getAttachedFiles();
@@ -83,6 +85,7 @@
       STATE.pendingGeminiPlan = ModelDetector.detectGeminiPlan();
 
       console.log(`${Utils.getPrefix()} Captured pending model name: "${STATE.pendingModelName}"`);
+      console.log(`${Utils.getPrefix()} Captured pending tool: "${STATE.pendingTool}"`);
       console.log(`${Utils.getPrefix()} Captured pending prompt: "${STATE.pendingPrompt}"`);
       console.log(`${Utils.getPrefix()} Captured pending original prompt: "${STATE.pendingOriginalPrompt}"`);
       console.log(`${Utils.getPrefix()} Captured pending files:`, STATE.pendingAttachedFiles);

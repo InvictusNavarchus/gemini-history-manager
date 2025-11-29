@@ -16,7 +16,7 @@
           <div class="conversation-title">{{ entry.title || "Untitled Conversation" }}</div>
           <div class="conversation-meta">
             <span class="conversation-date">{{ formatDateForDisplay(parseTimestamp(entry.timestamp)) }}</span>
-            <span class="conversation-model">{{ entry.model || "Unknown" }}</span>
+            <span class="conversation-model">{{ formatModelAndTool(entry) }}</span>
           </div>
         </div>
       </div>
@@ -52,6 +52,16 @@ function handleStartChat() {
 function openConversation(url) {
   Logger.log("ConversationList", "Opening conversation", { url });
   emit("openConversation", url);
+}
+
+// Format model and tool display
+function formatModelAndTool(entry) {
+  const model = entry.model || "Unknown";
+  const tool = entry.tool;
+  if (tool) {
+    return `${tool} (${model})`;
+  }
+  return model;
 }
 </script>
 

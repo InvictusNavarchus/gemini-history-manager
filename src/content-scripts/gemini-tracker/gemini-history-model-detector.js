@@ -2,6 +2,7 @@
   "use strict";
   const Utils = window.GeminiHistory_Utils;
   const MODEL_NAMES = window.GeminiHistory_MODEL_NAMES;
+  const TOOL_NAMES = window.GeminiHistory_TOOL_NAMES;
   const ModelDetector = {
     /**
      * Helper function to normalize color values for comparison
@@ -242,50 +243,92 @@
     },
 
     /**
-     * Detects the Veo version based on tooltip text.
+     * Detects if a model-based tool (Veo or Imagen) is selected.
+     * These tools ARE the model, not features running on top of a model.
      *
-     * @returns {string} - Returns "Veo 3" or "Veo 2" (defaults to "Veo 2" if version can't be determined)
+     * @param {string} toolName - The name of the tool from the deselect button
+     * @returns {string|null} - Returns the model name if it's a model-based tool, null otherwise
      */
-    detectVeoVersion: function () {
-      // Check for tooltip to determine if it's Veo 2 or Veo 3
-      const tooltipContainer = document.querySelector(".cdk-describedby-message-container");
-      if (tooltipContainer) {
-        const tooltips = tooltipContainer.querySelectorAll("[role='tooltip']");
-        for (const tooltip of tooltips) {
-          const tooltipText = tooltip.textContent.trim();
-          console.log(`${Utils.getPrefix()} Found tooltip with text: "${tooltipText}"`);
+    detectModelBasedTool: function (toolName) {
+      const lowerToolName = toolName.toLowerCase();
 
-          if (tooltipText.includes("Veo 3")) {
-            console.log(`${Utils.getPrefix()} Veo 3 is detected via tooltip`);
-            return "Veo 3";
-          } else if (tooltipText.includes("Veo 2")) {
-            console.log(`${Utils.getPrefix()} Veo 2 is detected via tooltip`);
-            return "Veo 2";
-          }
-        }
+      // Check for video generation (Veo)
+      if (lowerToolName.includes("video") || lowerToolName.includes("veo")) {
+        console.log(`${Utils.getPrefix()} Detected Veo (video generation) model`);
+        return "Veo";
       }
 
-      // Fallback to Veo 2 if tooltip detection fails
-      console.log(`${Utils.getPrefix()} Could not determine Veo version, defaulting to Veo 2`);
-      return "Veo 2";
+      // Check for image generation (Imagen)
+      if (lowerToolName.includes("image") || lowerToolName.includes("imagen")) {
+        console.log(`${Utils.getPrefix()} Detected Imagen (image generation) model`);
+        return "Imagen";
+      }
+
+      return null;
     },
 
     /**
-     * Checks if any special tools are activated in the toolbox drawer.
-     * Looks for "Deep Research" and "Video" (Veo 2/3) tools.
+     * Checks if any tools are activated in the toolbox drawer.
+     * Uses the new Nov 2025 UI structure with deselect buttons.
      *
-     * @returns {string|null} - Returns the special model name if detected, or null if none detected
+     * Returns an object with:
+     * - model: The model to use (null if tool doesn't override model)
+     * - tool: The feature tool name (null if no feature tool, or if it's a model-based tool)
+     *
+     * @returns {{model: string|null, tool: string|null}} - Object with detected model override and tool
      */
     checkForSpecialTools: function () {
-      console.log(`${Utils.getPrefix()} Checking for special tools (Deep Research, Veo)...`);
+      console.log(`${Utils.getPrefix()} Checking for activated tools...`);
 
-      // Get all activated tools in the toolbox drawer
+      // NEW: Check for deselect button (indicates an active tool in Nov 2025+ UI)
+      const deselectButton = document.querySelector("button.toolbox-drawer-item-deselect-button");
+
+      if (deselectButton) {
+        // Method 1: Parse from aria-label (most reliable)
+        const ariaLabel = deselectButton.getAttribute("aria-label") || "";
+        const match = ariaLabel.match(/^Deselect (.+)$/);
+
+        if (match) {
+          const toolName = match[1];
+          console.log(`${Utils.getPrefix()} Found activated tool via aria-label: "${toolName}"`);
+
+          // Check if it's a model-based tool (Veo, Imagen)
+          const modelBasedTool = this.detectModelBasedTool(toolName);
+          if (modelBasedTool) {
+            // Model-based tools: the tool IS the model, no separate tool field
+            return { model: modelBasedTool, tool: null };
+          }
+
+          // Feature-based tools: Deep Research, Canvas, etc.
+          // These run on top of a model (Fast/Thinking)
+          return { model: null, tool: toolName };
+        }
+
+        // Method 2: Fallback to label text
+        const labelElement = deselectButton.querySelector(".toolbox-drawer-item-deselect-button-label");
+        if (labelElement) {
+          const labelText = labelElement.textContent.trim();
+          console.log(`${Utils.getPrefix()} Found activated tool via label: "${labelText}"`);
+
+          // Check if it's a model-based tool
+          const modelBasedTool = this.detectModelBasedTool(labelText);
+          if (modelBasedTool) {
+            return { model: modelBasedTool, tool: null };
+          }
+
+          // Feature-based tool
+          return { model: null, tool: labelText };
+        }
+      }
+
+      // LEGACY: Check for old UI structure (pre-Nov 2025)
       const activatedButtons = document.querySelectorAll(
         'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
       );
-      console.log(`${Utils.getPrefix()} Found ${activatedButtons.length} activated tool buttons`);
+      console.log(
+        `${Utils.getPrefix()} Found ${activatedButtons.length} activated tool buttons (legacy check)`
+      );
 
-      // Check each button to see if it's one of our special tools
       for (const button of activatedButtons) {
         const labelElement = button.querySelector(".toolbox-drawer-button-label");
         if (!labelElement) continue;
@@ -293,21 +336,23 @@
         const buttonText = labelElement.textContent.trim();
         console.log(`${Utils.getPrefix()} Found activated button with text: "${buttonText}"`);
 
-        if (buttonText.includes("Deep Research")) {
-          console.log(`${Utils.getPrefix()} Deep Research tool is activated`);
-          return "Deep Research";
+        // Check for model-based tools first
+        const modelBasedTool = this.detectModelBasedTool(buttonText);
+        if (modelBasedTool) {
+          return { model: modelBasedTool, tool: null };
         }
 
-        if (buttonText.includes("Video")) {
-          console.log(`${Utils.getPrefix()} Video tool is activated, checking for Veo version...`);
-          return this.detectVeoVersion();
+        // Legacy Deep Research detection
+        if (buttonText.includes("Deep Research")) {
+          console.log(`${Utils.getPrefix()} Deep Research tool is activated (legacy)`);
+          return { model: null, tool: "Deep Research" };
         }
       }
 
-      // Alternative detection method if the above doesn't work
+      // Alternative legacy detection via icons
       const toolboxDrawer = document.querySelector("toolbox-drawer");
       if (toolboxDrawer) {
-        // Try to find Deep Research button
+        // Try to find Deep Research button via icon
         const deepResearchIcon = toolboxDrawer.querySelector('mat-icon[data-mat-icon-name="travel_explore"]');
         if (deepResearchIcon) {
           const deepResearchButton = deepResearchIcon.closest(
@@ -315,46 +360,46 @@
           );
           if (deepResearchButton) {
             console.log(`${Utils.getPrefix()} Deep Research tool is activated (detected via icon)`);
-            return "Deep Research";
+            return { model: null, tool: "Deep Research" };
           }
         }
 
-        // Try to find Video button
+        // Try to find Video button via icon
         const videoIcon = toolboxDrawer.querySelector('mat-icon[data-mat-icon-name="movie"]');
         if (videoIcon) {
           const videoButton = videoIcon.closest(
             'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
           );
           if (videoButton) {
-            // Log activation using standard prefix
-            console.log(
-              `${Utils.getPrefix()} Video tool is activated (detected via icon), checking for Veo version...`
-            );
-            return this.detectVeoVersion();
+            console.log(`${Utils.getPrefix()} Video tool is activated (detected via icon)`);
+            return { model: "Veo", tool: null };
           }
         }
       }
 
-      return null;
+      return { model: null, tool: null };
     },
 
     /**
      * Attempts to detect the currently selected Gemini model from the UI.
      * Tries multiple selector strategies to find the model name.
-     * Also checks for special activated tools like Deep Research and Veo 2.
+     * Also checks for activated tools and returns both model and tool information.
      *
-     * @returns {string} - The detected model name or 'Unknown' if not found
+     * @returns {{model: string, tool: string|null}} - Object with detected model name and optional tool
      */
     getCurrentModelName: function () {
       console.log(`${Utils.getPrefix()} Attempting to get current model name...`);
 
-      // First, check for special tools that override the model name
-      const specialTool = this.checkForSpecialTools();
-      if (specialTool) {
-        console.log(`${Utils.getPrefix()} Special tool activated: ${specialTool}`);
-        return specialTool;
+      // First, check for activated tools
+      const toolResult = this.checkForSpecialTools();
+
+      // If a model-based tool is active (Veo, Imagen), use that as the model
+      if (toolResult.model) {
+        console.log(`${Utils.getPrefix()} Model-based tool activated: ${toolResult.model}`);
+        return { model: toolResult.model, tool: null };
       }
 
+      // Now detect the underlying model from the UI
       let rawText = null;
       let foundVia = null;
 
@@ -413,25 +458,30 @@
         }
       }
 
+      let model = "Unknown";
       if (rawText) {
         const sortedKeys = Object.keys(MODEL_NAMES).sort((a, b) => b.length - a.length);
         for (const key of sortedKeys) {
           if (rawText.startsWith(key)) {
-            const model = MODEL_NAMES[key];
+            model = MODEL_NAMES[key];
             console.log(`${Utils.getPrefix()} Matched known model: "${model}" from raw text "${rawText}"`);
-            return model;
+            break;
           }
         }
-        // Log fallback to raw text with standard prefix
-        console.log(
-          `${Utils.getPrefix()} Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`
-        );
-        return rawText; // Return raw text if no prefix matches
+        if (model === "Unknown") {
+          // Log fallback to raw text with standard prefix
+          console.log(
+            `${Utils.getPrefix()} Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`
+          );
+          model = rawText;
+        }
+      } else {
+        // Log warning using standard prefix
+        console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
       }
 
-      // Log warning using standard prefix
-      console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
-      return "Unknown";
+      // Return both model and tool (tool from earlier check)
+      return { model, tool: toolResult.tool };
     },
   };
 

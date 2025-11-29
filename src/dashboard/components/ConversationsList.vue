@@ -51,7 +51,7 @@
           <div class="conversation-meta">
             <div class="meta-left">
               <span>{{ formatDate(entry.timestamp) }}</span>
-              <span class="conversation-model">{{ entry.model || "Unknown" }}</span>
+              <span class="conversation-model">{{ formatModelAndTool(entry) }}</span>
               <span v-if="entry.geminiPlan" class="conversation-plan" :class="entry.geminiPlan.toLowerCase()">
                 {{ entry.geminiPlan }}
               </span>
@@ -198,6 +198,16 @@ function escapeHtml(str) {
 // Format date
 function formatDate(timestamp) {
   return dayjsFormatDate(timestamp);
+}
+
+// Format model and tool display
+function formatModelAndTool(entry) {
+  const model = entry.model || "Unknown";
+  const tool = entry.tool;
+  if (tool) {
+    return `${tool} (${model})`;
+  }
+  return model;
 }
 </script>
 

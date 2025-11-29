@@ -17,13 +17,24 @@
     "2.0 Flash": "2.0 Flash",
     "2.5 Flash": "2.5 Flash",
     "2.5 Pro": "2.5 Pro",
-    // Special tools
-    "Deep Research": "Deep Research",
-    "Veo 2": "Veo 2",
-    "Veo 3": "Veo 3",
+    // Special models (image/video generation)
+    Veo: "Veo",
+    Imagen: "Imagen",
     Personalization: "Personalization",
+  };
+
+  // Known tools that can be activated in the toolbox
+  // These are features that run on top of a model
+  const TOOL_NAMES = {
+    "Deep Research": "Deep Research",
+    "Create videos": "Create videos",
+    "Create images": "Create images",
+    Canvas: "Canvas",
+    "Guided Learning": "Guided Learning",
+    "Dynamic view": "Dynamic view",
   };
 
   window.GeminiHistory_CONFIG = CONFIG;
   window.GeminiHistory_MODEL_NAMES = MODEL_NAMES;
+  window.GeminiHistory_TOOL_NAMES = TOOL_NAMES;
 })();
