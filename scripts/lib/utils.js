@@ -147,9 +147,7 @@ export function updateVersionFile(file, newVersion, dryRun = false) {
  * @returns {string} The current version string.
  */
 export function getCurrentVersion() {
-  const packageJsonPath = path.join(ROOT_DIR, "package.json");
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-  return packageJson.version;
+  return getPackageJson().version;
 }
 
 /**

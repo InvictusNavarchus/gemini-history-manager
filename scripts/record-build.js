@@ -35,6 +35,11 @@ const distFirefoxDir = path.join(ROOT_DIR, "dist-firefox");
 const distChromeDir = path.join(ROOT_DIR, "dist-chrome");
 const distZipDir = path.join(ROOT_DIR, "dist-zip");
 
+// Warn if no build artifacts exist
+if (!fs.existsSync(distFirefoxDir) && !fs.existsSync(distChromeDir) && !fs.existsSync(distZipDir)) {
+  console.warn("⚠ Warning: No build artifacts found. Did you run 'bun build:all' first?");
+}
+
 // Handle Firefox dist directory
 if (fs.existsSync(distFirefoxDir)) {
   const distFirefoxTargetDir = path.join(buildDir, "dist-firefox");
