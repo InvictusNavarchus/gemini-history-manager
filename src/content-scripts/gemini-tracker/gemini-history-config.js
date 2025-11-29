@@ -26,10 +26,12 @@
 
   // Known tools that can be activated in the toolbox
   // These are features that run on top of a model
+  // Keys are matching patterns (case-insensitive substring matching for resilience)
+  // Values are normalized/canonical names stored and displayed to users
   const TOOL_NAMES = {
     "Deep Research": "Deep Research",
-    "Create videos": "Video",
-    "Create images": "Image",
+    video: "Video", // Matches "Create videos", "Generate videos", "Video", etc.
+    image: "Image", // Matches "Create images", "Generate images", "Image", etc.
     Canvas: "Canvas",
     "Guided Learning": "Guided Learning",
     "Dynamic view": "Dynamic view",
