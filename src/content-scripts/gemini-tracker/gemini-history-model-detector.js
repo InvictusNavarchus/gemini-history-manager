@@ -2,6 +2,7 @@
   "use strict";
   const Utils = window.GeminiHistory_Utils;
   const MODEL_NAMES = window.GeminiHistory_MODEL_NAMES;
+  const TOOL_NAMES = window.GeminiHistory_TOOL_NAMES;
   const ModelDetector = {
     /**
      * Helper function to normalize color values for comparison
@@ -242,6 +243,31 @@
     },
 
     /**
+     * Normalizes a tool name to a consistent format.
+     * Matches against known tool names, similar to model normalization.
+     *
+     * @param {string} rawToolName - The raw tool name from the UI
+     * @returns {string} - The normalized tool name
+     */
+    normalizeTool: function (rawToolName) {
+      if (!rawToolName) return null;
+
+      // Sort keys by length (longest first) to match more specific names first
+      const sortedKeys = Object.keys(TOOL_NAMES).sort((a, b) => b.length - a.length);
+      for (const key of sortedKeys) {
+        // Case-insensitive check if the raw name contains the key
+        if (rawToolName.toLowerCase().includes(key.toLowerCase())) {
+          console.log(`${Utils.getPrefix()} Normalized tool: "${rawToolName}" -> "${TOOL_NAMES[key]}"`);
+          return TOOL_NAMES[key];
+        }
+      }
+
+      // Fallback: return raw name if no match found
+      console.log(`${Utils.getPrefix()} Tool "${rawToolName}" didn't match known tools, using raw name`);
+      return rawToolName;
+    },
+
+    /**
      * Checks if any tools are activated in the toolbox drawer.
      * Uses the new Nov 2025 UI structure with deselect buttons.
      * All tools from the tool selection UI are treated as tools (not models).
@@ -263,7 +289,7 @@
         if (match) {
           const toolName = match[1];
           console.log(`${Utils.getPrefix()} Found activated tool via aria-label: "${toolName}"`);
-          return toolName;
+          return this.normalizeTool(toolName);
         }
 
         // Method 2: Fallback to label text
@@ -272,7 +298,7 @@
           const labelText = labelElement.textContent.trim();
           if (labelText) {
             console.log(`${Utils.getPrefix()} Found activated tool via label: "${labelText}"`);
-            return labelText;
+            return this.normalizeTool(labelText);
           }
         }
       }
@@ -292,7 +318,7 @@
         const buttonText = labelElement.textContent.trim();
         if (!buttonText) continue;
         console.log(`${Utils.getPrefix()} Found activated button with text: "${buttonText}"`);
-        return buttonText;
+        return this.normalizeTool(buttonText);
       }
 
       // Alternative legacy detection via icons
