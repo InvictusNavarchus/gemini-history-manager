@@ -102,17 +102,10 @@ bun release --patch
 bun build:all --clean --record
 bun compare-checksums
 
-# 2. Version bump only
-bun bump --patch
+# 2. Use release with --skip-github for version bump + git operations
+bun release --patch --skip-github
 
-# 3. Manual git operations
-git add package.json src/manifest-*.json README.md
-git commit -m "chore: bump version to v1.2.4"
-git push
-git tag -a "v1.2.4" -m "Release 1.2.4"
-git push origin "v1.2.4"
-
-# 4. Create GitHub release
+# 3. Create GitHub release separately
 bun release:create
 ```
 
@@ -361,22 +354,23 @@ bun dev-helper invalid-command         # Shows help
 **What happens without arguments:**
 - Shows help message with all available subcommands
 
-### Legacy Scripts (Still Available)
-
-#### `bump-version.js`
-Standalone version bumping utility.
+### Supporting Scripts
 
 #### `record-build.js`
 Records builds in `dist-record/` for checksum comparison.
 
-#### `compare-checksums-wrapper.js` & `compare_checksums.py`
-Compares checksums across different builds of the same version. Requires at least 2 recorded builds (build-1, build-2, etc.) to perform a meaningful comparison.
+#### `compare-checksums.js`
+Compares checksums across different builds of the same version to verify build reproducibility. Requires at least 2 recorded builds (build-1, build-2, etc.) to perform a meaningful comparison.
+
+**Usage:**
+```bash
+bun compare-checksums              # Uses current version from package.json
+bun compare-checksums 0.18.8       # Specify version explicitly
+bun compare-checksums --output report.json  # Save detailed report
+```
 
 #### `create-github-release.js`
 Standalone GitHub release creation.
-
-#### `post-bump.sh`
-Shell script for git operations after version bump.
 
 ## Migration Guide
 
@@ -386,7 +380,7 @@ Shell script for git operations after version bump.
 |-------------|-------------|-------|
 | `bun run build:all && bun run package:firefox && bun run package:chrome` | `bun package` | Simplified |
 | `bun run package && bun run record-build` | `bun package-record` | Combined |
-| `bun run bump -- --patch && scripts/post-bump.sh` | `bun release:patch` | Unified |
+| `bun bump --patch && scripts/post-bump.sh` | `bun release --patch` | Unified (legacy scripts removed) |
 | Multiple manual steps | `bun release --patch` | Single command |
 
 ### Benefits of Streamlined Scripts
@@ -409,7 +403,6 @@ Scripts read configuration from:
 - Node.js (ES modules support)
 - bun package manager
 - GitHub CLI (`gh`) for release creation
-- Python 3 for checksum comparison
 - Git for version control operations
 
 ## Troubleshooting

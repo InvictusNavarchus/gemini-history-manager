@@ -1,25 +1,12 @@
+/**
+ * @file create-github-release.js
+ * Standalone script to create a GitHub release for the current version.
+ * Usage: bun release:create [--dry-run]
+ */
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
-
-/**
- * Executes a shell command and streams its output. Exits the process on error.
- * @param {string} command - The command to execute.
- * @param {boolean} dryRun - If true, logs the command instead of executing it.
- */
-function runCommand(command, dryRun = false) {
-  console.log(`\n$ ${command}`);
-  if (dryRun) {
-    console.log("--- DRY RUN: Command not executed. ---");
-    return;
-  }
-  try {
-    execSync(command, { stdio: "inherit" });
-  } catch (error) {
-    console.error("\nCommand failed. Aborting.");
-    process.exit(1);
-  }
-}
+import { runCommand, getCurrentVersion, ROOT_DIR } from "./lib/utils.js";
 
 /**
  * The main function to orchestrate the release creation process.
@@ -39,22 +26,16 @@ function main() {
     process.exit(1);
   }
 
-  // 2. Get the current version from package.json
-  const packageJsonPath = path.resolve("package.json");
-  if (!fs.existsSync(packageJsonPath)) {
-    console.error("Error: package.json not found. Please run this script from the project root.");
-    process.exit(1);
-  }
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-  const version = packageJson.version;
+  // 2. Get the current version
+  const version = getCurrentVersion();
   const tagName = `v${version}`;
   console.log(`Preparing to create GitHub release for version: ${version} (tag: ${tagName})`);
 
   // 3. Define paths for release notes and assets
   const releaseNotesFile = `${tagName}.md`;
-  const releaseNotesPath = path.resolve("release-notes", releaseNotesFile);
-  const chromeAssetPath = path.resolve(`dist-zip/gemini_history_manager_chrome-${version}.zip`);
-  const firefoxAssetPath = path.resolve(`dist-zip/gemini_history_manager_firefox-${version}.zip`);
+  const releaseNotesPath = path.join(ROOT_DIR, "release-notes", releaseNotesFile);
+  const chromeAssetPath = path.join(ROOT_DIR, `dist-zip/gemini_history_manager_chrome-${version}.zip`);
+  const firefoxAssetPath = path.join(ROOT_DIR, `dist-zip/gemini_history_manager_firefox-${version}.zip`);
 
   // 4. Check if all required files exist
   const requiredFiles = [releaseNotesPath, chromeAssetPath, firefoxAssetPath];
@@ -109,7 +90,7 @@ function main() {
     "${chromeAssetPath}" \\
     "${firefoxAssetPath}"`;
 
-  runCommand(command, isDryRun);
+  runCommand(command, { dryRun: isDryRun });
 
   if (!isDryRun) {
     console.log(`\n✅ Successfully created GitHub release for ${tagName}.`);

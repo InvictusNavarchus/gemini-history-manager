@@ -5,29 +5,7 @@
  */
 import fs from "fs";
 import { execSync } from "child_process";
-
-const RELEASE_FILES = ["src/manifest-chrome.json", "src/manifest-firefox.json", "package.json", "README.md"];
-
-/**
- * Executes a command with proper error handling
- */
-function runCommand(command, options = {}) {
-  const { dryRun = false, silent = false } = options;
-
-  if (!silent) console.log(`\n$ ${command}`);
-
-  if (dryRun) {
-    console.log("--- DRY RUN: Command not executed ---");
-    return;
-  }
-
-  try {
-    return execSync(command, { stdio: silent ? "pipe" : "inherit", encoding: "utf-8" });
-  } catch (error) {
-    console.error(`\nCommand failed: ${command}`);
-    process.exit(1);
-  }
-}
+import { runCommand, bumpVersion, updateVersionFile, getCurrentVersion, VERSION_FILES } from "./lib/utils.js";
 
 /**
  * Parse command line arguments
@@ -58,63 +36,6 @@ function parseArgs() {
     dryRun: args.includes("--dry-run"),
     skipGithub: args.includes("--skip-github"),
   };
-}
-
-/**
- * Bump version in all relevant files
- */
-function bumpVersion(currentVersion, type) {
-  let [major, minor, patch] = currentVersion.split(".").map(Number);
-
-  if (type === "major") {
-    major++;
-    minor = 0;
-    patch = 0;
-  } else if (type === "minor") {
-    minor++;
-    patch = 0;
-  } else if (type === "patch") {
-    patch++;
-  }
-
-  return [major, minor, patch].join(".");
-}
-
-/**
- * Update version in JSON files
- */
-function updateJsonFile(file, newVersion, dryRun) {
-  if (dryRun) {
-    console.log(`DRY RUN: Would update ${file} to version ${newVersion}`);
-    return;
-  }
-
-  const content = JSON.parse(fs.readFileSync(file, "utf-8"));
-  content.version = newVersion;
-  fs.writeFileSync(file, JSON.stringify(content, null, 2) + "\n");
-  console.log(`Updated ${file} to version ${newVersion}`);
-}
-
-/**
- * Update version badge in README
- */
-function updateReadmeBadge(file, newVersion, dryRun) {
-  if (dryRun) {
-    console.log(`DRY RUN: Would update README badge to version ${newVersion}`);
-    return;
-  }
-
-  const content = fs.readFileSync(file, "utf-8");
-  const versionBadgeRegex =
-    /(https:\/\/img\.shields\.io\/badge\/version-v)([0-9]+\.[0-9]+\.[0-9]+)(-blue\.svg)/;
-
-  if (!versionBadgeRegex.test(content)) {
-    throw new Error(`No version badge found in ${file}`);
-  }
-
-  const updatedContent = content.replace(versionBadgeRegex, `$1${newVersion}$3`);
-  fs.writeFileSync(file, updatedContent);
-  console.log(`Updated ${file} badge to version ${newVersion}`);
 }
 
 /**
@@ -188,6 +109,96 @@ async function createReleaseNotes(version, dryRun) {
 }
 
 /**
+ * Run pre-flight checks before release
+ */
+function runPreflightChecks(options = {}) {
+  const { dryRun = false, skipGithub = false } = options;
+
+  console.log("=== Running Pre-flight Checks ===\n");
+
+  // 1. Check if working directory is clean
+  console.log("Checking working directory status...");
+  try {
+    const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim();
+    if (status) {
+      console.error("Error: Working directory is not clean. Please commit or stash your changes first.");
+      console.error("\nUncommitted changes:");
+      console.error(status);
+      process.exit(1);
+    }
+    console.log("  ✓ Working directory is clean");
+  } catch (error) {
+    console.error("Error: Failed to check git status. Are you in a git repository?");
+    process.exit(1);
+  }
+
+  // 2. Check if on main branch (warning only, not blocking)
+  console.log("Checking current branch...");
+  try {
+    const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim();
+    if (branch !== "main" && branch !== "master") {
+      console.warn(`  ⚠ Warning: You are on branch '${branch}', not 'main' or 'master'.`);
+      console.warn("    Releases are typically done from the main branch.");
+    } else {
+      console.log(`  ✓ On branch '${branch}'`);
+    }
+  } catch (error) {
+    console.warn("  ⚠ Warning: Could not determine current branch.");
+  }
+
+  // 3. Check if local branch is up to date with remote
+  console.log("Checking if branch is up to date with remote...");
+  try {
+    execSync("git fetch", { stdio: "pipe" });
+    const localHash = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
+    const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim();
+    let remoteHash;
+    try {
+      remoteHash = execSync(`git rev-parse origin/${branch}`, { encoding: "utf-8" }).trim();
+    } catch {
+      // Remote branch might not exist
+      console.log("  ✓ No remote tracking branch (new branch)");
+      remoteHash = localHash;
+    }
+    if (localHash !== remoteHash) {
+      const behind = execSync(`git rev-list --count HEAD..origin/${branch}`, { encoding: "utf-8" }).trim();
+      const ahead = execSync(`git rev-list --count origin/${branch}..HEAD`, { encoding: "utf-8" }).trim();
+      if (parseInt(behind) > 0) {
+        console.error(`Error: Your branch is ${behind} commit(s) behind origin/${branch}.`);
+        console.error("Please pull the latest changes first: git pull");
+        process.exit(1);
+      }
+      if (parseInt(ahead) > 0) {
+        console.log(`  ✓ Branch is ${ahead} commit(s) ahead of remote (will be pushed)`);
+      }
+    } else {
+      console.log("  ✓ Branch is up to date with remote");
+    }
+  } catch (error) {
+    console.warn("  ⚠ Warning: Could not check remote status. Continuing anyway.");
+  }
+
+  // 4. Check GitHub CLI authentication (only if not skipping GitHub)
+  if (!skipGithub) {
+    console.log("Checking GitHub CLI authentication...");
+    try {
+      execSync("gh auth status", { stdio: "pipe" });
+      console.log("  ✓ GitHub CLI is authenticated");
+    } catch (error) {
+      console.error("Error: GitHub CLI is not authenticated.");
+      console.error(
+        "Please run 'gh auth login' to authenticate, or use --skip-github to skip GitHub release."
+      );
+      process.exit(1);
+    }
+  } else {
+    console.log("Skipping GitHub CLI check (--skip-github specified)");
+  }
+
+  console.log("\n✓ All pre-flight checks passed!\n");
+}
+
+/**
  * Get repository URL from git remote or package.json
  */
 function getRepositoryUrl() {
@@ -231,9 +242,15 @@ async function main() {
     console.log(">>> DRY RUN MODE ENABLED <<<\n");
   }
 
+  // Run pre-flight checks (skip in dry-run mode since we won't actually do anything)
+  if (!dryRun) {
+    runPreflightChecks({ dryRun, skipGithub });
+  } else {
+    console.log("=== Pre-flight Checks (skipped in dry-run mode) ===\n");
+  }
+
   // Get current version
-  const packageJson = JSON.parse(fs.readFileSync("package.json", "utf-8"));
-  const currentVersion = packageJson.version;
+  const currentVersion = getCurrentVersion();
   const newVersion = bumpVersion(currentVersion, versionType);
   const tagName = `v${newVersion}`;
 
@@ -241,27 +258,21 @@ async function main() {
 
   // 1. Update version in all files
   console.log("\n=== Updating Version Files ===");
-  for (const file of RELEASE_FILES) {
-    if (file === "README.md") {
-      updateReadmeBadge(file, newVersion, dryRun);
-    } else {
-      updateJsonFile(file, newVersion, dryRun);
-    }
+  for (const file of VERSION_FILES) {
+    updateVersionFile(file, newVersion, dryRun);
   }
 
   // 2. Create release notes
   console.log("\n=== Creating Release Notes ===");
   const releaseNotesFile = await createReleaseNotes(newVersion, dryRun);
 
-  // 3. Build and package
+  // 3. Build, package, and record
   console.log("\n=== Building and Packaging ===");
-  runCommand("bun run build:all", { dryRun });
-  runCommand("bun run package", { dryRun });
-  runCommand("bun run record-build", { dryRun });
+  runCommand("bun run build:all --record", { dryRun });
 
   // 4. Git operations
   console.log("\n=== Git Operations ===");
-  const filesToAdd = [...RELEASE_FILES, releaseNotesFile].join(" ");
+  const filesToAdd = [...VERSION_FILES, releaseNotesFile].join(" ");
   runCommand(`git add ${filesToAdd}`, { dryRun });
   runCommand(`git commit -m "chore: bump version to ${tagName}"`, { dryRun });
   runCommand("git push", { dryRun });
