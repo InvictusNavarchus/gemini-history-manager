@@ -28,8 +28,8 @@
   // These are features that run on top of a model
   const TOOL_NAMES = {
     "Deep Research": "Deep Research",
-    "Create videos": "Create videos",
-    "Create images": "Create images",
+    "Create videos": "Video",
+    "Create images": "Image",
     Canvas: "Canvas",
     "Guided Learning": "Guided Learning",
     "Dynamic view": "Dynamic view",
