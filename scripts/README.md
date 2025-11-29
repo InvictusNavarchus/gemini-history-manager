@@ -354,15 +354,20 @@ bun dev-helper invalid-command         # Shows help
 **What happens without arguments:**
 - Shows help message with all available subcommands
 
-### Legacy Scripts (Still Available)
+### Supporting Scripts
 
 #### `record-build.js`
 Records builds in `dist-record/` for checksum comparison.
 
-#### `compare-checksums-wrapper.js` & `compare_checksums.py`
-Compares checksums across different builds of the same version. Requires at least 2 recorded builds (build-1, build-2, etc.) to perform a meaningful comparison.
+#### `compare-checksums.js`
+Compares checksums across different builds of the same version to verify build reproducibility. Requires at least 2 recorded builds (build-1, build-2, etc.) to perform a meaningful comparison.
 
-**Note:** The Python script has been replaced with a pure JavaScript implementation (`compare-checksums.js`) to reduce runtime dependencies.
+**Usage:**
+```bash
+bun compare-checksums              # Uses current version from package.json
+bun compare-checksums 0.18.8       # Specify version explicitly
+bun compare-checksums --output report.json  # Save detailed report
+```
 
 #### `create-github-release.js`
 Standalone GitHub release creation.
