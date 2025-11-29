@@ -118,6 +118,7 @@
         gemId,
         gemName,
         gemUrl,
+        _v: CONFIG.SCHEMA_VERSION,
       };
       console.log(`${Utils.getPrefix()} Attempting to add history entry:`, entryData);
 
