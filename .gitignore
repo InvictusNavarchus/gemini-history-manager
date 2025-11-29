@@ -20,6 +20,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# HTML Samples (for scraping purposes)
+html-samples/
+
 # Others
 digest.txt
 gitingest-dump/
