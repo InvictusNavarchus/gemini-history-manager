@@ -55,7 +55,7 @@
       StatusIndicator.show("Preparing to track new chat...", "loading", 0);
 
       // Capture model and tool BEFORE navigating or starting observation
-      const modelInfo = ModelDetector.getCurrentModelName();
+      const modelInfo = ModelDetector.getCurrentModelName() || { model: "Unknown", tool: null };
       STATE.pendingModelName = modelInfo.model;
       STATE.pendingTool = modelInfo.tool;
       STATE.pendingPrompt = InputExtractor.getPromptText();

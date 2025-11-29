@@ -91,7 +91,7 @@
 
 <script setup>
 import { defineProps, defineEmits, onMounted, onUnmounted, ref, computed } from "vue";
-import { parseTimestamp, Logger } from "../../lib/utils.js";
+import { parseTimestamp, Logger, formatModelAndTool } from "../../lib/utils.js";
 
 // Define props
 const props = defineProps({
@@ -113,12 +113,7 @@ const isCopied = ref(false);
 
 // Computed properties
 const displayModelAndTool = computed(() => {
-  const model = props.conversation.model || "Unknown";
-  const tool = props.conversation.tool;
-  if (tool) {
-    return `${tool} (${model})`;
-  }
-  return model;
+  return formatModelAndTool(props.conversation);
 });
 
 // Component lifecycle hooks

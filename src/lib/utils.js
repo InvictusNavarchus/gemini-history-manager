@@ -155,5 +155,23 @@ export function initDayjsPlugins() {
 // Re-export theme management functions
 export * from "./themeManager";
 
+/**
+ * Formats model and tool for display.
+ * Shows "Tool (Model)" when a tool is used, otherwise just the model.
+ *
+ * @param {Object} entry - The history entry object with model and tool fields
+ * @param {string} [entry.model] - The model name
+ * @param {string|null} [entry.tool] - The tool name (if any)
+ * @returns {string} Formatted display string
+ */
+export function formatModelAndTool(entry) {
+  const model = entry?.model || "Unknown";
+  const tool = entry?.tool;
+  if (tool) {
+    return `${tool} (${model})`;
+  }
+  return model;
+}
+
 // No need to export to window anymore
 // We're using ES modules now and can import directly

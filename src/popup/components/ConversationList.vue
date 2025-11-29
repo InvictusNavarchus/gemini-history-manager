@@ -26,7 +26,7 @@
 
 <script setup>
 import { defineProps, defineEmits } from "vue";
-import { Logger, parseTimestamp, formatDateForDisplay } from "../../lib/utils.js";
+import { Logger, parseTimestamp, formatDateForDisplay, formatModelAndTool } from "../../lib/utils.js";
 
 // Define props
 const props = defineProps({
@@ -52,16 +52,6 @@ function handleStartChat() {
 function openConversation(url) {
   Logger.log("ConversationList", "Opening conversation", { url });
   emit("openConversation", url);
-}
-
-// Format model and tool display
-function formatModelAndTool(entry) {
-  const model = entry.model || "Unknown";
-  const tool = entry.tool;
-  if (tool) {
-    return `${tool} (${model})`;
-  }
-  return model;
 }
 </script>
 

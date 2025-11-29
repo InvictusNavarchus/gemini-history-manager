@@ -81,7 +81,7 @@
 <script setup>
 import Logger from "../../lib/logger.js";
 import { defineProps, defineEmits, computed } from "vue";
-import { dayjsFormatDate } from "../../lib/utils.js";
+import { dayjsFormatDate, formatModelAndTool } from "../../lib/utils.js";
 
 // Define props
 const props = defineProps({
@@ -198,16 +198,6 @@ function escapeHtml(str) {
 // Format date
 function formatDate(timestamp) {
   return dayjsFormatDate(timestamp);
-}
-
-// Format model and tool display
-function formatModelAndTool(entry) {
-  const model = entry.model || "Unknown";
-  const tool = entry.tool;
-  if (tool) {
-    return `${tool} (${model})`;
-  }
-  return model;
 }
 </script>
 

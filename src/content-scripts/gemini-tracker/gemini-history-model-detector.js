@@ -2,7 +2,6 @@
   "use strict";
   const Utils = window.GeminiHistory_Utils;
   const MODEL_NAMES = window.GeminiHistory_MODEL_NAMES;
-  const TOOL_NAMES = window.GeminiHistory_TOOL_NAMES;
   const ModelDetector = {
     /**
      * Helper function to normalize color values for comparison
