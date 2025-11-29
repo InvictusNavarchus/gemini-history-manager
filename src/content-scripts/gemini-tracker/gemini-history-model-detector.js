@@ -269,10 +269,12 @@
 
         // Method 2: Fallback to label text
         const labelElement = deselectButton.querySelector(".toolbox-drawer-item-deselect-button-label");
-        if (labelElement) {
+        if (labelElement && labelElement.textContent) {
           const labelText = labelElement.textContent.trim();
-          console.log(`${Utils.getPrefix()} Found activated tool via label: "${labelText}"`);
-          return labelText;
+          if (labelText) {
+            console.log(`${Utils.getPrefix()} Found activated tool via label: "${labelText}"`);
+            return labelText;
+          }
         }
       }
 
@@ -286,9 +288,10 @@
 
       for (const button of activatedButtons) {
         const labelElement = button.querySelector(".toolbox-drawer-button-label");
-        if (!labelElement) continue;
+        if (!labelElement || !labelElement.textContent) continue;
 
         const buttonText = labelElement.textContent.trim();
+        if (!buttonText) continue;
         console.log(`${Utils.getPrefix()} Found activated button with text: "${buttonText}"`);
         return buttonText;
       }
