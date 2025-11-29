@@ -17,9 +17,6 @@
     "2.0 Flash": "2.0 Flash",
     "2.5 Flash": "2.5 Flash",
     "2.5 Pro": "2.5 Pro",
-    // Special models (image/video generation)
-    Veo: "Veo",
-    Imagen: "Imagen",
     Personalization: "Personalization",
   };
 

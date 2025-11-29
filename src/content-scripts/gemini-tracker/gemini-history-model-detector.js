@@ -243,39 +243,12 @@
     },
 
     /**
-     * Detects if a model-based tool (Veo or Imagen) is selected.
-     * These tools ARE the model, not features running on top of a model.
-     *
-     * @param {string} toolName - The name of the tool from the deselect button
-     * @returns {string|null} - Returns the model name if it's a model-based tool, null otherwise
-     */
-    detectModelBasedTool: function (toolName) {
-      const lowerToolName = toolName.toLowerCase();
-
-      // Check for video generation (Veo)
-      if (lowerToolName.includes("video") || lowerToolName.includes("veo")) {
-        console.log(`${Utils.getPrefix()} Detected Veo (video generation) model`);
-        return "Veo";
-      }
-
-      // Check for image generation (Imagen)
-      if (lowerToolName.includes("image") || lowerToolName.includes("imagen")) {
-        console.log(`${Utils.getPrefix()} Detected Imagen (image generation) model`);
-        return "Imagen";
-      }
-
-      return null;
-    },
-
-    /**
      * Checks if any tools are activated in the toolbox drawer.
      * Uses the new Nov 2025 UI structure with deselect buttons.
+     * All tools from the tool selection UI are treated as tools (not models).
+     * Models are only Fast/Thinking (or legacy versions).
      *
-     * Returns an object with:
-     * - model: The model to use (null if tool doesn't override model)
-     * - tool: The feature tool name (null if no feature tool, or if it's a model-based tool)
-     *
-     * @returns {{model: string|null, tool: string|null}} - Object with detected model override and tool
+     * @returns {string|null} - The activated tool name, or null if no tool is activated
      */
     checkForSpecialTools: function () {
       console.log(`${Utils.getPrefix()} Checking for activated tools...`);
@@ -291,17 +264,7 @@
         if (match) {
           const toolName = match[1];
           console.log(`${Utils.getPrefix()} Found activated tool via aria-label: "${toolName}"`);
-
-          // Check if it's a model-based tool (Veo, Imagen)
-          const modelBasedTool = this.detectModelBasedTool(toolName);
-          if (modelBasedTool) {
-            // Model-based tools: the tool IS the model, no separate tool field
-            return { model: modelBasedTool, tool: null };
-          }
-
-          // Feature-based tools: Deep Research, Canvas, etc.
-          // These run on top of a model (Fast/Thinking)
-          return { model: null, tool: toolName };
+          return toolName;
         }
 
         // Method 2: Fallback to label text
@@ -309,15 +272,7 @@
         if (labelElement) {
           const labelText = labelElement.textContent.trim();
           console.log(`${Utils.getPrefix()} Found activated tool via label: "${labelText}"`);
-
-          // Check if it's a model-based tool
-          const modelBasedTool = this.detectModelBasedTool(labelText);
-          if (modelBasedTool) {
-            return { model: modelBasedTool, tool: null };
-          }
-
-          // Feature-based tool
-          return { model: null, tool: labelText };
+          return labelText;
         }
       }
 
@@ -335,18 +290,7 @@
 
         const buttonText = labelElement.textContent.trim();
         console.log(`${Utils.getPrefix()} Found activated button with text: "${buttonText}"`);
-
-        // Check for model-based tools first
-        const modelBasedTool = this.detectModelBasedTool(buttonText);
-        if (modelBasedTool) {
-          return { model: modelBasedTool, tool: null };
-        }
-
-        // Legacy Deep Research detection
-        if (buttonText.includes("Deep Research")) {
-          console.log(`${Utils.getPrefix()} Deep Research tool is activated (legacy)`);
-          return { model: null, tool: "Deep Research" };
-        }
+        return buttonText;
       }
 
       // Alternative legacy detection via icons
@@ -360,7 +304,7 @@
           );
           if (deepResearchButton) {
             console.log(`${Utils.getPrefix()} Deep Research tool is activated (detected via icon)`);
-            return { model: null, tool: "Deep Research" };
+            return "Deep Research";
           }
         }
 
@@ -372,12 +316,12 @@
           );
           if (videoButton) {
             console.log(`${Utils.getPrefix()} Video tool is activated (detected via icon)`);
-            return { model: "Veo", tool: null };
+            return "Create videos";
           }
         }
       }
 
-      return { model: null, tool: null };
+      return null;
     },
 
     /**
@@ -385,21 +329,21 @@
      * Tries multiple selector strategies to find the model name.
      * Also checks for activated tools and returns both model and tool information.
      *
+     * Models are always Fast/Thinking (or legacy versions).
+     * Tools are everything from the tool selection UI (Deep Research, Create images, Create videos, etc.)
+     *
      * @returns {{model: string, tool: string|null}} - Object with detected model name and optional tool
      */
     getCurrentModelName: function () {
       console.log(`${Utils.getPrefix()} Attempting to get current model name...`);
 
-      // First, check for activated tools
-      const toolResult = this.checkForSpecialTools();
-
-      // If a model-based tool is active (Veo, Imagen), use that as the model
-      if (toolResult.model) {
-        console.log(`${Utils.getPrefix()} Model-based tool activated: ${toolResult.model}`);
-        return { model: toolResult.model, tool: null };
+      // Check for activated tools (all tools from the tool selection UI)
+      const activatedTool = this.checkForSpecialTools();
+      if (activatedTool) {
+        console.log(`${Utils.getPrefix()} Tool activated: ${activatedTool}`);
       }
 
-      // Now detect the underlying model from the UI
+      // Always detect the underlying model from the UI (Fast/Thinking)
       let rawText = null;
       let foundVia = null;
 
@@ -480,8 +424,8 @@
         console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
       }
 
-      // Return both model and tool (tool from earlier check)
-      return { model, tool: toolResult.tool };
+      // Return both model and tool
+      return { model, tool: activatedTool };
     },
   };
 
