@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
-import { fileURLToPath } from "url";
-import path from "path";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import fs from "fs-extra";
 import { globSync } from "glob";
 import vue from "@vitejs/plugin-vue"; // Import the Vue plugin

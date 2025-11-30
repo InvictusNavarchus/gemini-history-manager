@@ -3,8 +3,8 @@
  * Unified release script that handles version bumping, building, packaging, and GitHub release creation.
  * Usage: bun release --[major|minor|patch] [--dry-run] [--skip-github]
  */
-import fs from "fs";
-import { execSync } from "child_process";
+import fs from "node:fs";
+import { execSync } from "node:child_process";
 import { runCommand, bumpVersion, updateVersionFile, getCurrentVersion, VERSION_FILES } from "./lib/utils.js";
 
 /**
