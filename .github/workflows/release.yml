@@ -1,11 +1,16 @@
 # GitHub Actions workflow for automated releases
-# Triggered when a release PR is merged to main
+# Triggered when a release commit is pushed to main
 #
 # This workflow:
-# 1. Detects version changes in package.json
+# 1. Detects release commits (matching "chore: release vX.X.X")
 # 2. Builds the extension for Chrome and Firefox
 # 3. Creates a git tag
 # 4. Creates a GitHub release with the built assets
+#
+# To trigger a release:
+# 1. Run: bun release --patch (or --minor, --major)
+# 2. Edit release notes and commit
+# 3. Create PR and merge to main
 
 name: Release
 
@@ -32,15 +37,21 @@ jobs:
       - name: Check commit message and version change
         id: check
         run: |
-          # Check if this is a release commit
+          # Get the commit message (handle merge commits)
           COMMIT_MSG=$(git log -1 --pretty=%B)
           echo "Commit message: $COMMIT_MSG"
 
-          # Match commits like "chore: release v0.19.0" or "chore: bump version to v0.19.0"
+          # Match release commits: "chore: release vX.X.X"
+          # Also match: "chore: bump version to vX.X.X" for backwards compatibility
           if echo "$COMMIT_MSG" | grep -qE "^chore: (release|bump version to) v[0-9]+\.[0-9]+\.[0-9]+"; then
-            # Extract version from package.json
             VERSION=$(jq -r .version package.json)
             echo "Detected release commit for version: $VERSION"
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          # Also check for squash-merged PRs with release in title
+          elif echo "$COMMIT_MSG" | grep -qE "^Release v[0-9]+\.[0-9]+\.[0-9]+"; then
+            VERSION=$(jq -r .version package.json)
+            echo "Detected release PR merge for version: $VERSION"
             echo "is_release=true" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           else
@@ -76,17 +87,19 @@ jobs:
           CHROME_ZIP="dist-zip/gemini_history_manager_chrome-${VERSION}.zip"
           FIREFOX_ZIP="dist-zip/gemini_history_manager_firefox-${VERSION}.zip"
 
+          echo "Checking for build artifacts..."
+
           if [[ ! -f "$CHROME_ZIP" ]]; then
-            echo "Error: Chrome zip not found: $CHROME_ZIP"
+            echo "::error::Chrome zip not found: $CHROME_ZIP"
             exit 1
           fi
 
           if [[ ! -f "$FIREFOX_ZIP" ]]; then
-            echo "Error: Firefox zip not found: $FIREFOX_ZIP"
+            echo "::error::Firefox zip not found: $FIREFOX_ZIP"
             exit 1
           fi
 
-          echo "Build artifacts verified:"
+          echo "✅ Build artifacts verified:"
           ls -la dist-zip/
 
       - name: Create git tag
@@ -94,16 +107,17 @@ jobs:
           VERSION="${{ needs.check-release.outputs.version }}"
           TAG_NAME="v${VERSION}"
 
-          # Check if tag already exists
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "Tag $TAG_NAME already exists, skipping tag creation"
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git tag -a "$TAG_NAME" -m "Release ${VERSION}"
-            git push origin "$TAG_NAME"
-            echo "Created and pushed tag: $TAG_NAME"
+          # Check if tag already exists (locally or remote)
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG_NAME$"; then
+            echo "Tag $TAG_NAME already exists on remote, skipping tag creation"
+            exit 0
           fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Release ${VERSION}"
+          git push origin "$TAG_NAME"
+          echo "✅ Created and pushed tag: $TAG_NAME"
 
       - name: Create GitHub Release
         env:
@@ -121,19 +135,23 @@ jobs:
             exit 0
           fi
 
-          # Create release with or without release notes file
+          # Build release command
+          RELEASE_CMD="gh release create $TAG_NAME --title \"$TAG_NAME\""
+
           if [[ -f "$RELEASE_NOTES" ]]; then
-            gh release create "$TAG_NAME" \
-              --title "$TAG_NAME" \
-              --notes-file "$RELEASE_NOTES" \
-              "$CHROME_ZIP" \
-              "$FIREFOX_ZIP"
+            echo "Using release notes from: $RELEASE_NOTES"
+            RELEASE_CMD="$RELEASE_CMD --notes-file \"$RELEASE_NOTES\""
           else
-            gh release create "$TAG_NAME" \
-              --title "$TAG_NAME" \
-              --generate-notes \
-              "$CHROME_ZIP" \
-              "$FIREFOX_ZIP"
+            echo "No release notes found, generating from commits"
+            RELEASE_CMD="$RELEASE_CMD --generate-notes"
           fi
 
+          # Add assets
+          RELEASE_CMD="$RELEASE_CMD \"$CHROME_ZIP\" \"$FIREFOX_ZIP\""
+
+          # Execute
+          eval $RELEASE_CMD
+
+          echo ""
           echo "🚀 Release $TAG_NAME created successfully!"
+          echo "   View at: ${{ github.server_url }}/${{ github.repository }}/releases/tag/$TAG_NAME"
