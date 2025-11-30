@@ -32,25 +32,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Check commit message and version change
         id: check
         run: |
-          # Get the commit message (handle merge commits)
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "Commit message: $COMMIT_MSG"
+          # Get all commit messages in this push
+          # For single commits or squash merges, this is just one commit
+          # For rebase merges or multi-commit pushes, this captures all
+          BEFORE_SHA="${{ github.event.before }}"
+          CURRENT_SHA="${{ github.sha }}"
+
+          # Handle initial push (before SHA is all zeros)
+          if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+            echo "Initial push detected, checking only HEAD commit"
+            ALL_MESSAGES=$(git log -1 --pretty=%B)
+          else
+            echo "Checking commits from $BEFORE_SHA to $CURRENT_SHA"
+            ALL_MESSAGES=$(git log --pretty=%B "${BEFORE_SHA}..${CURRENT_SHA}")
+          fi
+
+          echo "Commit messages in this push:"
+          echo "$ALL_MESSAGES"
+          echo "---"
 
           # Match release commits: "chore: release vX.X.X"
           # Also match: "chore: bump version to vX.X.X" for backwards compatibility
-          # Use grep without ^ anchor to handle merge commits where the pattern appears on a later line
-          if echo "$COMMIT_MSG" | grep -qE "chore: (release|bump version to) v[0-9]+\.[0-9]+\.[0-9]+"; then
+          if echo "$ALL_MESSAGES" | grep -qE "chore: (release|bump version to) v[0-9]+\.[0-9]+\.[0-9]+"; then
             VERSION=$(jq -r .version package.json)
             echo "Detected release commit for version: $VERSION"
             echo "is_release=true" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           # Also check for squash-merged PRs with release in title
-          elif echo "$COMMIT_MSG" | grep -qE "Release v[0-9]+\.[0-9]+\.[0-9]+"; then
+          elif echo "$ALL_MESSAGES" | grep -qE "Release v[0-9]+\.[0-9]+\.[0-9]+"; then
             VERSION=$(jq -r .version package.json)
             echo "Detected release PR merge for version: $VERSION"
             echo "is_release=true" >> $GITHUB_OUTPUT
