@@ -136,22 +136,22 @@ jobs:
             exit 0
           fi
 
-          # Build release command
-          RELEASE_CMD="gh release create $TAG_NAME --title \"$TAG_NAME\""
-
+          # Create release with or without release notes file
           if [[ -f "$RELEASE_NOTES" ]]; then
             echo "Using release notes from: $RELEASE_NOTES"
-            RELEASE_CMD="$RELEASE_CMD --notes-file \"$RELEASE_NOTES\""
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --notes-file "$RELEASE_NOTES" \
+              "$CHROME_ZIP" \
+              "$FIREFOX_ZIP"
           else
             echo "No release notes found, generating from commits"
-            RELEASE_CMD="$RELEASE_CMD --generate-notes"
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --generate-notes \
+              "$CHROME_ZIP" \
+              "$FIREFOX_ZIP"
           fi
-
-          # Add assets
-          RELEASE_CMD="$RELEASE_CMD \"$CHROME_ZIP\" \"$FIREFOX_ZIP\""
-
-          # Execute
-          eval $RELEASE_CMD
 
           echo ""
           echo "🚀 Release $TAG_NAME created successfully!"
