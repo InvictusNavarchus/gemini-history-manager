@@ -3,9 +3,9 @@
  * Standalone script to create a GitHub release for the current version.
  * Usage: bun release:create [--dry-run]
  */
-import fs from "fs";
-import path from "path";
-import { execSync } from "child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { execSync } from "node:child_process";
 import { runCommand, getCurrentVersion, ROOT_DIR } from "./lib/utils.js";
 
 /**

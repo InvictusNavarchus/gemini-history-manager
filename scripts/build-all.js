@@ -4,7 +4,7 @@
  * Usage: bun build-all [--record] [--compare] [--clean]
  */
 import fs from "fs-extra";
-import path from "path";
+import path from "node:path";
 import { runCommand, getPackageJson, ROOT_DIR, cleanBuildDirs } from "./lib/utils.js";
 
 /**
