@@ -152,7 +152,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import Chart from "chart.js/auto";
 import dayjs from "dayjs";
 import {
@@ -290,10 +290,69 @@ watch(activeMainTab, (newTab) => {
   if (newTab === "settings") activeSettingsTab.value = "logging";
 });
 
+/**
+ * Handles real-time storage changes for live dashboard updates.
+ * This listener is called whenever browser.storage.local changes,
+ * allowing the dashboard to stay in sync without polling.
+ *
+ * @param {Object} changes - Object containing changed keys with oldValue/newValue
+ * @param {string} areaName - The storage area that changed ('local', 'sync', etc.)
+ */
+function handleStorageChange(changes, areaName) {
+  // Only react to local storage changes for our history key
+  if (areaName !== "local" || !changes[STORAGE_KEY]) {
+    return;
+  }
+
+  const { oldValue, newValue } = changes[STORAGE_KEY];
+  const previousCount = Array.isArray(oldValue) ? oldValue.length : 0;
+  const newCount = Array.isArray(newValue) ? newValue.length : 0;
+
+  Logger.log("App.vue", `Storage changed: ${previousCount} → ${newCount} entries`);
+
+  // Update the reactive history data
+  allHistory.value = newValue || [];
+
+  // Rebuild search index with new data
+  Logger.log("App.vue", "Rebuilding search index after storage change");
+  searchIndex.value = createSearchIndex(allHistory.value);
+
+  // Update statistics
+  updateDashboardStats();
+
+  // Re-render visualizations if that tab is active
+  if (activeMainTab.value === "visualizations" && allHistory.value.length > 0) {
+    nextTick(() => {
+      renderCurrentVisualization();
+    });
+  }
+
+  // Show a subtle toast notification for new entries (good UX feedback)
+  const entriesAdded = newCount - previousCount;
+  if (entriesAdded > 0) {
+    const message =
+      entriesAdded === 1 ? "New conversation added to history" : `${entriesAdded} new conversations added`;
+    showToast(message, "success", 3000);
+  } else if (entriesAdded < 0) {
+    // Entries were removed (deletion or clear)
+    const entriesRemoved = Math.abs(entriesAdded);
+    if (newCount === 0 && previousCount > 0) {
+      // All history was cleared - don't show toast as user likely triggered this
+      Logger.log("App.vue", "History cleared via storage change");
+    } else if (entriesRemoved === 1) {
+      Logger.log("App.vue", "Single entry removed via storage change");
+    }
+  }
+}
+
 onMounted(async () => {
   Logger.log("App.vue", "Dashboard App.vue: Component mounted");
 
   await initializeDashboard();
+
+  // Set up real-time storage change listener for live updates
+  browser.storage.onChanged.addListener(handleStorageChange);
+  Logger.log("App.vue", "Storage change listener registered for real-time updates");
 
   // Clean up the temporary theme storage after it's been used
   localStorage.removeItem("dashboard_initialized_theme");
@@ -305,9 +364,13 @@ onMounted(async () => {
 });
 
 // Clean up event listeners when component is unmounted
-const onUnmounted = () => {
+onUnmounted(() => {
+  // Remove storage change listener to prevent memory leaks
+  browser.storage.onChanged.removeListener(handleStorageChange);
+  Logger.log("App.vue", "Storage change listener removed");
+
   window.removeEventListener("beforeunload", removeImportGuidance);
-};
+});
 
 // --- Initialization ---
 async function initializeDashboard() {
