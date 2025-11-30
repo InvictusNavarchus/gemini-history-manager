@@ -170,7 +170,7 @@ function main() {
   console.log("");
 
   // Show next steps
-  const allFiles = [...VERSION_FILES, releaseNotesFile].join(" ");
+  const versionFiles = VERSION_FILES.join(" ");
 
   console.log("╔══════════════════════════════════════════╗");
   console.log("║            Next Steps                    ║");
@@ -179,15 +179,19 @@ function main() {
   console.log(`1. Edit release notes:`);
   console.log(`   ${process.env.EDITOR || "vim"} ${releaseNotesFile}\n`);
 
-  console.log(`2. Stage and commit:`);
-  console.log(`   git add ${allFiles}`);
-  console.log(`   git commit -m "chore: release ${tagName}"\n`);
+  console.log(`2. Commit version bump:`);
+  console.log(`   git add ${versionFiles}`);
+  console.log(`   git commit -m "chore: bump version to ${tagName}"\n`);
 
-  console.log(`3. Push and create PR:`);
+  console.log(`3. Commit release notes:`);
+  console.log(`   git add ${releaseNotesFile}`);
+  console.log(`   git commit -m "docs: add release notes for ${tagName}"\n`);
+
+  console.log(`4. Push and create PR:`);
   console.log(`   git push -u origin $(git branch --show-current)`);
   console.log(`   gh pr create --title "Release ${tagName}" --body "Release ${newVersion}"\n`);
 
-  console.log(`4. After PR is merged, GitHub Actions will automatically:`);
+  console.log(`5. After PR is merged, GitHub Actions will automatically:`);
   console.log(`   • Build Chrome and Firefox extensions`);
   console.log(`   • Create git tag ${tagName}`);
   console.log(`   • Create GitHub release with assets\n`);

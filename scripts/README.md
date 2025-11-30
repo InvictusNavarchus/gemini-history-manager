@@ -81,21 +81,26 @@ The script will:
 vim release-notes/v0.19.0.md
 ```
 
-#### 3. Commit and Create PR
+#### 3. Commit Changes
 
 ```bash
-# Stage all changes
-git add package.json src/manifest-*.json README.md release-notes/
+# Commit version bump
+git add package.json src/manifest-*.json README.md
+git commit -m "chore: bump version to v0.19.0"
 
-# Commit with the release message format
-git commit -m "chore: release v0.19.0"
+# Commit release notes
+git add release-notes/
+git commit -m "docs: add release notes for v0.19.0"
+```
 
-# Push and create PR
+#### 4. Push and Create PR
+
+```bash
 git push -u origin release/v0.19.0
 gh pr create --title "Release v0.19.0" --body "Release version 0.19.0"
 ```
 
-#### 4. Merge the PR
+#### 5. Merge the PR
 
 After review, merge the PR to main. GitHub Actions will automatically:
 - Build Chrome and Firefox extensions
