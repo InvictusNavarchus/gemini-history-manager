@@ -124,8 +124,8 @@ function runPreflightChecks() {
     } else {
       console.log("  ✓ Working directory is clean");
     }
-  } catch {
-    // Ignore errors
+  } catch (error) {
+    console.warn("  ⚠ Could not check git status:", error.message);
   }
 
   console.log("");
