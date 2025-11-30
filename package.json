@@ -24,6 +24,7 @@
     "format:all": "prettier --write \"**/*.{js,vue,json,css,md,html}\"",
     "format:check:all": "prettier --check \"**/*.{js,vue,json,css,md,html}\"",
     "release": "node scripts/release.js",
+    "release:prepare": "node scripts/release.js --prepare",
     "release:patch": "node scripts/release.js --patch",
     "release:minor": "node scripts/release.js --minor",
     "release:major": "node scripts/release.js --major",

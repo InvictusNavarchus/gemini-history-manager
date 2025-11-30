@@ -16,7 +16,7 @@ function parseArgs() {
   const versionArgs = args.filter((arg) => ["--major", "--minor", "--patch", "-M", "-m", "-p"].includes(arg));
 
   if (versionArgs.length === 0) {
-    console.error("Usage: bun release --[major|minor|patch] [--dry-run] [--skip-github]");
+    console.error("Usage: bun release --[major|minor|patch] [--dry-run] [--skip-github] [--prepare]");
     process.exit(1);
   }
 
@@ -35,6 +35,7 @@ function parseArgs() {
       .replace(/^[Mmp]$/, (m) => ({ M: "major", m: "minor", p: "patch" })[m]),
     dryRun: args.includes("--dry-run"),
     skipGithub: args.includes("--skip-github"),
+    prepare: args.includes("--prepare"),
   };
 }
 
@@ -112,74 +113,92 @@ async function createReleaseNotes(version, dryRun) {
  * Run pre-flight checks before release
  */
 function runPreflightChecks(options = {}) {
-  const { dryRun = false, skipGithub = false } = options;
+  const { dryRun = false, skipGithub = false, prepare = false } = options;
 
   console.log("=== Running Pre-flight Checks ===\n");
 
-  // 1. Check if working directory is clean
-  console.log("Checking working directory status...");
-  try {
-    const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim();
-    if (status) {
-      console.error("Error: Working directory is not clean. Please commit or stash your changes first.");
-      console.error("\nUncommitted changes:");
-      console.error(status);
+  // 1. Check if working directory is clean (skip in prepare mode - we're creating changes)
+  if (!prepare) {
+    console.log("Checking working directory status...");
+    try {
+      const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim();
+      if (status) {
+        console.error("Error: Working directory is not clean. Please commit or stash your changes first.");
+        console.error("\nUncommitted changes:");
+        console.error(status);
+        process.exit(1);
+      }
+      console.log("  ✓ Working directory is clean");
+    } catch (error) {
+      console.error("Error: Failed to check git status. Are you in a git repository?");
       process.exit(1);
     }
-    console.log("  ✓ Working directory is clean");
-  } catch (error) {
-    console.error("Error: Failed to check git status. Are you in a git repository?");
-    process.exit(1);
+  } else {
+    console.log("Skipping clean working directory check (--prepare mode)");
   }
 
   // 2. Check if on main branch (warning only, not blocking)
   console.log("Checking current branch...");
   try {
     const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim();
-    if (branch !== "main" && branch !== "master") {
-      console.warn(`  ⚠ Warning: You are on branch '${branch}', not 'main' or 'master'.`);
-      console.warn("    Releases are typically done from the main branch.");
+    if (prepare) {
+      // In prepare mode, we expect to be on a release branch or feature branch
+      if (branch === "main" || branch === "master") {
+        console.warn(`  ⚠ Warning: You are on '${branch}'. Consider creating a release branch first:`);
+        console.warn(`    git checkout -b release/vX.X.X`);
+      } else {
+        console.log(`  ✓ On branch '${branch}'`);
+      }
     } else {
-      console.log(`  ✓ On branch '${branch}'`);
+      if (branch !== "main" && branch !== "master") {
+        console.warn(`  ⚠ Warning: You are on branch '${branch}', not 'main' or 'master'.`);
+        console.warn("    Releases are typically done from the main branch.");
+      } else {
+        console.log(`  ✓ On branch '${branch}'`);
+      }
     }
   } catch (error) {
     console.warn("  ⚠ Warning: Could not determine current branch.");
   }
 
-  // 3. Check if local branch is up to date with remote
-  console.log("Checking if branch is up to date with remote...");
-  try {
-    execSync("git fetch", { stdio: "pipe" });
-    const localHash = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
-    const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim();
-    let remoteHash;
+  // 3. Check if local branch is up to date with remote (skip in prepare mode)
+  if (!prepare) {
+    console.log("Checking if branch is up to date with remote...");
     try {
-      remoteHash = execSync(`git rev-parse origin/${branch}`, { encoding: "utf-8" }).trim();
-    } catch {
-      // Remote branch might not exist
-      console.log("  ✓ No remote tracking branch (new branch)");
-      remoteHash = localHash;
-    }
-    if (localHash !== remoteHash) {
-      const behind = execSync(`git rev-list --count HEAD..origin/${branch}`, { encoding: "utf-8" }).trim();
-      const ahead = execSync(`git rev-list --count origin/${branch}..HEAD`, { encoding: "utf-8" }).trim();
-      if (parseInt(behind) > 0) {
-        console.error(`Error: Your branch is ${behind} commit(s) behind origin/${branch}.`);
-        console.error("Please pull the latest changes first: git pull");
-        process.exit(1);
+      execSync("git fetch", { stdio: "pipe" });
+      const localHash = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
+      const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim();
+      let remoteHash;
+      try {
+        remoteHash = execSync(`git rev-parse origin/${branch}`, { encoding: "utf-8" }).trim();
+      } catch {
+        // Remote branch might not exist
+        console.log("  ✓ No remote tracking branch (new branch)");
+        remoteHash = localHash;
       }
-      if (parseInt(ahead) > 0) {
-        console.log(`  ✓ Branch is ${ahead} commit(s) ahead of remote (will be pushed)`);
+      if (localHash !== remoteHash) {
+        const behind = execSync(`git rev-list --count HEAD..origin/${branch}`, { encoding: "utf-8" }).trim();
+        const ahead = execSync(`git rev-list --count origin/${branch}..HEAD`, { encoding: "utf-8" }).trim();
+        if (parseInt(behind) > 0) {
+          console.error(`Error: Your branch is ${behind} commit(s) behind origin/${branch}.`);
+          console.error("Please pull the latest changes first: git pull");
+          process.exit(1);
+        }
+        if (parseInt(ahead) > 0) {
+          console.log(`  ✓ Branch is ${ahead} commit(s) ahead of remote (will be pushed)`);
+        }
+      } else {
+        console.log("  ✓ Branch is up to date with remote");
       }
-    } else {
-      console.log("  ✓ Branch is up to date with remote");
+    } catch (error) {
+      console.warn("  ⚠ Warning: Could not check remote status. Continuing anyway.");
     }
-  } catch (error) {
-    console.warn("  ⚠ Warning: Could not check remote status. Continuing anyway.");
+  } else {
+    console.log("Skipping remote sync check (--prepare mode)");
   }
 
-  // 4. Check GitHub CLI authentication (only if not skipping GitHub)
-  if (!skipGithub) {
+  // 4. Check GitHub CLI authentication (only if not skipping GitHub and not in prepare mode)
+  if (!skipGithub && !prepare) {
     console.log("Checking GitHub CLI authentication...");
     try {
       execSync("gh auth status", { stdio: "pipe" });
@@ -191,6 +210,8 @@ function runPreflightChecks(options = {}) {
       );
       process.exit(1);
     }
+  } else if (prepare) {
+    console.log("Skipping GitHub CLI check (--prepare mode)");
   } else {
     console.log("Skipping GitHub CLI check (--skip-github specified)");
   }
@@ -236,15 +257,20 @@ function getRepositoryUrl() {
  * Main release function
  */
 async function main() {
-  const { versionType, dryRun, skipGithub } = parseArgs();
+  const { versionType, dryRun, skipGithub, prepare } = parseArgs();
 
   if (dryRun) {
     console.log(">>> DRY RUN MODE ENABLED <<<\n");
   }
 
+  if (prepare) {
+    console.log(">>> PREPARE MODE ENABLED <<<");
+    console.log("This will prepare a release for PR-based workflow.\n");
+  }
+
   // Run pre-flight checks (skip in dry-run mode since we won't actually do anything)
   if (!dryRun) {
-    runPreflightChecks({ dryRun, skipGithub });
+    runPreflightChecks({ dryRun, skipGithub, prepare });
   } else {
     console.log("=== Pre-flight Checks (skipped in dry-run mode) ===\n");
   }
@@ -265,6 +291,33 @@ async function main() {
   // 2. Create release notes
   console.log("\n=== Creating Release Notes ===");
   const releaseNotesFile = await createReleaseNotes(newVersion, dryRun);
+
+  // In prepare mode, stop here and show instructions
+  if (prepare) {
+    console.log("\n=== Release Preparation Complete ===");
+    console.log("\n📋 Files modified:");
+    for (const file of VERSION_FILES) {
+      console.log(`   • ${file}`);
+    }
+    console.log(`   • ${releaseNotesFile}`);
+
+    console.log("\n📝 Next steps for PR-based release:");
+    console.log(`   1. Review and finalize ${releaseNotesFile}`);
+    console.log(`   2. Stage the changes:`);
+    console.log(`      git add ${[...VERSION_FILES, releaseNotesFile].join(" ")}`);
+    console.log(`   3. Commit the changes:`);
+    console.log(`      git commit -m "chore: release ${tagName}"`);
+    console.log(`   4. Push and create a PR to main:`);
+    console.log(`      git push -u origin $(git branch --show-current)`);
+    console.log(`      gh pr create --title "Release ${tagName}" --body "Release ${newVersion}"`);
+    console.log(`   5. After PR is merged, the GitHub Action will:`);
+    console.log(`      • Build and package the extension`);
+    console.log(`      • Create a git tag`);
+    console.log(`      • Create a GitHub release with assets`);
+
+    console.log(`\n✅ Release ${tagName} prepared successfully!`);
+    return;
+  }
 
   // 3. Build, package, and record
   console.log("\n=== Building and Packaging ===");

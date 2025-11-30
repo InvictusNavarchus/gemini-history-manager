@@ -28,10 +28,13 @@ bun dev-helper compare         # Compare current version builds
 # Preview release (recommended first step)
 bun release --patch --dry-run  # See what would happen
 
-# Execute release
+# Execute release (direct to main)
 bun release --patch            # Complete patch release process
 bun release --minor            # Complete minor release process  
 bun release --major            # Complete major release process
+
+# PR-based release workflow (recommended for teams)
+bun release --patch --prepare  # Prepare files for release PR
 
 # Partial release (if GitHub step fails)
 bun release --patch --skip-github  # Stop before GitHub release
@@ -52,7 +55,50 @@ bun compare-checksums          # Compare existing builds only
 
 ## Complete Workflow Guide
 
-### Approach 1: Fully Automated Release (Recommended)
+### Approach 1: PR-Based Release (Recommended)
+
+**Best for:** Teams, audit trails, CI/CD integration
+
+This approach uses a pull request to review and merge release changes. The GitHub Action 
+automatically builds, tags, and publishes the release when the PR is merged.
+
+**Step 1: Create a release branch and prepare files**
+```bash
+git checkout main && git pull
+git checkout -b release/v0.19.0
+bun release --patch --prepare
+```
+
+**Step 2: Review and commit the changes**
+```bash
+# Edit release notes if needed
+vim release-notes/v0.19.0.md
+
+# Stage and commit
+git add package.json src/manifest-*.json README.md release-notes/
+git commit -m "chore: release v0.19.0"
+```
+
+**Step 3: Push and create PR**
+```bash
+git push -u origin release/v0.19.0
+gh pr create --title "Release v0.19.0" --body "Release version 0.19.0"
+```
+
+**Step 4: Merge the PR**
+- Review the PR on GitHub
+- Merge to main
+- GitHub Actions automatically:
+  - Builds Chrome and Firefox extensions
+  - Creates git tag `v0.19.0`
+  - Creates GitHub release with zip attachments
+
+**When to use:**
+- Team collaboration with code review
+- Projects requiring audit trails
+- CI/CD-driven releases
+
+### Approach 2: Fully Automated Release (Direct)
 
 **Single command does everything:**
 ```bash
@@ -69,11 +115,11 @@ bun release --patch
 7. ✅ Push to remote
 8. ✅ Create GitHub release with assets
 
-**When to use:** Most releases, when you trust the automation
+**When to use:** Solo development, quick releases, trusted automation
 
 **Time required:** ~2-5 minutes (mostly waiting for builds)
 
-### Approach 2: Cautious Release with Verification
+### Approach 3: Cautious Release with Verification
 
 **Step-by-step with verification:**
 ```bash
@@ -94,7 +140,7 @@ bun release --patch
 
 **Time required:** ~5-10 minutes (includes manual verification)
 
-### Approach 3: Manual Control Release
+### Approach 4: Manual Control Release
 
 **Maximum control over each step:**
 ```bash
@@ -116,7 +162,7 @@ bun release:create
 
 **Time required:** ~10-15 minutes (lots of manual steps)
 
-### Approach 4: Build Verification Workflow
+### Approach 5: Build Verification Workflow
 
 **For testing build consistency without releasing:**
 ```bash
@@ -139,21 +185,25 @@ bun build:all --clean --record --compare
 ### Decision Tree: Which Approach?
 
 ```
-Are you doing a routine patch/minor release?
-├─ YES → Use Approach 1 (bun release --patch)
+Is this a team project or do you need audit trails?
+├─ YES → Use Approach 1 (PR-based release)
+└─ NO → Continue...
+
+Are you doing a routine patch/minor release solo?
+├─ YES → Use Approach 2 (bun release --patch)
 └─ NO → Continue...
 
 Is this a major release or after big changes?
-├─ YES → Use Approach 2 (verify first)
+├─ YES → Use Approach 3 (verify first)
 └─ NO → Continue...
 
 Do you need custom release procedures?
-├─ YES → Use Approach 3 (manual control)
-└─ NO → Use Approach 1 (automated)
+├─ YES → Use Approach 4 (manual control)
+└─ NO → Use Approach 2 (automated)
 
 Are you debugging build issues?
-├─ YES → Use Approach 4 (verification only)
-└─ NO → Use Approach 1 (automated)
+├─ YES → Use Approach 5 (verification only)
+└─ NO → Use Approach 2 (automated)
 ```
 
 ### What Gets Built and When
@@ -162,7 +212,12 @@ Are you debugging build issues?
 - Builds are created fresh every time
 - No reuse of existing `dist-*` directories
 - Build is recorded automatically for comparison
-- Checksums are NOT compared automatically (use Approach 2 for that)
+- Checksums are NOT compared automatically (use Approach 3 for that)
+
+**During `bun release --patch --prepare` (PR workflow):**
+- Only version files and release notes are modified
+- No build is triggered (GitHub Actions handles it after merge)
+- No git operations (you commit and push manually)
 
 **Build artifacts created:**
 ```
@@ -264,17 +319,18 @@ A: They're the same! `bun package` now calls `build-all.js` internally for consi
 **What it does:**
 1. Bumps version in `package.json`, `manifest-*.json`, and `README.md`
 2. Creates/opens release notes file (`release-notes/vX.X.X.md`)
-3. Builds Firefox and Chrome extensions
-4. Packages extensions into zip files
-5. Records build for comparison
-6. Commits changes and creates git tag
-7. Pushes to remote repository
-8. Creates GitHub release with zip attachments
+3. Builds Firefox and Chrome extensions (skipped with `--prepare`)
+4. Packages extensions into zip files (skipped with `--prepare`)
+5. Records build for comparison (skipped with `--prepare`)
+6. Commits changes and creates git tag (skipped with `--prepare`)
+7. Pushes to remote repository (skipped with `--prepare`)
+8. Creates GitHub release with zip attachments (skipped with `--prepare`)
 
 **Arguments:**
 - **Required**: Exactly one of `--major`, `--minor`, `--patch` (or `-M`, `-m`, `-p`)
 - **Optional**: `--dry-run` - Shows what would happen without executing
 - **Optional**: `--skip-github` - Stops before GitHub release creation
+- **Optional**: `--prepare` - Only updates version files and release notes (for PR workflow)
 
 **Argument Combinations:**
 ```bash
@@ -283,6 +339,7 @@ bun release --patch                    # Full patch release
 bun release --minor --dry-run          # Preview minor release
 bun release --major --skip-github      # Release without GitHub
 bun release --patch --dry-run --skip-github  # Preview without GitHub
+bun release --patch --prepare          # Prepare for PR-based release
 
 # ❌ Invalid combinations
 bun release --patch --minor            # Error: Only one version type allowed
@@ -293,6 +350,17 @@ bun release --dry-run                  # Error: Version type required
 **What happens without arguments:**
 - Script exits with error message showing usage
 - No files are modified
+
+**PR-Based Release with `--prepare`:**
+
+When using `--prepare`, the script only modifies local files and provides instructions:
+- Updates version in all version files
+- Creates release notes template
+- Skips build, git operations, and GitHub release
+- Outputs next steps for creating a PR
+
+This works with the GitHub Actions workflow (`.github/workflows/release.yml`) which
+automatically builds and publishes releases when release commits are merged to main.
 
 #### `build-all.js` - Unified Build Script
 

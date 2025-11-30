@@ -1,0 +1,139 @@
+# GitHub Actions workflow for automated releases
+# Triggered when a release PR is merged to main
+#
+# This workflow:
+# 1. Detects version changes in package.json
+# 2. Builds the extension for Chrome and Firefox
+# 3. Creates a git tag
+# 4. Creates a GitHub release with the built assets
+
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "package.json"
+
+jobs:
+  check-release:
+    name: Check if release commit
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.check.outputs.is_release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check commit message and version change
+        id: check
+        run: |
+          # Check if this is a release commit
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Commit message: $COMMIT_MSG"
+
+          # Match commits like "chore: release v0.19.0" or "chore: bump version to v0.19.0"
+          if echo "$COMMIT_MSG" | grep -qE "^chore: (release|bump version to) v[0-9]+\.[0-9]+\.[0-9]+"; then
+            # Extract version from package.json
+            VERSION=$(jq -r .version package.json)
+            echo "Detected release commit for version: $VERSION"
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "Not a release commit, skipping..."
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-release:
+    name: Build and Release
+    needs: check-release
+    if: needs.check-release.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build extensions
+        run: bun run build:all
+
+      - name: Verify build artifacts
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          CHROME_ZIP="dist-zip/gemini_history_manager_chrome-${VERSION}.zip"
+          FIREFOX_ZIP="dist-zip/gemini_history_manager_firefox-${VERSION}.zip"
+
+          if [[ ! -f "$CHROME_ZIP" ]]; then
+            echo "Error: Chrome zip not found: $CHROME_ZIP"
+            exit 1
+          fi
+
+          if [[ ! -f "$FIREFOX_ZIP" ]]; then
+            echo "Error: Firefox zip not found: $FIREFOX_ZIP"
+            exit 1
+          fi
+
+          echo "Build artifacts verified:"
+          ls -la dist-zip/
+
+      - name: Create git tag
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          TAG_NAME="v${VERSION}"
+
+          # Check if tag already exists
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists, skipping tag creation"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG_NAME" -m "Release ${VERSION}"
+            git push origin "$TAG_NAME"
+            echo "Created and pushed tag: $TAG_NAME"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          TAG_NAME="v${VERSION}"
+          CHROME_ZIP="dist-zip/gemini_history_manager_chrome-${VERSION}.zip"
+          FIREFOX_ZIP="dist-zip/gemini_history_manager_firefox-${VERSION}.zip"
+          RELEASE_NOTES="release-notes/${TAG_NAME}.md"
+
+          # Check if release already exists
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release $TAG_NAME already exists, skipping release creation"
+            exit 0
+          fi
+
+          # Create release with or without release notes file
+          if [[ -f "$RELEASE_NOTES" ]]; then
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --notes-file "$RELEASE_NOTES" \
+              "$CHROME_ZIP" \
+              "$FIREFOX_ZIP"
+          else
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --generate-notes \
+              "$CHROME_ZIP" \
+              "$FIREFOX_ZIP"
+          fi
+
+          echo "🚀 Release $TAG_NAME created successfully!"
