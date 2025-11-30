@@ -31,6 +31,7 @@
      */
     resetPendingPromptContext: function () {
       STATE.pendingModelName = null;
+      STATE.pendingTool = null;
       STATE.pendingPrompt = null;
       STATE.pendingOriginalPrompt = null;
       STATE.pendingAttachedFiles = [];
@@ -303,6 +304,7 @@
         timestamp: Utils.getCurrentTimestamp(),
         url: window.location.href,
         model: STATE.pendingModelName,
+        tool: STATE.pendingTool,
         prompt: STATE.pendingPrompt,
         originalPrompt: STATE.pendingOriginalPrompt,
         attachedFiles: STATE.pendingAttachedFiles,
@@ -369,6 +371,7 @@
           context.url,
           context.timestamp,
           context.model,
+          context.tool,
           context.prompt,
           context.originalPrompt,
           context.attachedFiles,
@@ -426,6 +429,7 @@
      * @param {string} expectedUrl - The URL associated with this conversation
      * @param {string} timestamp - ISO-formatted timestamp for the chat
      * @param {string} model - Model name used for the chat
+     * @param {string|null} tool - Tool name used for the chat (if any)
      * @param {string} prompt - User prompt text
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
@@ -437,6 +441,7 @@
       expectedUrl,
       timestamp,
       model,
+      tool,
       prompt,
       attachedFiles,
       accountName,
@@ -449,6 +454,11 @@
         // Get the Gemini Plan from the state
         const geminiPlan = STATE.pendingGeminiPlan;
         console.log(`${Utils.getPrefix()} Using Gemini plan: ${geminiPlan || "Unknown"}`);
+
+        // Log tool information if present
+        if (tool) {
+          console.log(`${Utils.getPrefix()} Using tool: ${tool}`);
+        }
 
         // Get Gem information from the state
         const gemId = STATE.pendingGemId;
@@ -486,6 +496,7 @@
           expectedUrl,
           title,
           model,
+          tool,
           prompt,
           attachedFiles,
           accountName,
@@ -518,6 +529,7 @@
      * @param {string} expectedUrl - The URL associated with this conversation
      * @param {string} timestamp - ISO-formatted timestamp for the chat
      * @param {string} model - Model name used for the chat
+     * @param {string|null} tool - Tool name used for the chat (if any)
      * @param {string} prompt - User prompt text
      * @param {string} originalPrompt - Original prompt text without modifications
      * @param {Array} attachedFiles - Array of attached filenames
@@ -530,6 +542,7 @@
       expectedUrl,
       timestamp,
       model,
+      tool,
       prompt,
       originalPrompt,
       attachedFiles,
@@ -575,6 +588,7 @@
           expectedUrl,
           timestamp,
           model,
+          tool,
           prompt,
           attachedFiles,
           accountName,

@@ -4,6 +4,7 @@
   const STATE = {
     isNewChatPending: false,
     pendingModelName: null,
+    pendingTool: null,
     pendingPrompt: null,
     pendingOriginalPrompt: null,
     pendingAttachedFiles: [],

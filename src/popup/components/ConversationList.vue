@@ -16,7 +16,7 @@
           <div class="conversation-title">{{ entry.title || "Untitled Conversation" }}</div>
           <div class="conversation-meta">
             <span class="conversation-date">{{ formatDateForDisplay(parseTimestamp(entry.timestamp)) }}</span>
-            <span class="conversation-model">{{ entry.model || "Unknown" }}</span>
+            <span class="conversation-model">{{ formatModelAndTool(entry) }}</span>
           </div>
         </div>
       </div>
@@ -26,7 +26,7 @@
 
 <script setup>
 import { defineProps, defineEmits } from "vue";
-import { Logger, parseTimestamp, formatDateForDisplay } from "../../lib/utils.js";
+import { Logger, parseTimestamp, formatDateForDisplay, formatModelAndTool } from "../../lib/utils.js";
 
 // Define props
 const props = defineProps({

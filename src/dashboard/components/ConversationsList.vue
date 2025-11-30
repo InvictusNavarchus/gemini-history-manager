@@ -51,7 +51,7 @@
           <div class="conversation-meta">
             <div class="meta-left">
               <span>{{ formatDate(entry.timestamp) }}</span>
-              <span class="conversation-model">{{ entry.model || "Unknown" }}</span>
+              <span class="conversation-model">{{ formatModelAndTool(entry) }}</span>
               <span v-if="entry.geminiPlan" class="conversation-plan" :class="entry.geminiPlan.toLowerCase()">
                 {{ entry.geminiPlan }}
               </span>
@@ -81,7 +81,7 @@
 <script setup>
 import Logger from "../../lib/logger.js";
 import { defineProps, defineEmits, computed } from "vue";
-import { dayjsFormatDate } from "../../lib/utils.js";
+import { dayjsFormatDate, formatModelAndTool } from "../../lib/utils.js";
 
 // Define props
 const props = defineProps({

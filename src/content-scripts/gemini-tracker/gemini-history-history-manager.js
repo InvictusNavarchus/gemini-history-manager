@@ -78,6 +78,7 @@
      * @param {string} url - URL of the chat
      * @param {string} title - Title of the chat
      * @param {string} model - Model name used for the chat
+     * @param {string|null} tool - Tool name used for the chat (if any)
      * @param {string} prompt - User prompt text
      * @param {Array} attachedFiles - Array of attached filenames
      * @param {string} accountName - Name of the user account
@@ -93,6 +94,7 @@
       url,
       title,
       model,
+      tool,
       prompt,
       attachedFiles,
       accountName,
@@ -107,6 +109,7 @@
         url,
         title,
         model,
+        tool,
         prompt,
         attachedFiles,
         accountName,
@@ -115,6 +118,7 @@
         gemId,
         gemName,
         gemUrl,
+        _v: CONFIG.SCHEMA_VERSION,
       };
       console.log(`${Utils.getPrefix()} Attempting to add history entry:`, entryData);
 

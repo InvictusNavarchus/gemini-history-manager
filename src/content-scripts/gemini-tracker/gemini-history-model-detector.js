@@ -2,6 +2,7 @@
   "use strict";
   const Utils = window.GeminiHistory_Utils;
   const MODEL_NAMES = window.GeminiHistory_MODEL_NAMES;
+  const TOOL_NAMES = window.GeminiHistory_TOOL_NAMES;
   const ModelDetector = {
     /**
      * Helper function to normalize color values for comparison
@@ -242,72 +243,88 @@
     },
 
     /**
-     * Detects the Veo version based on tooltip text.
+     * Normalizes a tool name to a consistent format.
+     * Matches against known tool names, similar to model normalization.
      *
-     * @returns {string} - Returns "Veo 3" or "Veo 2" (defaults to "Veo 2" if version can't be determined)
+     * @param {string} rawToolName - The raw tool name from the UI
+     * @returns {string} - The normalized tool name
      */
-    detectVeoVersion: function () {
-      // Check for tooltip to determine if it's Veo 2 or Veo 3
-      const tooltipContainer = document.querySelector(".cdk-describedby-message-container");
-      if (tooltipContainer) {
-        const tooltips = tooltipContainer.querySelectorAll("[role='tooltip']");
-        for (const tooltip of tooltips) {
-          const tooltipText = tooltip.textContent.trim();
-          console.log(`${Utils.getPrefix()} Found tooltip with text: "${tooltipText}"`);
+    normalizeTool: function (rawToolName) {
+      if (!rawToolName) return null;
 
-          if (tooltipText.includes("Veo 3")) {
-            console.log(`${Utils.getPrefix()} Veo 3 is detected via tooltip`);
-            return "Veo 3";
-          } else if (tooltipText.includes("Veo 2")) {
-            console.log(`${Utils.getPrefix()} Veo 2 is detected via tooltip`);
-            return "Veo 2";
+      // Sort keys by length (longest first) to match more specific names first
+      const sortedKeys = Object.keys(TOOL_NAMES).sort((a, b) => b.length - a.length);
+      for (const key of sortedKeys) {
+        // Case-insensitive check if the raw name contains the key
+        if (rawToolName.toLowerCase().includes(key.toLowerCase())) {
+          console.log(`${Utils.getPrefix()} Normalized tool: "${rawToolName}" -> "${TOOL_NAMES[key]}"`);
+          return TOOL_NAMES[key];
+        }
+      }
+
+      // Fallback: return raw name if no match found
+      console.log(`${Utils.getPrefix()} Tool "${rawToolName}" didn't match known tools, using raw name`);
+      return rawToolName;
+    },
+
+    /**
+     * Checks if any tools are activated in the toolbox drawer.
+     * Uses the new Nov 2025 UI structure with deselect buttons.
+     * All tools from the tool selection UI are treated as tools (not models).
+     * Models are only Fast/Thinking (or legacy versions).
+     *
+     * @returns {string|null} - The activated tool name, or null if no tool is activated
+     */
+    checkForSpecialTools: function () {
+      console.log(`${Utils.getPrefix()} Checking for activated tools...`);
+
+      // NEW: Check for deselect button (indicates an active tool in Nov 2025+ UI)
+      const deselectButton = document.querySelector("button.toolbox-drawer-item-deselect-button");
+
+      if (deselectButton) {
+        // Method 1: Parse from aria-label (most reliable)
+        const ariaLabel = deselectButton.getAttribute("aria-label") || "";
+        const match = ariaLabel.match(/^Deselect (.+)$/);
+
+        if (match) {
+          const toolName = match[1];
+          console.log(`${Utils.getPrefix()} Found activated tool via aria-label: "${toolName}"`);
+          return this.normalizeTool(toolName);
+        }
+
+        // Method 2: Fallback to label text
+        const labelElement = deselectButton.querySelector(".toolbox-drawer-item-deselect-button-label");
+        if (labelElement && labelElement.textContent) {
+          const labelText = labelElement.textContent.trim();
+          if (labelText) {
+            console.log(`${Utils.getPrefix()} Found activated tool via label: "${labelText}"`);
+            return this.normalizeTool(labelText);
           }
         }
       }
 
-      // Fallback to Veo 2 if tooltip detection fails
-      console.log(`${Utils.getPrefix()} Could not determine Veo version, defaulting to Veo 2`);
-      return "Veo 2";
-    },
-
-    /**
-     * Checks if any special tools are activated in the toolbox drawer.
-     * Looks for "Deep Research" and "Video" (Veo 2/3) tools.
-     *
-     * @returns {string|null} - Returns the special model name if detected, or null if none detected
-     */
-    checkForSpecialTools: function () {
-      console.log(`${Utils.getPrefix()} Checking for special tools (Deep Research, Veo)...`);
-
-      // Get all activated tools in the toolbox drawer
+      // LEGACY: Check for old UI structure (pre-Nov 2025)
       const activatedButtons = document.querySelectorAll(
         'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
       );
-      console.log(`${Utils.getPrefix()} Found ${activatedButtons.length} activated tool buttons`);
+      console.log(
+        `${Utils.getPrefix()} Found ${activatedButtons.length} activated tool buttons (legacy check)`
+      );
 
-      // Check each button to see if it's one of our special tools
       for (const button of activatedButtons) {
         const labelElement = button.querySelector(".toolbox-drawer-button-label");
-        if (!labelElement) continue;
+        if (!labelElement || !labelElement.textContent) continue;
 
         const buttonText = labelElement.textContent.trim();
+        if (!buttonText) continue;
         console.log(`${Utils.getPrefix()} Found activated button with text: "${buttonText}"`);
-
-        if (buttonText.includes("Deep Research")) {
-          console.log(`${Utils.getPrefix()} Deep Research tool is activated`);
-          return "Deep Research";
-        }
-
-        if (buttonText.includes("Video")) {
-          console.log(`${Utils.getPrefix()} Video tool is activated, checking for Veo version...`);
-          return this.detectVeoVersion();
-        }
+        return this.normalizeTool(buttonText);
       }
 
-      // Alternative detection method if the above doesn't work
+      // Alternative legacy detection via icons
       const toolboxDrawer = document.querySelector("toolbox-drawer");
       if (toolboxDrawer) {
-        // Try to find Deep Research button
+        // Try to find Deep Research button via icon
         const deepResearchIcon = toolboxDrawer.querySelector('mat-icon[data-mat-icon-name="travel_explore"]');
         if (deepResearchIcon) {
           const deepResearchButton = deepResearchIcon.closest(
@@ -319,18 +336,15 @@
           }
         }
 
-        // Try to find Video button
+        // Try to find Video button via icon
         const videoIcon = toolboxDrawer.querySelector('mat-icon[data-mat-icon-name="movie"]');
         if (videoIcon) {
           const videoButton = videoIcon.closest(
             'button.toolbox-drawer-item-button.is-selected[aria-pressed="true"]'
           );
           if (videoButton) {
-            // Log activation using standard prefix
-            console.log(
-              `${Utils.getPrefix()} Video tool is activated (detected via icon), checking for Veo version...`
-            );
-            return this.detectVeoVersion();
+            console.log(`${Utils.getPrefix()} Video tool is activated (detected via icon)`);
+            return "Create videos";
           }
         }
       }
@@ -341,20 +355,23 @@
     /**
      * Attempts to detect the currently selected Gemini model from the UI.
      * Tries multiple selector strategies to find the model name.
-     * Also checks for special activated tools like Deep Research and Veo 2.
+     * Also checks for activated tools and returns both model and tool information.
      *
-     * @returns {string} - The detected model name or 'Unknown' if not found
+     * Models are always Fast/Thinking (or legacy versions).
+     * Tools are everything from the tool selection UI (Deep Research, Create images, Create videos, etc.)
+     *
+     * @returns {{model: string, tool: string|null}} - Object with detected model name and optional tool
      */
     getCurrentModelName: function () {
       console.log(`${Utils.getPrefix()} Attempting to get current model name...`);
 
-      // First, check for special tools that override the model name
-      const specialTool = this.checkForSpecialTools();
-      if (specialTool) {
-        console.log(`${Utils.getPrefix()} Special tool activated: ${specialTool}`);
-        return specialTool;
+      // Check for activated tools (all tools from the tool selection UI)
+      const activatedTool = this.checkForSpecialTools();
+      if (activatedTool) {
+        console.log(`${Utils.getPrefix()} Tool activated: ${activatedTool}`);
       }
 
+      // Always detect the underlying model from the UI (Fast/Thinking)
       let rawText = null;
       let foundVia = null;
 
@@ -413,25 +430,30 @@
         }
       }
 
+      let model = "Unknown";
       if (rawText) {
         const sortedKeys = Object.keys(MODEL_NAMES).sort((a, b) => b.length - a.length);
         for (const key of sortedKeys) {
           if (rawText.startsWith(key)) {
-            const model = MODEL_NAMES[key];
+            model = MODEL_NAMES[key];
             console.log(`${Utils.getPrefix()} Matched known model: "${model}" from raw text "${rawText}"`);
-            return model;
+            break;
           }
         }
-        // Log fallback to raw text with standard prefix
-        console.log(
-          `${Utils.getPrefix()} Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`
-        );
-        return rawText; // Return raw text if no prefix matches
+        if (model === "Unknown") {
+          // Log fallback to raw text with standard prefix
+          console.log(
+            `${Utils.getPrefix()} Raw text "${rawText}" didn't match known prefixes, using raw text as model name.`
+          );
+          model = rawText;
+        }
+      } else {
+        // Log warning using standard prefix
+        console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
       }
 
-      // Log warning using standard prefix
-      console.warn(`${Utils.getPrefix()} Could not determine current model name from any known selector.`);
-      return "Unknown";
+      // Return both model and tool
+      return { model, tool: activatedTool };
     },
   };
 

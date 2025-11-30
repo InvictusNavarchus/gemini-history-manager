@@ -16,7 +16,7 @@
         </div>
         <div class="detail-group">
           <h3>Model</h3>
-          <p>{{ conversation.model || "Unknown" }}</p>
+          <p>{{ displayModelAndTool }}</p>
         </div>
         <div class="detail-group">
           <h3>Gemini Plan</h3>
@@ -90,8 +90,8 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, onMounted, onUnmounted, ref } from "vue";
-import { parseTimestamp, Logger } from "../../lib/utils.js";
+import { defineProps, defineEmits, onMounted, onUnmounted, ref, computed } from "vue";
+import { parseTimestamp, Logger, formatModelAndTool } from "../../lib/utils.js";
 
 // Define props
 const props = defineProps({
@@ -110,6 +110,11 @@ const emit = defineEmits(["close", "delete", "copy-url"]);
 
 // Reactive state
 const isCopied = ref(false);
+
+// Computed properties
+const displayModelAndTool = computed(() => {
+  return formatModelAndTool(props.conversation);
+});
 
 // Component lifecycle hooks
 onMounted(() => {

@@ -45,6 +45,7 @@ export function createModalManager() {
         id: conversation?.id,
         timestamp: conversation?.timestamp,
         model: conversation?.model,
+        tool: conversation?.tool,
       })}`
     );
   }
