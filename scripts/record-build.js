@@ -4,7 +4,7 @@
  * Usage: bun run record-build
  */
 import fs from "fs-extra";
-import path from "path";
+import path from "node:path";
 import { getCurrentVersion, ROOT_DIR } from "./lib/utils.js";
 
 const version = getCurrentVersion();

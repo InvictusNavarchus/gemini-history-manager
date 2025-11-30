@@ -3,10 +3,10 @@
  * Shared utilities for build and release scripts.
  * Consolidates common functions to reduce code duplication.
  */
-import fs from "fs";
-import path from "path";
-import { execSync } from "child_process";
-import { fileURLToPath } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { execSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 // Resolve root directory relative to this module
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

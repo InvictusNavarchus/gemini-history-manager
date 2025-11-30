@@ -3,9 +3,9 @@
  * Compare checksums across builds of the same version to verify build reproducibility.
  * Usage: bun run compare-checksums [version] [--output report.json]
  */
-import fs from "fs";
-import path from "path";
-import crypto from "crypto";
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
 import { getCurrentVersion, ROOT_DIR } from "./lib/utils.js";
 
 /**
