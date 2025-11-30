@@ -43,13 +43,14 @@ jobs:
 
           # Match release commits: "chore: release vX.X.X"
           # Also match: "chore: bump version to vX.X.X" for backwards compatibility
-          if echo "$COMMIT_MSG" | grep -qE "^chore: (release|bump version to) v[0-9]+\.[0-9]+\.[0-9]+"; then
+          # Use grep without ^ anchor to handle merge commits where the pattern appears on a later line
+          if echo "$COMMIT_MSG" | grep -qE "chore: (release|bump version to) v[0-9]+\.[0-9]+\.[0-9]+"; then
             VERSION=$(jq -r .version package.json)
             echo "Detected release commit for version: $VERSION"
             echo "is_release=true" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           # Also check for squash-merged PRs with release in title
-          elif echo "$COMMIT_MSG" | grep -qE "^Release v[0-9]+\.[0-9]+\.[0-9]+"; then
+          elif echo "$COMMIT_MSG" | grep -qE "Release v[0-9]+\.[0-9]+\.[0-9]+"; then
             VERSION=$(jq -r .version package.json)
             echo "Detected release PR merge for version: $VERSION"
             echo "is_release=true" >> $GITHUB_OUTPUT
