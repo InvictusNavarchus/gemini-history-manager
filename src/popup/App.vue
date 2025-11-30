@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import dayjs from "dayjs"; // Direct import for filename formatting
 import {
   Logger,
@@ -81,10 +81,56 @@ const headerComponent = ref(null); // Ref for the Header component to access the
 const isLoading = ref(true);
 const errorState = ref({ hasError: false, message: "" });
 
+/**
+ * Handles real-time storage changes for live popup updates.
+ * This listener is called whenever browser.storage.local changes,
+ * allowing the popup to stay in sync while it's open.
+ *
+ * @param {Object} changes - Object containing changed keys with oldValue/newValue
+ * @param {string} areaName - The storage area that changed ('local', 'sync', etc.)
+ */
+function handleStorageChange(changes, areaName) {
+  // Only react to local storage changes for our history key
+  if (areaName !== "local" || !changes[STORAGE_KEY]) {
+    return;
+  }
+
+  const { oldValue, newValue } = changes[STORAGE_KEY];
+  const previousCount = Array.isArray(oldValue) ? oldValue.length : 0;
+  const newCount = Array.isArray(newValue) ? newValue.length : 0;
+
+  Logger.log("App", "Storage changed in popup", {
+    previousCount,
+    newCount,
+    component: "popup",
+  });
+
+  // Sort the new data by timestamp (most recent first)
+  const sortedHistory = [...(newValue || [])].sort(
+    (a, b) => parseTimestamp(b.timestamp).valueOf() - parseTimestamp(a.timestamp).valueOf()
+  );
+
+  // Update the popup displays with new data
+  if (sortedHistory.length > 0) {
+    updateStatsDisplay(sortedHistory);
+    updateRecentConversationsDisplay(sortedHistory);
+  } else {
+    // Reset to empty state
+    totalConversations.value = 0;
+    mostUsedModelText.value = "-";
+    lastConversationTimeText.value = "-";
+    recentConversationsList.value = [];
+  }
+}
+
 // --- Initialization and Data Loading ---
 onMounted(async () => {
   Logger.log("App", "Component mounted", { component: "popup" });
   await initializePopup();
+
+  // Set up real-time storage change listener for live updates
+  browser.storage.onChanged.addListener(handleStorageChange);
+  Logger.log("App", "Storage change listener registered for popup real-time updates");
 
   // Clean up the temporary theme storage after it's been used
   localStorage.removeItem("popup_initialized_theme");
@@ -100,6 +146,13 @@ onMounted(async () => {
       Logger.debug("App", "CSS transitions enabled for theme changes");
     });
   });
+});
+
+// Clean up event listeners when component is unmounted
+onUnmounted(() => {
+  // Remove storage change listener to prevent memory leaks
+  browser.storage.onChanged.removeListener(handleStorageChange);
+  Logger.log("App", "Storage change listener removed from popup");
 });
 
 /**
