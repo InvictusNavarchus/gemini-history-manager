@@ -190,12 +190,14 @@ It will:
 ### Release didn't trigger
 
 Check that your commit message follows the format:
-```
+
+```text
 chore: release v0.19.0
 ```
 
 Or for squash-merged PRs:
-```
+
+```text
 Release v0.19.0 (#123)
 ```
 
