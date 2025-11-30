@@ -311,21 +311,12 @@ function handleStorageChange(changes, areaName) {
   Logger.log("App.vue", `Storage changed: ${previousCount} → ${newCount} entries`);
 
   // Update the reactive history data
+  // Note: The allHistory watcher handles updateDashboardStats() and renderCurrentVisualization()
   allHistory.value = newValue || [];
 
-  // Rebuild search index with new data
+  // Rebuild search index with new data (not handled by watcher)
   Logger.log("App.vue", "Rebuilding search index after storage change");
   searchIndex.value = createSearchIndex(allHistory.value);
-
-  // Update statistics
-  updateDashboardStats();
-
-  // Re-render visualizations if that tab is active
-  if (activeMainTab.value === "visualizations" && allHistory.value.length > 0) {
-    nextTick(() => {
-      renderCurrentVisualization();
-    });
-  }
 
   // Show a subtle toast notification for new entries (good UX feedback)
   const entriesAdded = newCount - previousCount;
@@ -504,7 +495,7 @@ const confirmDeleteConversation = createDeleteConversationConfirmation(modalMana
     if (index !== -1) {
       allHistory.value.splice(index, 1);
       await saveData();
-      updateDashboardStats();
+      // Note: updateDashboardStats() is handled by allHistory watcher
       showToast("Conversation deleted successfully.", "success");
       closeConversationDetailsModal();
     } else {
@@ -520,14 +511,8 @@ const confirmClearAllHistory = createClearHistoryConfirmation(modalManager, asyn
   try {
     allHistory.value = [];
     await saveData();
-    updateDashboardStats();
+    // Note: updateDashboardStats() and chart cleanup are handled by allHistory watcher
     showToast("All conversation history has been cleared.", "success");
-    if (activeMainTab.value === "visualizations") {
-      if (chartInstance) {
-        chartInstance.destroy();
-        chartInstance = null;
-      }
-    }
   } catch (error) {
     showToast(`Error clearing history: ${error.message}`, "error");
   }
@@ -574,15 +559,8 @@ async function handleFileSelectedForImport(event) {
 
     if (newItems.length > 0) {
       // Update history with imported data
+      // Note: updateDashboardStats() and renderCurrentVisualization() are handled by allHistory watcher
       allHistory.value = updatedHistory;
-
-      // No need to save again as importHistoryData now handles saving
-      // await saveData();
-      updateDashboardStats();
-
-      if (activeMainTab.value === "visualizations") {
-        renderCurrentVisualization();
-      }
 
       showToast(`Import complete: Added ${newItems.length} new conversation(s).`, "success");
     } else {
