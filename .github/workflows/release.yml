@@ -1,0 +1,172 @@
+# GitHub Actions workflow for automated releases
+# Triggered when a release commit is pushed to main
+#
+# This workflow:
+# 1. Detects release commits (matching "chore: release vX.X.X")
+# 2. Builds the extension for Chrome and Firefox
+# 3. Creates a git tag
+# 4. Creates a GitHub release with the built assets
+#
+# To trigger a release:
+# 1. Run: bun release --patch (or --minor, --major)
+# 2. Edit release notes and commit
+# 3. Create PR and merge to main
+
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "package.json"
+
+jobs:
+  check-release:
+    name: Check if release commit
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.check.outputs.is_release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit message and version change
+        id: check
+        run: |
+          # Get all commit messages in this push
+          # For single commits or squash merges, this is just one commit
+          # For rebase merges or multi-commit pushes, this captures all
+          BEFORE_SHA="${{ github.event.before }}"
+          CURRENT_SHA="${{ github.sha }}"
+
+          # Handle initial push (before SHA is all zeros)
+          if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+            echo "Initial push detected, checking only HEAD commit"
+            ALL_MESSAGES=$(git log -1 --pretty=%B)
+          else
+            echo "Checking commits from $BEFORE_SHA to $CURRENT_SHA"
+            ALL_MESSAGES=$(git log --pretty=%B "${BEFORE_SHA}..${CURRENT_SHA}")
+          fi
+
+          echo "Commit messages in this push:"
+          echo "$ALL_MESSAGES"
+          echo "---"
+
+          # Match release commits: "chore: bump version to vX.X.X"
+          # This is the commit message created by `bun release`
+          if echo "$ALL_MESSAGES" | grep -qE "chore: bump version to v[0-9]+\.[0-9]+\.[0-9]+"; then
+            VERSION=$(jq -r .version package.json)
+            echo "Detected release commit for version: $VERSION"
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          # Also check for squash-merged PRs with release in title
+          elif echo "$ALL_MESSAGES" | grep -qE "Release v[0-9]+\.[0-9]+\.[0-9]+"; then
+            VERSION=$(jq -r .version package.json)
+            echo "Detected release PR merge for version: $VERSION"
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "Not a release commit, skipping..."
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-release:
+    name: Build and Release
+    needs: check-release
+    if: needs.check-release.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.3"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build extensions
+        run: bun run build:all
+
+      - name: Verify build artifacts
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          CHROME_ZIP="dist-zip/gemini_history_manager_chrome-${VERSION}.zip"
+          FIREFOX_ZIP="dist-zip/gemini_history_manager_firefox-${VERSION}.zip"
+
+          echo "Checking for build artifacts..."
+
+          if [[ ! -f "$CHROME_ZIP" ]]; then
+            echo "::error::Chrome zip not found: $CHROME_ZIP"
+            exit 1
+          fi
+
+          if [[ ! -f "$FIREFOX_ZIP" ]]; then
+            echo "::error::Firefox zip not found: $FIREFOX_ZIP"
+            exit 1
+          fi
+
+          echo "✅ Build artifacts verified:"
+          ls -la dist-zip/
+
+      - name: Create git tag
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          TAG_NAME="v${VERSION}"
+
+          # Check if tag already exists (locally or remote)
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG_NAME$"; then
+            echo "Tag $TAG_NAME already exists on remote, skipping tag creation"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Release ${VERSION}"
+          git push origin "$TAG_NAME"
+          echo "✅ Created and pushed tag: $TAG_NAME"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          TAG_NAME="v${VERSION}"
+          CHROME_ZIP="dist-zip/gemini_history_manager_chrome-${VERSION}.zip"
+          FIREFOX_ZIP="dist-zip/gemini_history_manager_firefox-${VERSION}.zip"
+          RELEASE_NOTES="release-notes/${TAG_NAME}.md"
+
+          # Check if release already exists
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release $TAG_NAME already exists, skipping release creation"
+            exit 0
+          fi
+
+          # Create release with or without release notes file
+          if [[ -f "$RELEASE_NOTES" ]]; then
+            echo "Using release notes from: $RELEASE_NOTES"
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --notes-file "$RELEASE_NOTES" \
+              "$CHROME_ZIP" \
+              "$FIREFOX_ZIP"
+          else
+            echo "No release notes found, generating from commits"
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --generate-notes \
+              "$CHROME_ZIP" \
+              "$FIREFOX_ZIP"
+          fi
+
+          echo ""
+          echo "🚀 Release $TAG_NAME created successfully!"
+          echo "   View at: ${{ github.server_url }}/${{ github.repository }}/releases/tag/$TAG_NAME"

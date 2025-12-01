@@ -27,7 +27,6 @@
     "release:patch": "node scripts/release.js --patch",
     "release:minor": "node scripts/release.js --minor",
     "release:major": "node scripts/release.js --major",
-    "release:create": "node scripts/create-github-release.js",
     "dev-helper": "node scripts/dev-helper.js",
     "prepare": "husky"
   },

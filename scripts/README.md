@@ -1,635 +1,219 @@
 # Scripts Documentation
 
-This directory contains streamlined build and release scripts for the Gemini History Manager extension.
+This directory contains build and release scripts for the Gemini History Manager extension.
 
 ## Quick Reference
 
-### Development Workflow
+### Development
 ```bash
-# Start fresh
 bun dev-helper clean           # Remove all build artifacts
-
-# Quick iteration
 bun build:all                  # Build + package both browsers
 bun dev                        # Watch mode for Firefox
 bun dev:chrome                 # Watch mode for Chrome
-
-# Quality checks
 bun dev-helper lint-all        # Lint Firefox + Chrome builds
 bun dev-helper format-fix      # Auto-format all code files
-
-# Build verification (requires 2+ builds recorded)
-bun build:all --record         # Build + save for comparison
-bun dev-helper compare         # Compare current version builds
 ```
 
-### Release Workflow
+### Release
 ```bash
-# Preview release (recommended first step)
-bun release --patch --dry-run  # See what would happen
-
-# Execute release
-bun release --patch            # Complete patch release process
-bun release --minor            # Complete minor release process  
-bun release --major            # Complete major release process
-
-# Partial release (if GitHub step fails)
-bun release --patch --skip-github  # Stop before GitHub release
-bun release:create             # Create GitHub release separately
+bun release --patch            # Prepare a patch release (0.0.x)
+bun release --minor            # Prepare a minor release (0.x.0)
+bun release --major            # Prepare a major release (x.0.0)
+bun release --patch --dry-run  # Preview what would change
 ```
 
-### Build Combinations
+## Release Workflow
+
+This project uses a **PR-based release workflow**. The release process is split between local preparation and automated CI/CD.
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     LOCAL (You)                             │
+├─────────────────────────────────────────────────────────────┤
+│  1. bun release --patch                                     │
+│     → Updates version in package.json, manifests, README    │
+│     → Commits version bump automatically                    │
+│     → Creates release notes template (unstaged)             │
+│                                                             │
+│  2. Edit and commit release notes                           │
+│     → vim release-notes/vX.X.X.md                          │
+│     → git add release-notes/ && git commit                  │
+│                                                             │
+│  3. Push and create PR                                      │
+│     → git push && gh pr create                              │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   GITHUB (Automated)                        │
+├─────────────────────────────────────────────────────────────┤
+│  4. Review and merge PR                                     │
+│                                                             │
+│  5. GitHub Actions automatically:                           │
+│     → Builds Chrome and Firefox extensions                  │
+│     → Creates git tag vX.X.X                               │
+│     → Creates GitHub release with zip attachments          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Step-by-Step Guide
+
+#### 1. Prepare the Release
+
 ```bash
-# Basic operations
+# Create a release branch (optional but recommended)
+git checkout main && git pull
+git checkout -b release/v0.19.0
+
+# Run the release preparation script
+bun release --patch   # or --minor, --major
+```
+
+The script will:
+- Update version in `package.json`, `manifest-chrome.json`, `manifest-firefox.json`, and `README.md`
+- **Automatically commit** the version bump with the correct message
+- Create `release-notes/vX.X.X.md` template (unstaged)
+
+#### 2. Edit and Commit Release Notes
+
+```bash
+# Edit the generated release notes
+vim release-notes/v0.19.0.md
+
+# Commit release notes
+git add release-notes/
+git commit -m "docs: add release notes for v0.19.0"
+```
+
+#### 3. Push and Create PR
+
+```bash
+git push -u origin release/v0.19.0
+gh pr create --title "Release v0.19.0" --body "Release version 0.19.0"
+```
+
+#### 4. Merge the PR
+
+After review, merge the PR to main. GitHub Actions will automatically:
+- Build Chrome and Firefox extensions
+- Create the git tag `v0.19.0`
+- Create a GitHub release with the zip files attached
+
+### Why This Workflow?
+
+| Benefit | Description |
+|---------|-------------|
+| **Reproducible builds** | Extensions are built in CI, not on your machine |
+| **Auditable** | Every release goes through PR review |
+| **No "works on my machine"** | CI environment is consistent |
+| **Atomic releases** | Tag and release are created from the exact merged code |
+
+## Script Reference
+
+### `release.js` - Release Preparation
+
+Prepares a release by updating version files and creating release notes.
+
+```bash
+bun release --patch            # Bump patch version (0.0.x)
+bun release --minor            # Bump minor version (0.x.0)
+bun release --major            # Bump major version (x.0.0)
+bun release --patch --dry-run  # Preview changes without modifying files
+```
+
+**What it does:**
+1. Bumps version in `package.json`, `manifest-*.json`, and `README.md` badge
+2. **Automatically commits** the version bump with correct message for CI detection
+3. Creates `release-notes/vX.X.X.md` template (unstaged)
+4. Shows next steps for creating a PR
+
+**What it does NOT do:**
+- Build the extension (GitHub Actions does this)
+- Create git tags (GitHub Actions does this)
+- Create GitHub releases (GitHub Actions does this)
+
+### `build-all.js` - Build Script
+
+Builds and packages the extension for both browsers.
+
+```bash
 bun build:all                  # Build Firefox + Chrome + package
 bun build:all --clean          # Clean first, then build
-bun package-record             # Same as: bun build:all --record
-
-# Advanced verification (requires 2+ builds recorded)
-bun build:all --clean --record --compare  # Full build verification
-bun compare-checksums          # Compare existing builds only
+bun build:all --record         # Build + save for comparison
+bun build:all --compare        # Build + compare checksums (needs 2+ builds)
 ```
 
-## Complete Workflow Guide
+### `dev-helper.js` - Development Helper
 
-### Approach 1: Fully Automated Release (Recommended)
+Provides shortcuts for common development tasks.
 
-**Single command does everything:**
 ```bash
-bun release --patch
+bun dev-helper clean           # Remove all build directories
+bun dev-helper quick-build     # Fast build (no recording)
+bun dev-helper full-build      # Build with recording
+bun dev-helper compare         # Compare checksums
+bun dev-helper lint-all        # Lint both builds
+bun dev-helper format-fix      # Format all code files
+bun dev-helper version         # Show current version
+bun dev-helper help            # Show help
 ```
 
-**What happens automatically:**
-1. ✅ Version bump in all files
-2. ✅ Release notes creation/editing
-3. ✅ Clean build for both browsers
-4. ✅ Package into zip files
-5. ✅ Record build for comparison (creates build-1 for new version)
-6. ✅ Git commit and tag
-7. ✅ Push to remote
-8. ✅ Create GitHub release with assets
+### `record-build.js` - Build Recording
 
-**When to use:** Most releases, when you trust the automation
-
-**Time required:** ~2-5 minutes (mostly waiting for builds)
-
-### Approach 2: Cautious Release with Verification
-
-**Step-by-step with verification:**
-```bash
-# 1. Preview what will happen
-bun release --patch --dry-run
-
-# 2. Build and verify first (optional, requires existing build-1 and build-2)
-bun build:all --clean --record --compare
-
-# 3. Execute release (skips rebuild since files exist)
-bun release --patch
-```
-
-**When to use:** 
-- Important releases
-- After significant code changes
-- When you want to verify build consistency
-
-**Time required:** ~5-10 minutes (includes manual verification)
-
-### Approach 3: Manual Control Release
-
-**Maximum control over each step:**
-```bash
-# 1. Build and verify
-bun build:all --clean --record
-bun compare-checksums
-
-# 2. Use release with --skip-github for version bump + git operations
-bun release --patch --skip-github
-
-# 3. Create GitHub release separately
-bun release:create
-```
-
-**When to use:**
-- Complex releases requiring manual intervention
-- When automation fails partway through
-- Custom release notes or special procedures
-
-**Time required:** ~10-15 minutes (lots of manual steps)
-
-### Approach 4: Build Verification Workflow
-
-**For testing build consistency without releasing:**
-```bash
-# Build multiple times and compare
-bun build:all --clean --record    # Creates build-1
-bun build:all --clean --record    # Creates build-2
-bun compare-checksums             # Compares build-1 vs build-2
-
-# Or use the verification shortcut (only works if 2+ builds exist)
-bun build:all --clean --record --compare
-```
-
-**Important:** You must record **at least 2 builds** of the same version before comparison is meaningful. The first `--record` creates `build-1`, the second creates `build-2`, then `--compare` checks if they're identical.
-
-**When to use:**
-- Debugging build inconsistencies
-- Verifying reproducible builds
-- Before important releases
-
-### Decision Tree: Which Approach?
-
-```
-Are you doing a routine patch/minor release?
-├─ YES → Use Approach 1 (bun release --patch)
-└─ NO → Continue...
-
-Is this a major release or after big changes?
-├─ YES → Use Approach 2 (verify first)
-└─ NO → Continue...
-
-Do you need custom release procedures?
-├─ YES → Use Approach 3 (manual control)
-└─ NO → Use Approach 1 (automated)
-
-Are you debugging build issues?
-├─ YES → Use Approach 4 (verification only)
-└─ NO → Use Approach 1 (automated)
-```
-
-### What Gets Built and When
-
-**During `bun release --patch`:**
-- Builds are created fresh every time
-- No reuse of existing `dist-*` directories
-- Build is recorded automatically for comparison
-- Checksums are NOT compared automatically (use Approach 2 for that)
-
-**Build artifacts created:**
-```
-dist-firefox/           # Firefox extension files
-├── manifest.json
-├── background.js
-├── popup/
-├── dashboard/
-└── ...
-
-dist-chrome/            # Chrome extension files  
-├── manifest.json
-├── background.js
-├── popup/
-├── dashboard/
-└── ...
-
-dist-zip/               # Packaged extensions
-├── gemini_history_manager_firefox-1.2.4.zip
-└── gemini_history_manager_chrome-1.2.4.zip
-
-dist-record/1.2.4/      # Build history
-└── build-1/
-    ├── dist-firefox/
-    ├── dist-chrome/
-    └── dist-zip/
-```
-
-### Recovery Scenarios
-
-**If automated release fails at step 3 (building):**
-```bash
-# Fix the build issue, then retry
-bun release --patch  # Will rebuild from scratch
-```
-
-**If automated release fails at step 7 (GitHub):**
-```bash
-# Version was bumped and pushed, just create GitHub release
-bun release:create
-```
-
-**If you want to verify before GitHub release:**
-```bash
-# Stop before GitHub step
-bun release --patch --skip-github
-
-# Verify the build/release locally
-# Then create GitHub release manually
-bun release:create
-```
-
-### Workflow FAQ
-
-**Q: Do I need to build before running `bun release --patch`?**
-A: No! The release script builds everything fresh automatically. Any existing `dist-*` directories are ignored.
-
-**Q: Does the release script compare checksums automatically?**
-A: No. It records the build (creates build-1 for new versions), but doesn't compare automatically. You need at least 2 builds to compare. Use `bun build:all --record --compare` after running `--record` twice if you want verification.
-
-**Q: Can I reuse an existing build for release?**
-A: No. The release script always builds fresh to ensure consistency. This prevents issues with stale build artifacts.
-
-**Q: What if I want to test the build before releasing?**
-A: Use the cautious approach (note: comparison only works if you have 2+ builds):
-```bash
-bun build:all --clean --record            # Build 1
-bun build:all --clean --record            # Build 2
-bun compare-checksums                     # Verify consistency
-bun release --patch --dry-run             # Preview release
-bun release --patch                       # Execute if satisfied
-```
-
-**Q: How do I know if my builds are consistent?**
-A: You need at least 2 recorded builds to compare. Run:
-```bash
-bun build:all --clean --record  # Creates build-1
-bun build:all --clean --record  # Creates build-2
-bun compare-checksums           # Compares checksums between builds
-```
-If the builds are consistent, you'll see "0 files with inconsistent checksums".
-
-**Q: Can I skip the GitHub release but keep everything else?**
-A: Yes! Use `--skip-github`:
-```bash
-bun release --patch --skip-github  # Version bump + git operations only
-bun release:create                  # Create GitHub release later
-```
-
-**Q: What's the difference between `bun package` and `bun build:all`?**
-A: They're the same! `bun package` now calls `build-all.js` internally for consistency.
-
-## Script Overview
-
-### Core Scripts
-
-#### `release.js` - Unified Release Script
-
-**What it does:**
-1. Bumps version in `package.json`, `manifest-*.json`, and `README.md`
-2. Creates/opens release notes file (`release-notes/vX.X.X.md`)
-3. Builds Firefox and Chrome extensions
-4. Packages extensions into zip files
-5. Records build for comparison
-6. Commits changes and creates git tag
-7. Pushes to remote repository
-8. Creates GitHub release with zip attachments
-
-**Arguments:**
-- **Required**: Exactly one of `--major`, `--minor`, `--patch` (or `-M`, `-m`, `-p`)
-- **Optional**: `--dry-run` - Shows what would happen without executing
-- **Optional**: `--skip-github` - Stops before GitHub release creation
-
-**Argument Combinations:**
-```bash
-# ✅ Valid combinations
-bun release --patch                    # Full patch release
-bun release --minor --dry-run          # Preview minor release
-bun release --major --skip-github      # Release without GitHub
-bun release --patch --dry-run --skip-github  # Preview without GitHub
-
-# ❌ Invalid combinations
-bun release --patch --minor            # Error: Only one version type allowed
-bun release                            # Error: Version type required
-bun release --dry-run                  # Error: Version type required
-```
-
-**What happens without arguments:**
-- Script exits with error message showing usage
-- No files are modified
-
-#### `build-all.js` - Unified Build Script
-
-**What it does by default:**
-1. Builds Firefox extension (`dist-firefox/`)
-2. Builds Chrome extension (`dist-chrome/`)
-3. Creates zip packages (`dist-zip/`)
-4. Shows build summary with file sizes
-
-**Arguments (all optional, can be combined):**
-- `--clean` - Removes `dist-firefox/`, `dist-chrome/`, `dist-zip/` before building
-- `--record` - Saves build to `dist-record/VERSION/build-N/` for comparison
-- `--compare` - Runs checksum comparison after building
-
-**Argument Combinations:**
-```bash
-# ✅ All valid combinations
-bun build:all                          # Basic build + package
-bun build:all --clean                  # Clean then build
-bun build:all --record                 # Build + save for comparison
-bun build:all --compare                # Build + compare checksums
-bun build:all --clean --record         # Clean, build, record
-bun build:all --record --compare       # Build, record, compare
-bun build:all --clean --record --compare  # All operations
-```
-
-**What happens without arguments:**
-- Performs basic build and packaging
-- No cleaning, recording, or comparison
-
-#### `dev-helper.js` - Development Helper
-
-**What it does:**
-Provides shortcuts for common development tasks through subcommands.
-
-**Subcommands:**
-- `clean` - Removes all build directories
-- `quick-build` - Calls `build-all.js` with no arguments
-- `full-build` - Calls `build-all.js --record`
-- `compare` - Runs checksum comparison on current version
-- `lint-all` - Lints both Firefox and Chrome builds
-- `format-fix` - Formats all code files
-- `version` - Shows current version information
-- `help` (or no argument) - Shows help message
-
-**Usage Examples:**
-```bash
-# ✅ Valid usage
-bun dev-helper clean                   # Clean build directories
-bun dev-helper quick-build             # Fast build
-bun dev-helper                         # Shows help
-bun dev-helper help                    # Shows help
-bun dev-helper invalid-command         # Shows help
-
-# ❌ No argument combinations
-# Each call takes exactly one subcommand
-```
-
-**What happens without arguments:**
-- Shows help message with all available subcommands
-
-### Supporting Scripts
-
-#### `record-build.js`
 Records builds in `dist-record/` for checksum comparison.
 
-#### `compare-checksums.js`
-Compares checksums across different builds of the same version to verify build reproducibility. Requires at least 2 recorded builds (build-1, build-2, etc.) to perform a meaningful comparison.
+### `compare-checksums.js` - Build Verification
 
-**Usage:**
+Compares checksums across different builds to verify reproducibility.
+
 ```bash
-bun compare-checksums              # Uses current version from package.json
-bun compare-checksums 0.18.8       # Specify version explicitly
-bun compare-checksums --output report.json  # Save detailed report
+bun compare-checksums              # Compare current version
+bun compare-checksums 0.18.8       # Compare specific version
 ```
 
-#### `create-github-release.js`
-Standalone GitHub release creation.
+## GitHub Actions Workflow
 
-## Migration Guide
+The release workflow (`.github/workflows/release.yml`) triggers on:
+- Push to `main` branch
+- When `package.json` is modified
+- When commit message matches `chore: bump version to vX.X.X` or `chore: release vX.X.X`
 
-### Old vs New Commands
-
-| Old Command | New Command | Notes |
-|-------------|-------------|-------|
-| `bun run build:all && bun run package:firefox && bun run package:chrome` | `bun package` | Simplified |
-| `bun run package && bun run record-build` | `bun package-record` | Combined |
-| `bun bump --patch && scripts/post-bump.sh` | `bun release --patch` | Unified (legacy scripts removed) |
-| Multiple manual steps | `bun release --patch` | Single command |
-
-### Benefits of Streamlined Scripts
-
-1. **Fewer Commands**: Common workflows reduced to single commands
-2. **Better Error Handling**: Consistent error handling across all scripts
-3. **Dry Run Support**: Preview changes before execution
-4. **Progress Feedback**: Clear progress indicators and summaries
-5. **Flexible Options**: Skip steps as needed (e.g., `--skip-github`)
-
-## Configuration
-
-Scripts read configuration from:
-- `package.json` - Version and project metadata
-- `vite.config.js` - Build configuration
-- `web-ext-config-*.cjs` - Extension packaging configuration
-
-## Environment Requirements
-
-- Node.js (ES modules support)
-- bun package manager
-- GitHub CLI (`gh`) for release creation
-- Git for version control operations
+It will:
+1. Build extensions using Bun
+2. Create and push the git tag
+3. Create GitHub release with Chrome and Firefox zip files
 
 ## Troubleshooting
 
-### Common Error Scenarios
+### Release didn't trigger
 
-#### Release Script Errors
+Check that one of the commits in your PR has the correct format (the release script creates this automatically):
 
-**"Error: Only one version bump argument is allowed"**
+```text
+chore: bump version to v0.19.0
+```
+
+Or for squash-merged PRs:
+
+```text
+Release v0.19.0 (#123)
+```
+
+### Build failed in CI
+
+1. Check the Actions tab for error details
+2. Try building locally: `bun build:all`
+3. Ensure all dependencies are in `package.json`
+
+### Tag already exists
+
+If you need to re-release the same version:
 ```bash
-# ❌ This fails
-bun release --patch --minor
+# Delete the tag locally and remotely
+git tag -d v0.19.0
+git push origin :refs/tags/v0.19.0
 
-# ✅ Use only one
-bun release --patch
-```
-
-**"Error: GitHub CLI is not authenticated"**
-```bash
-# Fix with:
-gh auth login
-# Then retry release
-```
-
-**"Error: Release tag 'v1.2.3' already exists"**
-- Tag already exists on GitHub
-- Either delete the existing release or bump version again
-- Check: `gh release list` to see existing releases
-
-**"Error: Required file not found: dist-zip/..."**
-- Build step failed before GitHub release
-- Run `bun build:all` separately to debug
-- Check for Vite build errors
-
-#### Build Script Errors
-
-**Build fails with Vite errors**
-```bash
-# Clean and retry
-bun dev-helper clean
-bun build:all
-
-# Check dependencies
-bun install
-```
-
-**"No builds found for version X.X.X" (during compare)**
-- No recorded builds exist for that version
-- Run `bun build:all --record` at least twice to create build-1 and build-2
-- Check `dist-record/X.X.X/` directory exists and contains multiple `build-N/` folders
-- Comparison requires minimum 2 builds to be meaningful
-
-#### File Permission Issues
-
-**"EACCES: permission denied"**
-- Node.js can't write to directories
-- Check directory permissions
-- Ensure you own the project directory
-
-**"Command not found: gh"**
-```bash
-# Install GitHub CLI
-# macOS: brew install gh
-# Ubuntu: sudo apt install gh
-# Or see: https://cli.github.com/
-```
-
-### Recovery Procedures
-
-#### Partial Release Failure
-
-If release fails after version bump but before GitHub release:
-
-```bash
-# 1. Check what was committed
-git log --oneline -5
-
-# 2. If version was bumped and pushed:
-bun release:create  # Just create GitHub release
-
-# 3. If you need to rollback:
-git reset --hard HEAD~1  # Undo local commit
-git push --force-with-lease  # Push rollback (dangerous!)
-```
-
-#### Build Directory Issues
-
-If build directories get corrupted:
-
-```bash
-# Nuclear option - clean everything
-bun dev-helper clean
-rm -rf node_modules/.vite  # Clear Vite cache
-bun install  # Reinstall dependencies
-bun build:all  # Rebuild from scratch
-```
-
-#### Git State Issues
-
-If git is in weird state during release:
-
-```bash
-# Check status
-git status
-
-# If files are staged but not committed:
-git reset  # Unstage files
-# Then retry release
-
-# If merge conflict during release:
-git status  # See conflicted files
-# Resolve conflicts manually
-git add .
-git commit
-# Then retry release
-```
-
-## Detailed Behavior
-
-### What `bun release --patch` Actually Does
-
-**Step-by-step execution:**
-1. **Version Bump**: `1.2.3` → `1.2.4` in:
-   - `package.json`
-   - `src/manifest-chrome.json`
-   - `src/manifest-firefox.json`
-   - `README.md` (shield badge)
-
-2. **Release Notes**: 
-   - Creates `release-notes/v1.2.4.md` if missing
-   - Opens editor for you to write release notes
-   - Waits for you to save and close editor
-
-3. **Build Process**:
-   - `bun run build:firefox` → `dist-firefox/`
-   - `bun run build:chrome` → `dist-chrome/`
-   - `web-ext build` → `dist-zip/gemini_history_manager_firefox-1.2.4.zip`
-   - `web-ext build` → `dist-zip/gemini_history_manager_chrome-1.2.4.zip`
-   - Copies build to `dist-record/1.2.4/build-N/`
-
-4. **Git Operations**:
-   - `git add` all modified files + release notes
-   - `git commit -m "chore: bump version to v1.2.4"`
-   - `git push` to current branch
-   - `git tag -a "v1.2.4" -m "Release 1.2.4"`
-   - `git push origin "v1.2.4"`
-
-5. **GitHub Release**:
-   - `gh release create v1.2.4 --title "v1.2.4" --notes-file "release-notes/v1.2.4.md"`
-   - Attaches both zip files as release assets
-
-**Important Notes:**
-- Build is recorded but checksums are NOT compared automatically
-- If you want checksum verification, use `bun build:all --record --compare` first
-- If any step fails, script stops immediately with no further steps executed
-- Existing `dist-*` directories are cleaned and rebuilt fresh
-
-### What `bun build:all --clean --record` Actually Does
-
-**Step-by-step execution:**
-1. **Clean** (`--clean`):
-   - `rm -rf dist-firefox/`
-   - `rm -rf dist-chrome/`
-   - `rm -rf dist-zip/`
-
-2. **Build**:
-   - `TARGET_BROWSER=firefox vite build --outDir dist-firefox`
-   - `TARGET_BROWSER=chrome vite build --outDir dist-chrome`
-
-3. **Package**:
-   - `web-ext build --config ./web-ext-config-firefox.cjs`
-   - `web-ext build --config ./web-ext-config-chrome.cjs`
-
-4. **Record** (`--record`):
-   - Reads version from `package.json` (e.g., `0.18.7`)
-   - Creates `dist-record/0.18.7/build-N/` (N = next build number)
-   - Copies `dist-firefox/`, `dist-chrome/`, `dist-zip/` to build directory
-   - **Note:** First run creates `build-1`, second run creates `build-2`, etc.
-
-5. **Summary**:
-   - Shows file sizes of generated zip files
-   - Reports success/failure
-
-### Argument Processing Logic
-
-**`release.js` argument validation:**
-```javascript
-// ✅ Exactly one version argument required
-const versionArgs = args.filter(a => ["--major", "--minor", "--patch", "-M", "-m", "-p"].includes(a));
-if (versionArgs.length !== 1) {
-  console.error("Error: Exactly one version argument required");
-  process.exit(1);
-}
-
-// ✅ Optional flags can be combined
-const dryRun = args.includes("--dry-run");
-const skipGithub = args.includes("--skip-github");
-```
-
-**`build-all.js` argument processing:**
-```javascript
-// ✅ All arguments are optional and can be combined
-const shouldRecord = args.includes("--record");
-const shouldCompare = args.includes("--compare");  // Requires 2+ builds exist
-const shouldClean = args.includes("--clean");
-
-// Each flag independently enables its behavior
-// Note: --compare will fail if fewer than 2 builds are recorded
-```
-
-### Debug and Preview Modes
-
-**Dry Run Mode** (`--dry-run`):
-- Shows every command that would be executed
-- Prefixes output with "DRY RUN:"
-- No files are modified
-- No git operations performed
-- No GitHub API calls made
-
-**Example dry run output:**
-```
-$ bun release --patch --dry-run
->>> DRY RUN MODE ENABLED <<<
-
-Releasing patch version: 0.18.7 → 0.18.8
-DRY RUN: Would update package.json to version 0.18.8
-DRY RUN: Would update src/manifest-chrome.json to version 0.18.8
---- DRY RUN: Command not executed ---
-$ bun run build:all
+# Delete the GitHub release manually, then re-merge or re-run the workflow
 ```
