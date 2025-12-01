@@ -72,16 +72,16 @@ function createReleaseNotes(version, dryRun) {
   // Ensure directory exists
   fs.mkdirSync("release-notes", { recursive: true });
 
-  // Create template
+  // Create template (see docs/release-notes-guidelines.md for formatting rules)
   const template = `# Release v${version}
 
-## What's New
+### ✨ New Features
 
-## Bug Fixes
+### 🚀 Improvements
 
-## Technical Changes
+### 🐛 Bug Fixes
 
-## Breaking Changes (if any)
+### ♻️ Refactoring
 `;
 
   fs.writeFileSync(releaseNotesFile, template);
