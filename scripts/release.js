@@ -117,11 +117,11 @@ function runPreflightChecks() {
     console.warn("  ⚠ Could not determine current branch");
   }
 
-  // Check for uncommitted changes (warning only)
+  // Check for uncommitted changes (required for auto-commit to work correctly)
   try {
     const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim();
     if (status) {
-      console.warn("  ⚠ You have uncommitted changes. Commit or stash them first.\n");
+      console.error("  ✗ You have uncommitted changes. Commit or stash them first.\n");
       process.exit(1);
     } else {
       console.log("  ✓ Working directory is clean");
