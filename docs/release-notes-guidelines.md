@@ -31,7 +31,7 @@ For significant releases, include the date:
 
 ### Optional: Summary
 
-For major releases (minor version bumps or significant patch releases), include a 1-2 sentence summary:
+For significant releases (minor version bumps or notable patch releases), include a 1-2 sentence summary:
 
 ```markdown
 This release introduces robust Gemini crash detection and improves extension reliability with critical timing fixes.
