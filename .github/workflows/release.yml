@@ -56,9 +56,9 @@ jobs:
           echo "$ALL_MESSAGES"
           echo "---"
 
-          # Match release commits: "chore: release vX.X.X"
-          # Also match: "chore: bump version to vX.X.X" for backwards compatibility
-          if echo "$ALL_MESSAGES" | grep -qE "chore: (release|bump version to) v[0-9]+\.[0-9]+\.[0-9]+"; then
+          # Match release commits: "chore: bump version to vX.X.X"
+          # This is the commit message created by `bun release`
+          if echo "$ALL_MESSAGES" | grep -qE "chore: bump version to v[0-9]+\.[0-9]+\.[0-9]+"; then
             VERSION=$(jq -r .version package.json)
             echo "Detected release commit for version: $VERSION"
             echo "is_release=true" >> $GITHUB_OUTPUT
