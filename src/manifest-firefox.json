@@ -45,7 +45,10 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "gemini-history-manager@InvictusNavarchus"
+      "id": "gemini-history-manager@InvictusNavarchus",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }
