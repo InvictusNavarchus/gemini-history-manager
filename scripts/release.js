@@ -4,11 +4,12 @@
  *
  * This script prepares a release by:
  * 1. Bumping version in all version files
- * 2. Creating a release notes template
+ * 2. Committing the version bump (with correct commit message for CI)
+ * 3. Creating a release notes template (unstaged, for manual editing)
  *
  * After running this script, you should:
  * 1. Edit the release notes
- * 2. Commit the changes
+ * 2. Commit the release notes
  * 3. Create a PR to main
  * 4. Merge the PR - GitHub Actions handles the rest
  *
@@ -120,7 +121,8 @@ function runPreflightChecks() {
   try {
     const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim();
     if (status) {
-      console.warn("  ⚠ You have uncommitted changes. They will be included in the release commit.\n");
+      console.warn("  ⚠ You have uncommitted changes. Commit or stash them first.\n");
+      process.exit(1);
     } else {
       console.log("  ✓ Working directory is clean");
     }
@@ -164,14 +166,30 @@ function main() {
   }
   console.log("");
 
-  // Step 2: Create release notes
-  console.log("Creating release notes...");
+  // Step 2: Commit version bump (this ensures correct commit message for CI)
+  console.log("Committing version bump...");
+  const commitMessage = `chore: bump version to ${tagName}`;
+  if (dryRun) {
+    console.log(`  Would run: git add ${VERSION_FILES.join(" ")}`);
+    console.log(`  Would run: git commit -m "${commitMessage}"`);
+  } else {
+    try {
+      execSync(`git add ${VERSION_FILES.join(" ")}`, { stdio: "pipe" });
+      execSync(`git commit -m "${commitMessage}"`, { stdio: "pipe" });
+      console.log(`  ✓ Created commit: "${commitMessage}"`);
+    } catch (error) {
+      console.error("  ✗ Failed to create commit:", error.message);
+      process.exit(1);
+    }
+  }
+  console.log("");
+
+  // Step 3: Create release notes (unstaged, for manual editing)
+  console.log("Creating release notes template...");
   const releaseNotesFile = createReleaseNotes(newVersion, dryRun);
   console.log("");
 
   // Show next steps
-  const versionFiles = VERSION_FILES.join(" ");
-
   console.log("╔══════════════════════════════════════════╗");
   console.log("║            Next Steps                    ║");
   console.log("╚══════════════════════════════════════════╝\n");
@@ -179,19 +197,15 @@ function main() {
   console.log(`1. Edit release notes:`);
   console.log(`   ${process.env.EDITOR || "vim"} ${releaseNotesFile}\n`);
 
-  console.log(`2. Commit version bump:`);
-  console.log(`   git add ${versionFiles}`);
-  console.log(`   git commit -m "chore: bump version to ${tagName}"\n`);
-
-  console.log(`3. Commit release notes:`);
+  console.log(`2. Commit release notes:`);
   console.log(`   git add ${releaseNotesFile}`);
   console.log(`   git commit -m "docs: add release notes for ${tagName}"\n`);
 
-  console.log(`4. Push and create PR:`);
+  console.log(`3. Push and create PR:`);
   console.log(`   git push -u origin $(git branch --show-current)`);
   console.log(`   gh pr create --title "Release ${tagName}" --body "Release ${newVersion}"\n`);
 
-  console.log(`5. After PR is merged, GitHub Actions will automatically:`);
+  console.log(`4. After PR is merged, GitHub Actions will automatically:`);
   console.log(`   • Build Chrome and Firefox extensions`);
   console.log(`   • Create git tag ${tagName}`);
   console.log(`   • Create GitHub release with assets\n`);

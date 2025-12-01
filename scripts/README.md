@@ -34,13 +34,14 @@ This project uses a **PR-based release workflow**. The release process is split 
 ├─────────────────────────────────────────────────────────────┤
 │  1. bun release --patch                                     │
 │     → Updates version in package.json, manifests, README    │
-│     → Creates release notes template                        │
+│     → Commits version bump automatically                    │
+│     → Creates release notes template (unstaged)             │
 │                                                             │
-│  2. Edit release notes                                      │
+│  2. Edit and commit release notes                           │
 │     → vim release-notes/vX.X.X.md                          │
+│     → git add release-notes/ && git commit                  │
 │                                                             │
-│  3. Commit and create PR                                    │
-│     → git add . && git commit -m "chore: release vX.X.X"   │
+│  3. Push and create PR                                      │
 │     → git push && gh pr create                              │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -72,35 +73,28 @@ bun release --patch   # or --minor, --major
 
 The script will:
 - Update version in `package.json`, `manifest-chrome.json`, `manifest-firefox.json`, and `README.md`
-- Create `release-notes/vX.X.X.md` with a template
+- **Automatically commit** the version bump with the correct message
+- Create `release-notes/vX.X.X.md` template (unstaged)
 
-#### 2. Edit Release Notes
+#### 2. Edit and Commit Release Notes
 
 ```bash
 # Edit the generated release notes
 vim release-notes/v0.19.0.md
-```
-
-#### 3. Commit Changes
-
-```bash
-# Commit version bump
-git add package.json src/manifest-*.json README.md
-git commit -m "chore: bump version to v0.19.0"
 
 # Commit release notes
 git add release-notes/
 git commit -m "docs: add release notes for v0.19.0"
 ```
 
-#### 4. Push and Create PR
+#### 3. Push and Create PR
 
 ```bash
 git push -u origin release/v0.19.0
 gh pr create --title "Release v0.19.0" --body "Release version 0.19.0"
 ```
 
-#### 5. Merge the PR
+#### 4. Merge the PR
 
 After review, merge the PR to main. GitHub Actions will automatically:
 - Build Chrome and Firefox extensions
@@ -131,8 +125,9 @@ bun release --patch --dry-run  # Preview changes without modifying files
 
 **What it does:**
 1. Bumps version in `package.json`, `manifest-*.json`, and `README.md` badge
-2. Creates `release-notes/vX.X.X.md` template
-3. Shows next steps for creating a PR
+2. **Automatically commits** the version bump with correct message for CI detection
+3. Creates `release-notes/vX.X.X.md` template (unstaged)
+4. Shows next steps for creating a PR
 
 **What it does NOT do:**
 - Build the extension (GitHub Actions does this)
@@ -183,7 +178,7 @@ bun compare-checksums 0.18.8       # Compare specific version
 The release workflow (`.github/workflows/release.yml`) triggers on:
 - Push to `main` branch
 - When `package.json` is modified
-- When commit message matches `chore: release vX.X.X`
+- When commit message matches `chore: bump version to vX.X.X` or `chore: release vX.X.X`
 
 It will:
 1. Build extensions using Bun
@@ -194,10 +189,10 @@ It will:
 
 ### Release didn't trigger
 
-Check that your commit message follows the format:
+Check that one of the commits in your PR has the correct format (the release script creates this automatically):
 
 ```text
-chore: release v0.19.0
+chore: bump version to v0.19.0
 ```
 
 Or for squash-merged PRs:
